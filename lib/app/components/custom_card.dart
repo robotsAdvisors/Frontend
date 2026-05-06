@@ -19,9 +19,16 @@ class CustomCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(16.w, 12.h, 10.w, 12.h),
       decoration: BoxDecoration(
-        color: theme.scaffoldBackgroundColor,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: theme.dividerColor),
+        boxShadow: [
+          BoxShadow(
+            color: theme.primaryColor.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [

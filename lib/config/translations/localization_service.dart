@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../app/data/local/my_shared_pref.dart';
 import 'ar_AR/ar_ar_translation.dart';
 import 'en_US/en_us_translation.dart';
+import 'es_ES/es_es_translation.dart';
 
 class LocalizationService extends Translations {
   // prevent creating instance
@@ -18,11 +19,12 @@ class LocalizationService extends Translations {
 
   // default language
   // todo change the default language
-  static Locale defaultLanguage = supportedLanguages['en']!;
+  static Locale defaultLanguage = supportedLanguages['es']!;
 
   // supported languages
   static Map<String,Locale> supportedLanguages = {
     'en' : const Locale('en', 'US'),
+    'es' : const Locale('es', 'ES'),
     'ar' : const Locale('ar', 'AR'),
   };
 
@@ -30,12 +32,14 @@ class LocalizationService extends Translations {
   static Map<String,TextStyle> supportedLanguagesFontsFamilies = {
     // todo add your English font families (add to assets/fonts, pubspec and name it here) default is poppins for english and cairo for arabic
     'en' : const TextStyle(fontFamily: 'Poppins'),
+    'es' : const TextStyle(fontFamily: 'Poppins'),
     'ar': const TextStyle(fontFamily: 'Cairo'),
   };
 
   @override
   Map<String, Map<String, String>> get keys => {
     'en_US': enUs,
+    'es_ES': esEs,
     'ar_AR': arAR,
   };
 

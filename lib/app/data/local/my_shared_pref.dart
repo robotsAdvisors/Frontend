@@ -14,6 +14,13 @@ class MySharedPref {
   static const String _fcmTokenKey = 'fcm_token';
   static const String _currentLocalKey = 'current_local';
   static const String _lightThemeKey = 'is_theme_light';
+  static const String _isLoggedInKey = 'is_logged_in';
+  static const String _loggedInUserEmailKey = 'logged_in_user_email';
+  static const String _loggedInUserRoleKey = 'logged_in_user_role';
+    static const String _customerNameKey = 'customer_name';
+    static const String _customerPhoneKey = 'customer_phone';
+    static const String _customerAddressKey = 'customer_address';
+    static const String _customerProfileImageKey = 'customer_profile_image';
 
   /// init get storage services
   static Future<void> init() async {
@@ -53,6 +60,60 @@ class MySharedPref {
   /// get generated fcm token
   static String? getFcmToken() =>
       _sharedPreferences.getString(_fcmTokenKey);
+
+  /// set login state
+  static Future<void> setLoggedIn(bool value) =>
+      _sharedPreferences.setBool(_isLoggedInKey, value);
+
+  /// get login state
+  static bool getIsLoggedIn() =>
+      _sharedPreferences.getBool(_isLoggedInKey) ?? false;
+
+  /// save the current logged in email
+  static Future<void> setLoggedInUserEmail(String email) =>
+      _sharedPreferences.setString(_loggedInUserEmailKey, email);
+
+  /// get the current logged in email
+  static String? getLoggedInUserEmail() =>
+      _sharedPreferences.getString(_loggedInUserEmailKey);
+
+  /// save the current logged in role
+  static Future<void> setLoggedInUserRole(String role) =>
+      _sharedPreferences.setString(_loggedInUserRoleKey, role);
+
+  /// get the current logged in role
+  static String? getLoggedInUserRole() =>
+      _sharedPreferences.getString(_loggedInUserRoleKey);
+
+  /// get the current logged in role, or customer if missing
+  static String getLoggedInUserRoleOrDefault() =>
+      _sharedPreferences.getString(_loggedInUserRoleKey) ?? 'customer';
+
+  /// save customer profile data
+  static Future<void> setCustomerName(String value) =>
+      _sharedPreferences.setString(_customerNameKey, value);
+
+  static Future<void> setCustomerPhone(String value) =>
+      _sharedPreferences.setString(_customerPhoneKey, value);
+
+  static Future<void> setCustomerAddress(String value) =>
+      _sharedPreferences.setString(_customerAddressKey, value);
+
+  /// get customer profile data
+  static String? getCustomerName() =>
+      _sharedPreferences.getString(_customerNameKey);
+
+  static String? getCustomerPhone() =>
+      _sharedPreferences.getString(_customerPhoneKey);
+
+  static String? getCustomerAddress() =>
+      _sharedPreferences.getString(_customerAddressKey);
+
+  static Future<void> setCustomerProfileImage(String path) =>
+      _sharedPreferences.setString(_customerProfileImageKey, path);
+
+  static String? getCustomerProfileImage() =>
+      _sharedPreferences.getString(_customerProfileImageKey);
 
   /// clear all data from shared pref
   static Future<void> clear() async => await _sharedPreferences.clear();

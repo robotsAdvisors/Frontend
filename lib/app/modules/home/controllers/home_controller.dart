@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:get/get.dart';
 
 import '../../../../config/theme/my_theme.dart';
@@ -15,6 +18,25 @@ class HomeController extends GetxController {
 
   // for app theme
   var isLightTheme = MySharedPref.getThemeIsLight();
+
+  // customer profile image in base64 (reactive)
+  final RxString profileImageBase64 = (MySharedPref.getCustomerProfileImage() ?? '').obs;
+
+  /// refresh profile image from SharedPrefs (call after returning from settings)
+  void refreshProfileImage() {
+    profileImageBase64.value = MySharedPref.getCustomerProfileImage() ?? '';
+  }
+
+  Uint8List? get profileImageBytes {
+    if (profileImageBase64.value.isEmpty) {
+      return null;
+    }
+    try {
+      return base64Decode(profileImageBase64.value);
+    } catch (_) {
+      return null;
+    }
+  }
 
   // for home screen cards
   var cards = [Constants.card1, Constants.card2, Constants.card3];

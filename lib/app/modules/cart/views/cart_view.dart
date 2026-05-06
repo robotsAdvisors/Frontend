@@ -35,7 +35,7 @@ class CartView extends GetView<CartController> {
                   color: theme.appBarTheme.iconTheme?.color,
                 ),
               ),
-              Text('Cart 🛒', style: theme.textTheme.headline3),
+              Text('Mi carrito 🛒', style: theme.textTheme.headline3),
               const Opacity(
                 opacity: 0.0,
                 child: CustomIconButton(onPressed: null, icon: Center()),
@@ -45,12 +45,16 @@ class CartView extends GetView<CartController> {
         ),
       ),
       body: GetBuilder<CartController>(
-        builder: (_) => Column(
+        builder: (_) => Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Column(
           children: [
             24.verticalSpace,
             Expanded(
               child: controller.products.isEmpty
-                ? const NoData(text: 'No Products in Your Cart Yet!')
+                ? const NoData(text: '¡Tu carrito está vacío!')
                 : ListView.separated(
                     separatorBuilder: (_, index) => Padding(
                       padding: EdgeInsets.only(top: 12.h, bottom: 24.h),
@@ -72,7 +76,7 @@ class CartView extends GetView<CartController> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.w),
                 child: CustomButton(
-                  text: 'Purchase Now',
+                  text: 'Comprar ahora',
                   onPressed: () => controller.onPurchaseNowPressed(),
                   fontSize: 16.sp,
                   radius: 50.r,
@@ -87,6 +91,8 @@ class CartView extends GetView<CartController> {
             ),
             30.verticalSpace,
           ],
+        ),
+          ),
         ),
       ),
     );

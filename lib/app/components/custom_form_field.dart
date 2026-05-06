@@ -110,13 +110,14 @@ class _CustomFormFieldState extends State<CustomFormField> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
     return Material(
       color: Colors.transparent,
       child: Theme(
-        data: Get.theme.copyWith(
-          primaryColor: widget.iconColor ?? Get.theme.primaryColor,
-          colorScheme: Get.theme.colorScheme.copyWith(
-            primary: widget.iconColor ?? Get.theme.primaryColor,
+        data: theme.copyWith(
+          primaryColor: widget.iconColor ?? theme.primaryColor,
+          colorScheme: theme.colorScheme.copyWith(
+            primary: widget.iconColor ?? theme.primaryColor,
           )
         ),
         child: TextFormField(
@@ -128,9 +129,9 @@ class _CustomFormFieldState extends State<CustomFormField> {
           //cursorHeight: 15,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           initialValue: widget.initialValue,
-          style: MyStyles.getTextTheme(isLightTheme: Get.isDarkMode).bodyText2!.copyWith(
+          style: MyStyles.getTextTheme(isLightTheme: !Get.isDarkMode).bodyText2!.copyWith(
             fontSize: widget.textSize ?? 14.sp,
-            color: widget.textColor ?? Colors.black.withOpacity(0.8),
+            color: widget.textColor ?? theme.textTheme.bodyText1?.color,
           ),
           onSaved: widget.onFieldSubmit,
           onEditingComplete: widget.onEditingComplete,
@@ -157,20 +158,20 @@ class _CustomFormFieldState extends State<CustomFormField> {
             contentPadding: widget.contentPadding ?? EdgeInsets.symmetric(vertical: 12.h, horizontal: 20.w),
             isDense: widget.isDense,
             filled: true,
-            fillColor: widget.backgroundColor ?? const Color(0xFFF9F9F9),
+            fillColor: widget.backgroundColor ?? theme.colorScheme.surface,
             hintStyle:  MyFonts.getAppFontType.copyWith(
               fontSize: widget.hintFontSize ?? 14.sp,
               fontWeight: widget.hintFontWeight ?? FontWeight.normal,
-              color: widget.hintColor ?? Colors.black.withOpacity(0.4)
+              color: widget.hintColor ?? theme.hintColor,
             ),
             hintText: widget.hint,
             focusedErrorBorder: widget.errorBorder ?? OutlineInputBorder(borderSide: const BorderSide(color: Colors.redAccent, width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
             disabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.withOpacity(0), width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
             errorBorder: widget.errorBorder ?? OutlineInputBorder(borderSide: const BorderSide(color: Colors.redAccent, width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
-            enabledBorder: widget.enabledBorder ?? OutlineInputBorder(borderSide: BorderSide(color: widget.enabledBorder == null ? Colors.transparent :  Colors.grey[300]!, width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
+            enabledBorder: widget.enabledBorder ?? OutlineInputBorder(borderSide: BorderSide(color: widget.enabledBorderColor ?? theme.dividerColor, width: 1.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 12)),
             focusedBorder: widget.focusedBorder ?? OutlineInputBorder(
-              borderSide: BorderSide(color: widget.focusedBorderColor ?? Theme.of(context).primaryColor, width: 1.0),
-              borderRadius: BorderRadius.circular(widget.borderRound ?? 10),
+              borderSide: BorderSide(color: widget.focusedBorderColor ?? theme.primaryColor, width: 1.2),
+              borderRadius: BorderRadius.circular(widget.borderRound ?? 12),
             ),
           ),
           validator: widget.validator,

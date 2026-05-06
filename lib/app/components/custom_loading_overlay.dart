@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../config/translations/strings_enum.dart';
+import '../../utils/constants.dart';
 
 showLoadingOverLay({
   required Future<dynamic> Function() asyncFunction,
@@ -22,6 +23,7 @@ showLoadingOverLay({
 }
 
 Widget _getLoadingIndicator({String? msg}){
+  final theme = Get.theme;
   return Container(
     padding: EdgeInsets.symmetric(
       horizontal: 20.w,
@@ -29,10 +31,11 @@ Widget _getLoadingIndicator({String? msg}){
     ),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(10.r),
-      color: Colors.white,
+      color: theme.cardColor,
+      border: Border.all(color: theme.dividerColor),
     ),
     child: Column(mainAxisSize: MainAxisSize.min,children: [
-      Image.asset('assets/images/app_icon.png',height: 45.h,),
+      Image.asset(Constants.logo,height: 45.h,),
       SizedBox(width: 8.h,),
       Text(msg ?? Strings.loading.tr,style: Get.theme.textTheme.bodyText1),
     ],),

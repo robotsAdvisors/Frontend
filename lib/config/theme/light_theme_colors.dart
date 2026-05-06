@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class LightThemeColors
 {
   //dark swatch
-  static const Color primaryColor = Color(0xFF23AA49);
-  static const Color primaryColorLight = Color(0xFF23AA49);
-  static const Color primaryColorDark = Colors.white;
-  static const Color accentColor = Color(0xFFFF324B);
-  static const Color canvasColor = Color(0xFFF3F5F7);
+  static const Color primaryColor = Color(0xFF0AA15D);
+  static const Color primaryColorLight = Color(0xFF74BF6D);
+  static const Color primaryColorDark = Color(0xFFEAF7EE);
+  static const Color accentColor = Color(0xFF0C8A53);
+  static const Color canvasColor = Color(0xFFEFF8F2);
   //static const Color accentColor = Color(0xFFD9EDE1);
 
   //APPBAR
@@ -15,13 +15,13 @@ class LightThemeColors
 
   //SCAFFOLD
   static const Color scaffoldBackgroundColor = Colors.white;
-  static const Color backgroundColor = Colors.white;
-  static const Color dividerColor = Color(0xFFF1F1F5);
-  static const Color cardColor = Color(0xFFF3F5F7);
+  static const Color backgroundColor = Color(0xFFF7FCF9);
+  static const Color dividerColor = Color(0xFFDDEFE4);
+  static const Color cardColor = Color(0xFFF1F9F4);
 
   //ICONS
-  static const Color appBarIconsColor = Color(0xFF06161C);
-  static const Color iconColor = Color(0xFFDBDBDB);
+  static const Color appBarIconsColor = Color(0xFF0E3324);
+  static const Color iconColor = Color(0xFF8CBFA2);
   //static const Color iconColor = Color(0xFF899A96);
 
   //BUTTON
@@ -31,10 +31,10 @@ class LightThemeColors
   static const Color buttonDisabledTextColor = Colors.black;
 
   //TEXT
-  static const Color bodyTextColor = Color(0xFF979899);
-  static const Color headlinesTextColor = Color(0xFF06161C);
-  static const Color captionTextColor = Colors.grey;
-  static const Color hintTextColor =  Color(0xFF979899);
+  static const Color bodyTextColor = Color(0xFF4C6E5C);
+  static const Color headlinesTextColor = Color(0xFF123A2A);
+  static const Color captionTextColor = Color(0xFF6F9480);
+  static const Color hintTextColor =  Color(0xFF7CA590);
 
   //chip
   static const Color chipBackground = primaryColor;

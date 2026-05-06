@@ -3,14 +3,25 @@ class ProductModel {
   String image;
   String name;
   String description;
+  String category;
+  String sku;
   int quantity;
-  double price;
+  double originalPrice;
+  double discountPrice;
+  String storeId;
+
   ProductModel({
     required this.id,
     required this.image,
     required this.name,
+    required this.description,
+    required this.category,
+    required this.sku,
     required this.quantity,
-    required this.price,
-    required this.description
+    required this.originalPrice,
+    required this.discountPrice,
+    required this.storeId,
   });
+
+  double get price => discountPrice;
 }

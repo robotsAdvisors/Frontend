@@ -48,28 +48,30 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
+    final buttonRadius = radius ?? 14.r;
     return Material(
       color: Colors.transparent,
       elevation: 0,
-      borderRadius: BorderRadius.circular(radius ?? 5.r),
+      borderRadius: BorderRadius.circular(buttonRadius),
       child: Container(
-        padding: hasShadow ? EdgeInsets.all(5.r) : EdgeInsets.zero,
+        padding: hasShadow ? EdgeInsets.all(3.r) : EdgeInsets.zero,
         child: InkWell(
-          borderRadius: BorderRadius.circular(radius ?? 5.r),
+          borderRadius: BorderRadius.circular(buttonRadius),
           onTap: !disabled ? onPressed : null,
           child: Ink(
             width: width ?? double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: verticalPadding ?? 14.h),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(radius ?? 10.r),
+              borderRadius: BorderRadius.circular(buttonRadius),
               border: Border.all(color: borderColor ?? Colors.transparent),
-              color: !disabled ? backgroundColor ?? Get.theme.primaryColor : Get.theme.primaryColor.withOpacity(0.5),
+              color: !disabled ? backgroundColor ?? theme.primaryColor : theme.primaryColor.withOpacity(0.5),
               gradient: gradient,
               boxShadow: !hasShadow || disabled
                 ? null
                 : [
                     BoxShadow(
-                      color: ( shadowColor ?? Colors.black).withOpacity(shadowOpacity),
+                      color: (shadowColor ?? theme.primaryColor).withOpacity(shadowOpacity),
                       spreadRadius: shadowSpreadRadius,
                       blurRadius: shadowBlurRadius,
                       offset: const Offset(0, 2),
@@ -85,7 +87,7 @@ class CustomButton extends StatelessWidget {
                   style: Get.theme.textTheme.bodyText1?.copyWith(
                     fontSize: fontSize,
                     fontWeight: fontWeight,
-                    color: foregroundColor ?? Colors.white,
+                    color: foregroundColor ?? theme.colorScheme.onPrimary,
                   ),
                 ),
                 if (icon != null)

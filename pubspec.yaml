@@ -14,9 +14,12 @@ dependencies:
   change_app_package_name: # change package name
   rename_app: # rename app
   flutter_svg: # for svg icons
+  firebase_core: ^2.14.0
+  firebase_auth: ^4.10.0
   carousel_slider: # for image slider
   badges: # for badges
   flutter_animate: # for animation
+  image_picker: ^1.0.4 # for picking photos from gallery/camera
 
   flutter: 
     sdk: flutter

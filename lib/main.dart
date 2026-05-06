@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 
 import 'app/data/local/my_shared_pref.dart';
@@ -13,6 +14,9 @@ Future<void> main() async {
 
   // init shared preference
   await MySharedPref.init();
+
+  // init firebase for authentication and future backend support
+  await Firebase.initializeApp();
 
   runApp(
     ScreenUtilInit(

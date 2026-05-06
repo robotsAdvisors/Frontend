@@ -8,6 +8,11 @@ import 'my_styles.dart';
 
 class MyTheme {
   static getThemeData({required bool isLight}){
+    final Color primary = isLight ? LightThemeColors.primaryColor : DarkThemeColors.primaryColor;
+    final Color onPrimary = isLight ? Colors.white : const Color(0xFF0B261B);
+    final Color surface = isLight ? LightThemeColors.cardColor : DarkThemeColors.cardColor;
+    final Color onSurface = isLight ? LightThemeColors.headlinesTextColor : DarkThemeColors.headlinesTextColor;
+
     return ThemeData(
         useMaterial3: true,
         // main color (app bar,tabs..etc)
@@ -16,6 +21,19 @@ class MyTheme {
         primaryColorDark: isLight ? LightThemeColors.primaryColorDark : DarkThemeColors.primaryColorDark,
         // secondary color (for checkbox,float button, radio..etc)
         accentColor: isLight ? LightThemeColors.accentColor : DarkThemeColors.accentColor,
+        colorScheme: ColorScheme(
+          brightness: isLight ? Brightness.light : Brightness.dark,
+          primary: primary,
+          onPrimary: onPrimary,
+          secondary: isLight ? LightThemeColors.accentColor : DarkThemeColors.accentColor,
+          onSecondary: onPrimary,
+          error: Colors.redAccent,
+          onError: Colors.white,
+          background: isLight ? LightThemeColors.backgroundColor : DarkThemeColors.backgroundColor,
+          onBackground: onSurface,
+          surface: surface,
+          onSurface: onSurface,
+        ),
         // color contrast (if the theme is dark text should be white for example)
         brightness: isLight ? Brightness.light : Brightness.dark,
         // canvas Color
@@ -49,6 +67,63 @@ class MyTheme {
 
         // icon theme
         iconTheme: MyStyles.getIconTheme(isLightTheme: isLight),
+
+        // card theme
+        cardTheme: CardTheme(
+          color: surface,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: isLight ? LightThemeColors.dividerColor : DarkThemeColors.dividerColor,
+            ),
+          ),
+        ),
+
+        // bottom navigation theme
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: isLight ? Colors.white : DarkThemeColors.backgroundColor,
+          selectedItemColor: primary,
+          unselectedItemColor: isLight ? LightThemeColors.iconColor : DarkThemeColors.iconColor,
+          selectedIconTheme: IconThemeData(color: primary),
+          unselectedIconTheme: IconThemeData(
+            color: isLight ? LightThemeColors.iconColor : DarkThemeColors.iconColor,
+          ),
+          elevation: 8,
+          type: BottomNavigationBarType.fixed,
+        ),
+
+        // input style
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: isLight ? Colors.white : DarkThemeColors.primaryColorDark,
+          hintStyle: TextStyle(
+            color: isLight ? LightThemeColors.hintTextColor : DarkThemeColors.hintTextColor,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isLight ? LightThemeColors.dividerColor : DarkThemeColors.dividerColor,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: primary, width: 1.2),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+
+        // snackbars
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: isLight ? LightThemeColors.headlinesTextColor : DarkThemeColors.primaryColorDark,
+          contentTextStyle: TextStyle(
+            color: isLight ? Colors.white : DarkThemeColors.headlinesTextColor,
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
     );
   }
 

@@ -20,7 +20,18 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
     final theme = context.theme;
     return Scaffold(
       body: SafeArea(
-        child: ListView(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 800;
+            return isWide ? _desktopLayout(context, theme) : _mobileLayout(context, theme);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _mobileLayout(BuildContext context, ThemeData theme) {
+    return ListView(
           children: [
             SizedBox(
               height: 330.h,
@@ -148,7 +159,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: CustomButton(
-                text: 'Add to cart',
+                text: 'Agregar al carrito',
                 onPressed: () => controller.onAddToCartPressed(),
                 fontSize: 16.sp,
                 radius: 50.r,
@@ -163,7 +174,97 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
             30.verticalSpace,
           ],
         ),
-      ),
+      );
+  }
+
+  Widget _desktopLayout(BuildContext context, ThemeData theme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left: product image panel
+        Expanded(
+          flex: 5,
+          child: Container(
+            margin: EdgeInsets.all(32.w),
+            padding: EdgeInsets.all(24.w),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(24.r),
+              border: Border.all(color: theme.dividerColor),
+            ),
+            child: Image.asset(
+              controller.product.image,
+              height: 320.h,
+              fit: BoxFit.contain,
+            ).animate().fade().scale(
+              duration: 600.ms,
+              curve: Curves.fastOutSlowIn,
+            ),
+          ),
+        ),
+        // Right: product details
+        Expanded(
+          flex: 6,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(0, 32.h, 32.w, 32.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        controller.product.name,
+                        style: theme.textTheme.headline2,
+                      ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
+                    ),
+                    ProductCountItem(product: controller.product).animate().fade(duration: 200.ms),
+                  ],
+                ),
+                16.verticalSpace,
+                Text(
+                  '1kg, \${controller.product.price}\$',
+                  style: theme.textTheme.headline3?.copyWith(color: theme.accentColor),
+                ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
+                16.verticalSpace,
+                Text(
+                  controller.product.description,
+                  style: theme.textTheme.bodyText1,
+                ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
+                24.verticalSpace,
+                GridView(
+                  shrinkWrap: true,
+                  primary: false,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16.w,
+                    mainAxisSpacing: 16.h,
+                    mainAxisExtent: 80.h,
+                  ),
+                  children: DummyHelper.cards.map((card) => CustomCard(
+                    title: card['title']!,
+                    subtitle: card['subtitle']!,
+                    icon: card['icon']!,
+                  )).toList().animate().fade().slideY(
+                    duration: 300.ms,
+                    begin: 1,
+                    curve: Curves.easeInSine,
+                  ),
+                ),
+                24.verticalSpace,
+                CustomButton(
+                  text: 'Agregar al carrito',
+                  onPressed: () => controller.onAddToCartPressed(),
+                  fontSize: 16.sp,
+                  radius: 50.r,
+                  verticalPadding: 16.h,
+                  hasShadow: false,
+                ).animate().fade().slideY(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

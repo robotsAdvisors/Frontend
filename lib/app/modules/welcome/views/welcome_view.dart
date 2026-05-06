@@ -25,11 +25,15 @@ class WelcomeView extends GetView<WelcomeController> {
               fit: BoxFit.fill,
             ),
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
+          Align(
+            alignment: Alignment.center,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
                 95.verticalSpace,
                 CircleAvatar(
                   radius: 33.r,
@@ -45,7 +49,7 @@ class WelcomeView extends GetView<WelcomeController> {
                 ),
                 30.verticalSpace,
                 Text(
-                  'Get your groceries delivered to your home',
+                  'Bienvenido a Letdem',
                   style: theme.textTheme.headline1,
                   textAlign: TextAlign.center,
                 ).animate().fade().slideY(
@@ -55,7 +59,7 @@ class WelcomeView extends GetView<WelcomeController> {
                 ),
                 24.verticalSpace,
                 Text(
-                  'The best delivery app in town for delivering your daily fresh groceries',
+                  'Tu marketplace de productos frescos con beneficios, vouchers y experiencia personalizada.',
                   style: theme.textTheme.bodyText1,
                   textAlign: TextAlign.center,
                 ).animate().fade().slideY(
@@ -67,8 +71,8 @@ class WelcomeView extends GetView<WelcomeController> {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 70.w),
                   child: CustomButton(
-                    text: 'Shop now',
-                    onPressed: () => Get.offNamed(Routes.BASE),
+                    text: 'Comenzar',
+                    onPressed: () => Get.offNamed(Routes.LOGIN),
                     fontSize: 16.sp,
                     radius: 50.r,
                     verticalPadding: 16.h,
@@ -80,6 +84,8 @@ class WelcomeView extends GetView<WelcomeController> {
                   ),
                 ),
               ],
+                ),
+              ),
             ),
           ),
         ],

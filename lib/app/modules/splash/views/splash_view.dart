@@ -14,15 +14,43 @@ class SplashView extends GetView<SplashController> {
     Get.put(SplashController());
     var theme = context.theme;
     return Scaffold(
-      backgroundColor: theme.primaryColorLight,
-      body: Center(
-        child: CircleAvatar(
-          radius: 55.r,
-          backgroundColor: theme.primaryColorDark,
-          child: Image.asset(Constants.logo, width: 67.w, height: 55.h),
-        ).animate().fade().slideY(
-          duration: 500.ms,
-          begin: 1, curve: Curves.easeInSine
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [theme.primaryColorDark, theme.primaryColor, theme.primaryColorLight],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 55.r,
+                backgroundColor: Colors.white.withOpacity(0.18),
+                child: Image.asset(Constants.logo, width: 67.w, height: 55.h),
+              ).animate().fade().slideY(
+                duration: 500.ms,
+                begin: 1,
+                curve: Curves.easeInSine,
+              ),
+              20.verticalSpace,
+              Text(
+                'Letdem',
+                style: theme.textTheme.headline2?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                ),
+              ).animate().fade(delay: 200.ms, duration: 400.ms),
+              8.verticalSpace,
+              Text(
+                'Tu marketplace de confianza',
+                style: theme.textTheme.bodyText2?.copyWith(color: Colors.white70),
+              ).animate().fade(delay: 350.ms, duration: 400.ms),
+            ],
+          ),
         ),
       ),
     );

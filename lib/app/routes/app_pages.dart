@@ -8,6 +8,8 @@ import '../modules/cart/bindings/cart_binding.dart';
 import '../modules/cart/views/cart_view.dart';
 import '../modules/category/bindings/category_binding.dart';
 import '../modules/category/views/category_view.dart';
+import '../modules/customer_history/bindings/customer_history_binding.dart';
+import '../modules/customer_history/views/customer_history_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/product_details/bindings/product_details_binding.dart';
@@ -20,6 +22,13 @@ import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
 import '../modules/welcome/bindings/welcome_binding.dart';
 import '../modules/welcome/views/welcome_view.dart';
+import '../modules/login/bindings/login_binding.dart';
+import '../modules/login/views/login_view.dart';
+import '../modules/admin/bindings/admin_binding.dart';
+import '../modules/admin/views/admin_view.dart';
+import '../modules/admin/views/voucher_history_view.dart';
+import '../modules/general_admin/bindings/general_admin_binding.dart';
+import '../modules/general_admin/views/general_admin_view.dart';
 
 part 'app_routes.dart';
 
@@ -38,6 +47,26 @@ class AppPages {
       name: _Paths.WELCOME,
       page: () => const WelcomeView(),
       binding: WelcomeBinding(),
+    ),
+    GetPage(
+      name: _Paths.LOGIN,
+      page: () => const LoginView(),
+      binding: LoginBinding(),
+    ),
+    GetPage(
+      name: _Paths.ADMIN,
+      page: () => const AdminView(),
+      binding: AdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.VOUCHER_HISTORY,
+      page: () => const VoucherHistoryView(),
+      binding: AdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.GENERAL_ADMIN,
+      page: () => const GeneralAdminView(),
+      binding: GeneralAdminBinding(),
     ),
     GetPage(
       name: _Paths.BASE,
@@ -80,6 +109,11 @@ class AppPages {
       name: _Paths.PRODUCTS,
       page: () => const ProductsView(),
       binding: ProductsBinding(),
+    ),
+    GetPage(
+      name: _Paths.CUSTOMER_HISTORY,
+      page: () => const CustomerHistoryView(),
+      binding: CustomerHistoryBinding(),
     ),
   ];
 }

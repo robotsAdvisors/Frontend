@@ -22,7 +22,9 @@ class MyStyles {
         scrolledUnderElevation: 0,
         titleTextStyle:
             getTextTheme(isLightTheme: isLightTheme).bodyText1!.copyWith(
-                  color: Colors.white,
+                  color: isLightTheme
+                      ? LightThemeColors.headlinesTextColor
+                      : DarkThemeColors.headlinesTextColor,
                   fontSize: MyFonts.appBarTittleSize,
                 ),
         iconTheme: IconThemeData(
@@ -97,13 +99,19 @@ class MyStyles {
       backgroundColor: isLightTheme
           ? LightThemeColors.chipBackground
           : DarkThemeColors.chipBackground,
-      brightness: Brightness.light,
+      brightness: isLightTheme ? Brightness.light : Brightness.dark,
       labelStyle: getChipTextStyle(isLightTheme: isLightTheme),
       secondaryLabelStyle: getChipTextStyle(isLightTheme: isLightTheme),
-      selectedColor: Colors.black,
-      disabledColor: Colors.green,
+      selectedColor: isLightTheme
+          ? LightThemeColors.primaryColor
+          : DarkThemeColors.primaryColor,
+      disabledColor: isLightTheme
+          ? LightThemeColors.dividerColor
+          : DarkThemeColors.dividerColor,
       padding: const EdgeInsets.all(5),
-      secondarySelectedColor: Colors.purple,
+      secondarySelectedColor: isLightTheme
+          ? LightThemeColors.primaryColorLight
+          : DarkThemeColors.primaryColorLight,
     );
   }
 

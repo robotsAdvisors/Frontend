@@ -24,7 +24,17 @@ class CategoryItem extends StatelessWidget {
           CircleAvatar(
             radius: 37.r,
             backgroundColor: theme.cardColor,
-            child: SvgPicture.asset(category.image),
+            child: Container(
+              width: 64.w,
+              height: 64.w,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: theme.dividerColor),
+              ),
+              child: Center(
+                child: SvgPicture.asset(category.image),
+              ),
+            ),
           ).animate().fade(duration: 200.ms),
           10.verticalSpace,
           Text(category.title, style: theme.textTheme.headline6)

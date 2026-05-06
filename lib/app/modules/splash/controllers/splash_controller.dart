@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../../../data/local/my_shared_pref.dart';
+import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 
 class SplashController extends GetxController {
@@ -7,7 +9,19 @@ class SplashController extends GetxController {
   @override
   void onInit() async {
     await Future.delayed(const Duration(seconds: 2));
-    Get.offNamed(Routes.WELCOME);
+    final bool loggedIn = AuthService.isLoggedIn || MySharedPref.getIsLoggedIn();
+    if (loggedIn) {
+      final role = AuthService.currentUserRole;
+      if (role == AuthService.storeAdminRole || role == AuthService.storeViewerRole) {
+        Get.offNamed(Routes.ADMIN);
+      } else if (role == AuthService.generalAdminRole) {
+        Get.offNamed(Routes.GENERAL_ADMIN);
+      } else {
+        Get.offNamed(Routes.BASE);
+      }
+    } else {
+      Get.offNamed(Routes.WELCOME);
+    }
     super.onInit();
   }
 

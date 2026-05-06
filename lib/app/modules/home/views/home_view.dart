@@ -6,10 +6,12 @@ import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
 import '../../../components/category_item.dart';
+import '../../../components/custom_button.dart';
 import '../../../components/custom_form_field.dart';
 import '../../../components/custom_icon_button.dart';
 import '../../../components/dark_transition.dart';
 import '../../../components/product_item.dart';
+import '../../../routes/app_pages.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -18,6 +20,8 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final bool isWide = MediaQuery.of(context).size.width >= 1100;
+    final double contentMaxWidth = isWide ? 1120 : double.infinity;
     return DarkTransition(
       offset: Offset(context.width, -1),
       isDark: !controller.isLightTheme,
@@ -32,14 +36,18 @@ class HomeView extends GetView<HomeController> {
                 color: theme.canvasColor,
               ),
             ),
-            ListView(
-              children: [
-                Column(
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: contentMaxWidth),
+                child: ListView(
+                  children: [
+                    Column(
                   children: [
                     ListTile(
                       contentPadding: EdgeInsets.symmetric(horizontal: 24.w),
                       title: Text(
-                        'Good morning',
+                        'Buenos dias',
                         style: theme.textTheme.bodyText2?.copyWith(
                           fontSize: 12.sp
                         ),
@@ -50,29 +58,50 @@ class HomeView extends GetView<HomeController> {
                           fontWeight: FontWeight.normal,
                         ),
                       ),
-                      leading: CircleAvatar(
-                        radius: 22.r,
-                        backgroundColor: theme.primaryColorDark,
-                        child: ClipOval(
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Image.asset(Constants.avatar),
+                      leading: Obx(() {
+                        final imageBytes = controller.profileImageBytes;
+                        return CircleAvatar(
+                          radius: 22.r,
+                          backgroundColor: theme.primaryColorDark,
+                          backgroundImage: imageBytes != null ? MemoryImage(imageBytes) : null,
+                          child: imageBytes == null
+                              ? ClipOval(
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Image.asset(Constants.avatar),
+                                  ),
+                                )
+                              : null,
+                        );
+                      }),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomIconButton(
+                            onPressed: () => Get.toNamed(Routes.PROFILE),
+                            backgroundColor: theme.primaryColorDark,
+                            icon: Icon(
+                              Icons.settings_outlined,
+                              color: theme.appBarTheme.iconTheme?.color,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                      ),
-                      trailing: CustomIconButton(
-                        onPressed: () => controller.onChangeThemePressed(),
-                        backgroundColor: theme.primaryColorDark,
-                        icon: GetBuilder<HomeController>(
-                          id: 'Theme',
-                          builder: (_) => Icon(
-                            controller.isLightTheme
-                              ? Icons.dark_mode_outlined
-                              : Icons.light_mode_outlined,
-                            color: theme.appBarTheme.iconTheme?.color,
-                            size: 20,
+                          8.horizontalSpace,
+                          CustomIconButton(
+                            onPressed: () => controller.onChangeThemePressed(),
+                            backgroundColor: theme.primaryColorDark,
+                            icon: GetBuilder<HomeController>(
+                              id: 'Theme',
+                              builder: (_) => Icon(
+                                controller.isLightTheme
+                                  ? Icons.dark_mode_outlined
+                                  : Icons.light_mode_outlined,
+                                color: theme.appBarTheme.iconTheme?.color,
+                                size: 20,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                     10.verticalSpace,
@@ -114,26 +143,52 @@ class HomeView extends GetView<HomeController> {
                         ),
                         itemCount: controller.cards.length,
                         itemBuilder: (context, itemIndex, pageViewIndex) {
-                          return Image.asset(controller.cards[itemIndex]);
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16.r),
+                              border: Border.all(color: theme.dividerColor),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.primaryColor.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(controller.cards[itemIndex], fit: BoxFit.cover),
+                          );
                         },
+                      ),
+                    ),
+                    14.verticalSpace,
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
+                      child: CustomButton(
+                        text: 'Historial',
+                        onPressed: () => Get.toNamed(Routes.CUSTOMER_HISTORY),
+                        backgroundColor: theme.primaryColor,
+                        foregroundColor: Colors.white,
+                        radius: 14.r,
+                        verticalPadding: 14.h,
                       ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Column(
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
+                      child: Column(
                     children: [
                       20.verticalSpace,
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Categories 😋',
+                            'Categorias',
                             style: theme.textTheme.headline4,
                           ),
                           Text(
-                            'See all',
+                            'Ver todo',
                             style: theme.textTheme.headline6?.copyWith(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.normal,
@@ -153,11 +208,11 @@ class HomeView extends GetView<HomeController> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Best selling 🔥',
+                            'Mas vendidos',
                             style: theme.textTheme.headline4,
                           ),
                           Text(
-                            'See all',
+                            'Ver todo',
                             style: theme.textTheme.headline6?.copyWith(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.normal,
@@ -166,25 +221,37 @@ class HomeView extends GetView<HomeController> {
                         ],
                       ),
                       16.verticalSpace,
-                      GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16.w,
-                          mainAxisSpacing: 16.h,
-                          mainAxisExtent: 214.h,
-                        ),
-                        shrinkWrap: true,
-                        primary: false,
-                        itemCount: 2,
-                        itemBuilder: (context, index) => ProductItem(
-                          product: controller.products[index],
-                        ),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          int columns = 2;
+                          if (constraints.maxWidth >= 960) {
+                            columns = 4;
+                          } else if (constraints.maxWidth >= 640) {
+                            columns = 3;
+                          }
+                          return GridView.builder(
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: columns,
+                              crossAxisSpacing: 16.w,
+                              mainAxisSpacing: 16.h,
+                              mainAxisExtent: 214.h,
+                            ),
+                            shrinkWrap: true,
+                            primary: false,
+                            itemCount: 2,
+                            itemBuilder: (context, index) => ProductItem(
+                              product: controller.products[index],
+                            ),
+                          );
+                        },
                       ),
                       20.verticalSpace,
                     ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ),
