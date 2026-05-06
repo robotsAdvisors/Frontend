@@ -1,62 +1,143 @@
-# Flutter Grocery App
+# Letdem Marketplace (Flutter)
 
-A Flutter Ui Kit For Grocery Shopping App 🚀
+Aplicacion Flutter multiplataforma (Android, iOS, Web) para Letdem Marketplace.
 
-The grocery app is a design implementation of [Grocery App](https://dribbble.com/shots/18467737-Grocery-App) designed by [Omar](https://dribbble.com/omaruiux24).
+El proyecto evoluciono desde una base UI de grocery a un marketplace con identidad Letdem, soporte de perfiles, autenticacion, panel de tienda y panel general de administracion.
 
-This project relied on this [Flutter Getx Template](https://github.com/EmadBeltaje/flutter_getx_template) made by [Emad Beltaje](https://github.com/EmadBeltaje).
+## Estado actual
 
-## Demo of the application 🎥
-![Flutter Grocery App Demo](https://github.com/AbdQader/flutter_grocery_app/assets/64075836/173268d3-ad71-49dd-96a4-d63c8b15e1a9)
+- Branding visual Letdem aplicado en tema claro/oscuro y componentes compartidos.
+- Arquitectura GetX por modulos (bindings, controllers, views).
+- Navegacion responsive:
+	- Mobile: BottomNavigationBar + FAB.
+	- Desktop/Web: NavigationRail lateral + header superior.
+- Layout adaptativo en pantallas principales (home, productos, admin, perfil, historial).
+- Selector de idioma en ajustes (espanol e ingles) y persistencia local.
+- Modo oscuro con persistencia local.
+- Avatar de perfil web-safe en base64 (sin dependencia de rutas de archivo locales).
+- Integracion inicial con Firebase Auth.
 
----
+## Funcionalidades
 
-## Screenshots of the application 📷
+### Cliente
 
-### Splash & Intro Screens
+- Splash y bienvenida.
+- Inicio con categorias, buscador y productos destacados.
+- Listado de productos con filtros/chips.
+- Detalle de producto (responsive: una columna en mobile, dos columnas en desktop).
+- Carrito de compras con contador y accion de compra.
+- Perfil con edicion de datos, idioma y modo oscuro.
+- Historial de cliente.
 
-![Splash&Intro](https://github.com/AbdQader/flutter_grocery_app/assets/64075836/d398ec0c-db18-417e-ad8f-a403d8a76113)
+### Tienda / Admin
 
----
-### Home & Category Products Screens
+- Panel de tienda con metricas.
+- Gestion visual de productos.
+- Dashboard de vouchers.
+- Vista de vouchers responsive:
+	- Mobile: cards.
+	- Desktop: DataTable.
+- Historial de vouchers.
 
-![Home&Products](https://github.com/AbdQader/flutter_grocery_app/assets/64075836/fd98636b-4a5d-406d-9156-2bb79826d2a0)
+### Administracion general
 
----
-### Product Details & Cart Screens
+- Modulo de administracion general para gestion transversal.
 
-![ProductDetails&Cart](https://github.com/AbdQader/flutter_grocery_app/assets/64075836/ad41d1c1-14e6-453c-bb4e-a904ca194fa8)
+## Stack tecnico
 
----
+- Flutter
+- GetX (rutas, inyeccion y estado)
+- Firebase Core + Firebase Auth
+- Shared Preferences
+- flutter_screenutil
+- flutter_animate
+- flutter_svg
+- badges
+- carousel_slider
+- image_picker
 
-## Overview 📙
-The Flutter Grocery UI is a visually captivating and fully functional User Interface template for a grocery shopping application. This project aims to provide developers with a ready-to-use and customizable UI foundation, helping them to build delightful shopping apps quickly.
+## Estructura principal
 
----
-## Dependencies 📦️
+```text
+lib/
+	app/
+		components/
+		data/
+			local/
+			models/
+			services/
+		modules/
+			admin/
+			base/
+			cart/
+			category/
+			customer_history/
+			general_admin/
+			home/
+			login/
+			product_details/
+			products/
+			profile/
+			splash/
+			welcome/
+		routes/
+	config/
+		theme/
+		translations/
+```
 
-- [get](https://pub.dev/packages/get) - Manage states and inject dependencies.
-- [flutter_screenutil](https://pub.dev/packages/flutter_screenutil) - Adapting screen and font size.
-- [shared_preferences](https://pub.dev/packages/shared_preferences) - Persistent storage for simple data.
-- [flutter_animate](https://pub.dev/packages/flutter_animate) - Adding beautiful animated effects & builders in Flutter.
-- [carousel_slider](https://pub.dev/packages/carousel_slider) - A carousel slider widget, support infinite scroll and custom child widget.
-- [badges](https://pub.dev/packages/badges) - A package for creating badges, e.g. show a number of items in a shopping cart.
-- [flutter_svg](https://pub.dev/packages/flutter_svg) - SVG rendering and widget library for Flutter.
+## Requisitos
 
----
+- Flutter SDK instalado
+- Dart SDK compatible con el proyecto
+- Android Studio o VS Code
+- (Opcional) Xcode para iOS
+- Cuenta Firebase configurada para autenticacion
 
-## Features 🌟
+## Puesta en marcha
 
-- Browse product categories.
-- Browse products of any category.
-- Add product to cart.
-- Remove product from cart.
-- View product details.
-- Toggle app theme to dark theme.
+1. Clonar el repositorio.
+2. Instalar dependencias:
 
----
+```bash
+flutter pub get
+```
 
-## Don't forget to :star: the repository.
+3. Ejecutar en entorno local:
 
-## Support ❤️
-For support, you can contact me at this [Email](mailto:abd8alqader@gmail.com) or at [Facebook](https://www.facebook.com/aasharef/).
+```bash
+flutter run
+```
+
+4. Ejecutar en web:
+
+```bash
+flutter run -d chrome
+```
+
+## Build
+
+```bash
+flutter build apk
+flutter build ios
+flutter build web
+```
+
+## Internacionalizacion
+
+- Idiomas activos:
+	- es_ES
+	- en_US
+	- ar_AR
+- Idioma por defecto actual: espanol.
+
+## Roadmap
+
+- Integracion backend Django para datos reales.
+- Deep-linking y navegacion por URL completa en web.
+- Hardening de capa de repositorios y servicios.
+- Pruebas de integracion end-to-end.
+
+## Creditos
+
+Proyecto mantenido por el equipo de Letdem Marketplace.
