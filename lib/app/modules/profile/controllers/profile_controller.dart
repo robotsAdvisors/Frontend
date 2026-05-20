@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -93,26 +94,33 @@ class ProfileController extends GetxController {
 
   Future<void> pickProfileImage() async {
     final picker = ImagePicker();
-    final source = await Get.dialog<ImageSource>(
-      AlertDialog(
-        title: const Text('Cambiar foto'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galería'),
-              onTap: () => Get.back(result: ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Cámara'),
-              onTap: () => Get.back(result: ImageSource.camera),
-            ),
-          ],
+    ImageSource? source;
+
+    if (kIsWeb) {
+      // On web, camera may not be available — use gallery only
+      source = ImageSource.gallery;
+    } else {
+      source = await Get.dialog<ImageSource>(
+        AlertDialog(
+          title: const Text('Cambiar foto'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Galería'),
+                onTap: () => Get.back(result: ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Cámara'),
+                onTap: () => Get.back(result: ImageSource.camera),
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
     if (source == null) return;
     final picked = await picker.pickImage(source: source, imageQuality: 80);
     if (picked == null) return;
