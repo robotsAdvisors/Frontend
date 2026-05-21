@@ -93,7 +93,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                 children: [
                   Text(
                     controller.product.name,
-                    style: theme.textTheme.headline2,
+                    style: theme.textTheme.displayMedium,
                   ).animate().fade().slideX(
                     duration: 300.ms,
                     begin: -1,
@@ -111,8 +111,8 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Text(
                 '1kg, ${controller.product.price}\$',
-                style: theme.textTheme.headline3?.copyWith(
-                  color: theme.accentColor,
+                style: theme.textTheme.displaySmall?.copyWith(
+                  color: theme.colorScheme.secondary,
                 ),
               ).animate().fade().slideX(
                 duration: 300.ms,
@@ -125,7 +125,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Text(
                 controller.product.description,
-                style: theme.textTheme.bodyText1,
+                style: theme.textTheme.bodyLarge,
               ).animate().fade().slideX(
                 duration: 300.ms,
                 begin: -1,
@@ -173,7 +173,6 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
             ),
             30.verticalSpace,
           ],
-        ),
       );
   }
 
@@ -215,7 +214,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                     Expanded(
                       child: Text(
                         controller.product.name,
-                        style: theme.textTheme.headline2,
+                        style: theme.textTheme.displayMedium,
                       ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
                     ),
                     ProductCountItem(product: controller.product).animate().fade(duration: 200.ms),
@@ -224,12 +223,12 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
                 16.verticalSpace,
                 Text(
                   '1kg, \${controller.product.price}\$',
-                  style: theme.textTheme.headline3?.copyWith(color: theme.accentColor),
+                  style: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.secondary),
                 ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
                 16.verticalSpace,
                 Text(
                   controller.product.description,
-                  style: theme.textTheme.bodyText1,
+                  style: theme.textTheme.bodyLarge,
                 ).animate().fade().slideX(duration: 300.ms, begin: 1, curve: Curves.easeInSine),
                 24.verticalSpace,
                 GridView(

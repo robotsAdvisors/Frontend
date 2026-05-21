@@ -35,7 +35,7 @@ class CartView extends GetView<CartController> {
                   color: theme.appBarTheme.iconTheme?.color,
                 ),
               ),
-              Text('Mi carrito 🛒', style: theme.textTheme.headline3),
+              Text('Mi carrito 🛒', style: theme.textTheme.displaySmall),
               const Opacity(
                 opacity: 0.0,
                 child: CustomIconButton(onPressed: null, icon: Center()),

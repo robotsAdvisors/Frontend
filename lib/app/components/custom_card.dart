@@ -24,7 +24,7 @@ class CustomCard extends StatelessWidget {
         border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.08),
+            color: theme.primaryColor.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -39,12 +39,12 @@ class CustomCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title, style: theme.textTheme.headline5?.copyWith(
+                title, style: theme.textTheme.headlineSmall?.copyWith(
                   color: theme.primaryColor,
                 ),
               ),
               4.verticalSpace,
-              Text(subtitle, style: theme.textTheme.bodyText2),
+              Text(subtitle, style: theme.textTheme.bodyMedium),
             ],
           )
         ],

@@ -1,0 +1,172 @@
+﻿Analyzing Frontend...                                           
+
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\components\product_item.dart:74:36 - undefined_getter
+  error - Target of URI doesn't exist: '../../local/my_shared_pref.dart' - lib\app\data\repositories\auth_repository.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../http/api_client.dart' - lib\app\data\repositories\auth_repository.dart:3:8 - uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\app\data\repositories\auth_repository.dart:16:16 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:36:15 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:37:15 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:40:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:44:13 - undefined_method
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:66:15 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:67:15 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:70:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:74:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:93:13 - undefined_method
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:118:17 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:120:15 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:123:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:127:13 - undefined_method
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:134:19 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:142:17 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'AuthRepository' - lib\app\data\repositories\auth_repository.dart:158:13 - undefined_method
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:165:11 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:166:11 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:167:11 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:174:13 - undefined_identifier
+  error - Undefined name 'MySharedPref' - lib\app\data\repositories\auth_repository.dart:177:13 - undefined_identifier
+  error - Target of URI doesn't exist: '../../models/category_model.dart' - lib\app\data\repositories\marketplace_repository.dart:2:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../models/product_model.dart' - lib\app\data\repositories\marketplace_repository.dart:3:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../../models/voucher_model.dart' - lib\app\data\repositories\marketplace_repository.dart:4:8 - uri_does_not_exist
+  error - Target of URI doesn't exist: '../http/api_client.dart' - lib\app\data\repositories\marketplace_repository.dart:5:8 - uri_does_not_exist
+  error - Undefined name 'ApiClient' - lib\app\data\repositories\marketplace_repository.dart:12:16 - undefined_identifier
+  error - The name 'CategoryModel' isn't a type, so it can't be used as a type argument - lib\app\data\repositories\marketplace_repository.dart:16:15 - non_type_as_type_argument
+  error - Undefined name 'CategoryModel' - lib\app\data\repositories\marketplace_repository.dart:20:23 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:23:13 - undefined_method
+  error - The name 'ProductModel' isn't a type, so it can't be used as a type argument - lib\app\data\repositories\marketplace_repository.dart:27:15 - non_type_as_type_argument
+  error - Undefined name 'ProductModel' - lib\app\data\repositories\marketplace_repository.dart:43:23 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:46:13 - undefined_method
+  error - The name 'ProductModel' isn't a type, so it can't be used as a type argument - lib\app\data\repositories\marketplace_repository.dart:50:10 - non_type_as_type_argument
+  error - Undefined name 'ProductModel' - lib\app\data\repositories\marketplace_repository.dart:54:16 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:59:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:80:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:91:13 - undefined_method
+  error - The name 'VoucherModel' isn't a type, so it can't be used as a type argument - lib\app\data\repositories\marketplace_repository.dart:98:15 - non_type_as_type_argument
+  error - Undefined name 'VoucherModel' - lib\app\data\repositories\marketplace_repository.dart:112:23 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:115:13 - undefined_method
+  error - The name 'VoucherModel' isn't a type, so it can't be used as a type argument - lib\app\data\repositories\marketplace_repository.dart:119:10 - non_type_as_type_argument
+  error - Undefined name 'VoucherModel' - lib\app\data\repositories\marketplace_repository.dart:133:16 - undefined_identifier
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:138:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:153:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:167:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:190:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:211:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:225:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:238:13 - undefined_method
+  error - The method 'toApiException' isn't defined for the type 'MarketplaceRepository' - lib\app\data\repositories\marketplace_repository.dart:252:13 - undefined_method
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\admin_view.dart:548:31 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\admin_view.dart:553:31 - prefer_const_constructors
+  error - The argument type 'int' can't be assigned to the parameter type 'String'.  - lib\app\modules\admin\views\admin_view.dart:584:21 - argument_type_not_assignable
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\voucher_history_view.dart:20:19 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\app\modules\admin\views\voucher_history_view.dart:21:19 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\voucher_history_view.dart:22:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\voucher_history_view.dart:23:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\admin\views\voucher_history_view.dart:201:15 - prefer_const_constructors
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\modules\base\views\base_view.dart:85:55 - undefined_getter
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\modules\base\views\base_view.dart:207:37 - undefined_getter
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\modules\cart\views\widgets\cart_item.dart:34:32 - undefined_getter
+   info - Use 'const' with the constructor to improve performance - lib\app\modules\general_admin\views\general_admin_view.dart:114:39 - prefer_const_constructors
+  error - Undefined name 'Constants' - lib\app\modules\general_admin\views\general_admin_view.dart:207:28 - undefined_identifier
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\modules\product_details\views\product_details_view.dart:115:32 - undefined_getter
+  error - Expected to find ';' - lib\app\modules\product_details\views\product_details_view.dart:176:9 - expected_token
+warning - Dead code - lib\app\modules\product_details\views\product_details_view.dart:176:10 - dead_code
+  error - Expected an identifier - lib\app\modules\product_details\views\product_details_view.dart:176:10 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\product_details\views\product_details_view.dart:176:10 - expected_token
+  error - Unexpected text ';' - lib\app\modules\product_details\views\product_details_view.dart:176:10 - unexpected_token
+  error - Expected an identifier - lib\app\modules\product_details\views\product_details_view.dart:177:7 - missing_identifier
+  error - Unexpected text ';' - lib\app\modules\product_details\views\product_details_view.dart:177:7 - unexpected_token
+   info - Unnecessary empty statement - lib\app\modules\product_details\views\product_details_view.dart:177:8 - empty_statements
+  error - The getter 'accentColor' isn't defined for the type 'ThemeData' - lib\app\modules\product_details\views\product_details_view.dart:227:78 - undefined_getter
+  error - Undefined name 'name' - lib\app\modules\profile\controllers\profile_controller.dart:171:21 - undefined_identifier
+  error - Undefined name 'phone' - lib\app\modules\profile\controllers\profile_controller.dart:177:25 - undefined_identifier
+  error - Undefined name 'address' - lib\app\modules\profile\controllers\profile_controller.dart:178:20 - undefined_identifier
+  error - Undefined name 'mainAxisAlignment' - lib\app\modules\profile\views\profile_view.dart:88:27 - undefined_identifier
+  error - Expected to find ')' - lib\app\modules\profile\views\profile_view.dart:88:44 - expected_token
+  error - Expected to find ']' - lib\app\modules\profile\views\profile_view.dart:88:44 - expected_token
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:97:25 - expected_token
+warning - Dead code - lib\app\modules\profile\views\profile_view.dart:97:26 - dead_code
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:97:26 - missing_identifier
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:97:26 - unexpected_token
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:98:28 - expected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:98:41 - missing_identifier
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:98:41 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:99:41 - missing_identifier
+   info - Statements in an if should be enclosed in a block - lib\app\modules\profile\views\profile_view.dart:99:44 - curly_braces_in_flow_control_structures
+  error - Expected to find ']' - lib\app\modules\profile\views\profile_view.dart:100:83 - expected_token
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:104:25 - expected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:104:32 - missing_identifier
+   info - Statements in an if should be enclosed in a block - lib\app\modules\profile\views\profile_view.dart:104:35 - curly_braces_in_flow_control_structures
+  error - Expected to find ']' - lib\app\modules\profile\views\profile_view.dart:109:28 - expected_token
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:149:25 - expected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:149:26 - missing_identifier
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:149:26 - unexpected_token
+  error - Expected to find ')' - lib\app\modules\profile\views\profile_view.dart:150:23 - expected_token
+  error - Expected to find '}' - lib\app\modules\profile\views\profile_view.dart:150:23 - expected_token
+  error - Expected to find ')' - lib\app\modules\profile\views\profile_view.dart:151:22 - expected_token
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\app\modules\profile\views\profile_view.dart:277:29 - deprecated_member_use
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:308:15 - missing_identifier
+  error - Expected to find ')' - lib\app\modules\profile\views\profile_view.dart:308:15 - expected_token
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:311:11 - expected_token
+warning - Dead code - lib\app\modules\profile\views\profile_view.dart:311:12 - dead_code
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:311:12 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:311:12 - expected_token
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:311:12 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:312:9 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:312:9 - expected_token
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:312:9 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:312:10 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:312:10 - expected_token
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:312:10 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:313:7 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:313:7 - expected_token
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:313:7 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:313:8 - missing_identifier
+  error - Expected to find ';' - lib\app\modules\profile\views\profile_view.dart:313:8 - expected_token
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:313:8 - unexpected_token
+  error - Expected an identifier - lib\app\modules\profile\views\profile_view.dart:314:5 - missing_identifier
+  error - Unexpected text ';' - lib\app\modules\profile\views\profile_view.dart:314:5 - unexpected_token
+   info - Unnecessary empty statement - lib\app\modules\profile\views\profile_view.dart:314:6 - empty_statements
+   info - The constant name 'INITIAL' isn't a lowerCamelCase identifier - lib\app\routes\app_pages.dart:38:16 - constant_identifier_names
+   info - The constant name 'SPLASH' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:6:16 - constant_identifier_names
+   info - The constant name 'BASE' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:7:16 - constant_identifier_names
+   info - The constant name 'HOME' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:8:16 - constant_identifier_names
+   info - The constant name 'CART' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:9:16 - constant_identifier_names
+   info - The constant name 'PRODUCT_DETAILS' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:10:16 - constant_identifier_names
+   info - The constant name 'WELCOME' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:11:16 - constant_identifier_names
+   info - The constant name 'LOGIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:12:16 - constant_identifier_names
+   info - The constant name 'ADMIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:13:16 - constant_identifier_names
+   info - The constant name 'GENERAL_ADMIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:14:16 - constant_identifier_names
+   info - The constant name 'CATEGORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:15:16 - constant_identifier_names
+   info - The constant name 'CALENDAR' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:16:16 - constant_identifier_names
+   info - The constant name 'PROFILE' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:17:16 - constant_identifier_names
+   info - The constant name 'PRODUCTS' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:18:16 - constant_identifier_names
+   info - The constant name 'VOUCHER_HISTORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:19:16 - constant_identifier_names
+   info - The constant name 'CUSTOMER_HISTORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:20:16 - constant_identifier_names
+   info - The constant name 'SPLASH' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:25:16 - constant_identifier_names
+   info - The constant name 'WELCOME' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:26:16 - constant_identifier_names
+   info - The constant name 'LOGIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:27:16 - constant_identifier_names
+   info - The constant name 'ADMIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:28:16 - constant_identifier_names
+   info - The constant name 'GENERAL_ADMIN' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:29:16 - constant_identifier_names
+   info - The constant name 'BASE' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:30:16 - constant_identifier_names
+   info - The constant name 'HOME' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:31:16 - constant_identifier_names
+   info - The constant name 'CART' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:32:16 - constant_identifier_names
+   info - The constant name 'PRODUCT_DETAILS' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:33:16 - constant_identifier_names
+   info - The constant name 'CATEGORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:34:16 - constant_identifier_names
+   info - The constant name 'CALENDAR' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:35:16 - constant_identifier_names
+   info - The constant name 'PROFILE' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:36:16 - constant_identifier_names
+   info - The constant name 'PRODUCTS' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:37:16 - constant_identifier_names
+   info - The constant name 'VOUCHER_HISTORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:38:16 - constant_identifier_names
+   info - The constant name 'CUSTOMER_HISTORY' isn't a lowerCamelCase identifier - lib\app\routes\app_routes.dart:39:16 - constant_identifier_names
+  error - The named parameter 'button' isn't defined - lib\config\theme\my_styles.dart:41:9 - undefined_named_parameter
+  error - The named parameter 'caption' isn't defined - lib\config\theme\my_styles.dart:90:9 - undefined_named_parameter
+  error - The named parameter 'accentColor' isn't defined - lib\config\theme\my_theme.dart:23:9 - undefined_named_parameter
+  error - The named parameter 'backgroundColor' isn't defined - lib\config\theme\my_theme.dart:46:9 - undefined_named_parameter
+
+flutter : 161 issues found. (ran in 3.2s)
+En línea: 1 Carácter: 1
++ flutter analyze --no-fatal-warnings --no-fatal-infos 2>&1 | Out-File  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (161 issues found. (ran in 3.2s):S 
+   tring) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

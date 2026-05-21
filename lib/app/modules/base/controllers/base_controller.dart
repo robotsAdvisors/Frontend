@@ -31,14 +31,14 @@ class BaseController extends GetxController {
   }
 
   /// when the user press on add + icon
-  onIncreasePressed(int productId) {
+  onIncreasePressed(String productId) {
     DummyHelper.products.firstWhere((p) => p.id == productId).quantity++;
     getCartItemsCount();
     update(['ProductQuantity']);
   }
 
   /// when the user press on remove - icon
-  onDecreasePressed(int productId) {
+  onDecreasePressed(String productId) {
     var product = DummyHelper.products.firstWhere((p) => p.id == productId);
     if (product.quantity > 0) {
       product.quantity--;

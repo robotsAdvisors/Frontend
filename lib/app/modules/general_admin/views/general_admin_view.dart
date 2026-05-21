@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../components/custom_button.dart';
+import '../../../../utils/constants.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/models/store_user_model.dart';
 import '../controllers/general_admin_controller.dart';
@@ -15,7 +16,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     final theme = context.theme;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Administrador General', style: theme.textTheme.headline3),
+        title: Text('Administrador General', style: theme.textTheme.displaySmall),
         centerTitle: true,
       ),
       body: Padding(
@@ -23,7 +24,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Visión general', style: theme.textTheme.headline4),
+            Text('Visión general', style: theme.textTheme.headlineMedium),
             20.verticalSpace,
             Obx(
               () => Row(
@@ -71,7 +72,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
               ],
             ),
             30.verticalSpace,
-            Text('Tiendas registradas', style: theme.textTheme.headline5),
+            Text('Tiendas registradas', style: theme.textTheme.headlineSmall),
             16.verticalSpace,
             Expanded(
               child: Obx(
@@ -87,7 +88,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                         color: theme.cardColor,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -104,9 +105,9 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(store.name, style: theme.textTheme.headline6),
+                                    Text(store.name, style: theme.textTheme.titleLarge),
                                     4.verticalSpace,
-                                    Text('Dueño: ${store.ownerEmail}', style: theme.textTheme.bodyText2),
+                                    Text('Dueño: ${store.ownerEmail}', style: theme.textTheme.bodyMedium),
                                   ],
                                 ),
                               ),
@@ -117,9 +118,9 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                             ],
                           ),
                           12.verticalSpace,
-                          Text(store.description, style: theme.textTheme.bodyText2),
+                          Text(store.description, style: theme.textTheme.bodyMedium),
                           8.verticalSpace,
-                          Text('Admins: ${store.adminUserIds.length}', style: theme.textTheme.caption),
+                          Text('Admins: ${store.adminUserIds.length}', style: theme.textTheme.bodySmall),
                         ],
                       ),
                     );
@@ -143,7 +144,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
       child: Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20.r),
         ),
         child: Column(
@@ -151,9 +152,9 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           children: [
             Icon(icon, color: color, size: 24.w),
             18.verticalSpace,
-            Text(value, style: Get.textTheme.headline5?.copyWith(color: color, fontWeight: FontWeight.bold)),
+            Text(value, style: Get.textTheme.headlineSmall?.copyWith(color: color, fontWeight: FontWeight.bold)),
             8.verticalSpace,
-            Text(label, style: Get.textTheme.bodyText2?.copyWith(color: color.withOpacity(0.8))),
+            Text(label, style: Get.textTheme.bodyMedium?.copyWith(color: color.withValues(alpha: 0.8))),
           ],
         ),
       ),

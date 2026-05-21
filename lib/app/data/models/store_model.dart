@@ -12,6 +12,13 @@ class StoreModel {
   final String billingPhone;
   final String pin;
   final DateTime createdAt;
+  // Nuevos campos del backend
+  final String banner;
+  final String email;
+  final String website;
+  final Map<String, dynamic> openingHours;
+  final bool isPublished;
+  final List<String> categories;
 
   StoreModel({
     required this.id,
@@ -27,23 +34,49 @@ class StoreModel {
     required this.billingPhone,
     required this.pin,
     required this.createdAt,
+    this.banner = '',
+    this.email = '',
+    this.website = '',
+    this.openingHours = const {},
+    this.isPublished = true,
+    this.categories = const [],
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
+    final hours = json['openingHours'] ?? const {};
+    final cats = json['categories'] ?? const [];
+    final published = json['isPublished'] ?? true;
+
     return StoreModel(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      ownerId: json['ownerId'],
-      ownerEmail: json['ownerEmail'],
-      adminUserIds: List<String>.from(json['adminUserIds']),
-      fiscalId: json['fiscalId'],
-      address: json['address'],
-      logoUrl: json['logoUrl'],
-      billingEmail: json['billingEmail'],
-      billingPhone: json['billingPhone'],
-      pin: json['pin'],
-      createdAt: DateTime.parse(json['createdAt']),
+      id: (json['id'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      ownerId: (json['ownerId'] ?? '').toString(),
+      ownerEmail: (json['ownerEmail'] ?? json['email'] ?? '').toString(),
+      adminUserIds: List<String>.from(
+        (json['adminUserIds'] as List?) ?? const [],
+      ),
+      fiscalId: (json['fiscalId'] ?? '').toString(),
+      address: (json['address'] ?? '').toString(),
+      logoUrl: (json['logo'] ?? '').toString(),
+      billingEmail: (json['billingEmail'] ?? json['email'] ?? '').toString(),
+      billingPhone: (json['phoneNumber'] ?? '').toString(),
+      pin: (json['pin'] ?? '').toString(),
+      createdAt:
+          DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+              DateTime.now(),
+      banner: (json['banner'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      website: (json['website'] ?? '').toString(),
+      openingHours: hours is Map
+          ? Map<String, dynamic>.from(hours)
+          : const {},
+      isPublished: published is bool
+          ? published
+          : published.toString().toLowerCase() == 'true',
+      categories: cats is List
+          ? List<String>.from(cats.map((e) => e.toString()))
+          : const [],
     );
   }
 
@@ -57,11 +90,17 @@ class StoreModel {
       'adminUserIds': adminUserIds,
       'fiscalId': fiscalId,
       'address': address,
-      'logoUrl': logoUrl,
+      'logo': logoUrl,
       'billingEmail': billingEmail,
-      'billingPhone': billingPhone,
+      'phoneNumber': billingPhone,
       'pin': pin,
       'createdAt': createdAt.toIso8601String(),
+      'banner': banner,
+      'email': email,
+      'website': website,
+      'openingHours': openingHours,
+      'isPublished': isPublished,
+      'categories': categories,
     };
   }
 }

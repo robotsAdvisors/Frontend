@@ -19,8 +19,7 @@ class MyTheme {
         primaryColor: isLight ? LightThemeColors.primaryColor : DarkThemeColors.primaryColor,
         primaryColorLight: isLight ? LightThemeColors.primaryColorLight : DarkThemeColors.primaryColorLight,
         primaryColorDark: isLight ? LightThemeColors.primaryColorDark : DarkThemeColors.primaryColorDark,
-        // secondary color (for checkbox,float button, radio..etc)
-        accentColor: isLight ? LightThemeColors.accentColor : DarkThemeColors.accentColor,
+        // secondary color is now exposed via colorScheme.secondary
         colorScheme: ColorScheme(
           brightness: isLight ? Brightness.light : Brightness.dark,
           primary: primary,
@@ -29,8 +28,6 @@ class MyTheme {
           onSecondary: onPrimary,
           error: Colors.redAccent,
           onError: Colors.white,
-          background: isLight ? LightThemeColors.backgroundColor : DarkThemeColors.backgroundColor,
-          onBackground: onSurface,
           surface: surface,
           onSurface: onSurface,
         ),
@@ -44,8 +41,7 @@ class MyTheme {
         hintColor: isLight ? LightThemeColors.hintTextColor : DarkThemeColors.hintTextColor,
         // divider color
         dividerColor: isLight ? LightThemeColors.dividerColor : DarkThemeColors.dividerColor,
-        // app background color
-        backgroundColor: isLight ? LightThemeColors.backgroundColor : DarkThemeColors.backgroundColor,
+        // app background color (now via colorScheme.surface and scaffoldBackgroundColor)
         scaffoldBackgroundColor: isLight ? LightThemeColors.scaffoldBackgroundColor : DarkThemeColors.scaffoldBackgroundColor,
 
         // progress bar theme
@@ -69,7 +65,7 @@ class MyTheme {
         iconTheme: MyStyles.getIconTheme(isLightTheme: isLight),
 
         // card theme
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: surface,
           elevation: 0,
           shape: RoundedRectangleBorder(

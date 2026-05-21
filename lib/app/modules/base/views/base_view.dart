@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:badges/badges.dart';
+import 'package:badges/badges.dart' as badges;
 import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
@@ -38,7 +38,7 @@ class BaseView extends GetView<BaseController> {
                       onDestinationSelected: (value) => controller.changeScreen(_desktopIndexToBaseIndex(value)),
                       backgroundColor: Colors.transparent,
                       useIndicator: true,
-                      indicatorColor: theme.primaryColor.withOpacity(0.15),
+                      indicatorColor: theme.primaryColor.withValues(alpha: 0.15),
                       labelType: NavigationRailLabelType.all,
                       destinations: [
                         NavigationRailDestination(
@@ -71,18 +71,18 @@ class BaseView extends GetView<BaseController> {
                               id: 'CartBadge',
                               builder: (_) => IconButton(
                                 onPressed: () => Get.toNamed(Routes.CART),
-                                icon: Badge(
-                                  position: BadgePosition.topEnd(top: -10, end: -8),
+                                icon: badges.Badge(
+                                  position: badges.BadgePosition.topEnd(top: -10, end: -8),
                                   badgeContent: Text(
                                     controller.cartItemsCount.toString(),
-                                    style: theme.textTheme.caption?.copyWith(
+                                    style: theme.textTheme.bodySmall?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  badgeStyle: BadgeStyle(
+                                  badgeStyle: badges.BadgeStyle(
                                     elevation: 2,
-                                    badgeColor: theme.accentColor,
+                                    badgeColor: theme.colorScheme.secondary,
                                     borderSide: const BorderSide(color: Colors.white, width: 1),
                                   ),
                                   child: CircleAvatar(
@@ -147,7 +147,7 @@ class BaseView extends GetView<BaseController> {
               border: Border(top: BorderSide(color: theme.dividerColor)),
               boxShadow: [
                 BoxShadow(
-                  color: theme.primaryColor.withOpacity(0.06),
+                  color: theme.primaryColor.withValues(alpha: 0.06),
                   blurRadius: 14,
                   offset: const Offset(0, -2),
                 ),
@@ -193,18 +193,18 @@ class BaseView extends GetView<BaseController> {
             onPressed:() => Get.toNamed(Routes.CART),
             child: GetBuilder<BaseController>(
               id: 'CartBadge',
-              builder: (_) => Badge(
-                position: BadgePosition.bottomEnd(bottom: -16, end: 13),
+              builder: (_) => badges.Badge(
+                position: badges.BadgePosition.bottomEnd(bottom: -16, end: 13),
                 badgeContent: Text(
                   controller.cartItemsCount.toString(),
-                  style: theme.textTheme.bodyText2?.copyWith(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                badgeStyle: BadgeStyle(
+                badgeStyle: badges.BadgeStyle(
                   elevation: 2,
-                  badgeColor: theme.accentColor,
+                  badgeColor: theme.colorScheme.secondary,
                   borderSide: const BorderSide(color: Colors.white, width: 1),
                 ),
                 child: CircleAvatar(
@@ -254,12 +254,12 @@ class BaseView extends GetView<BaseController> {
             children: [
               Text(
                 'Letdem Marketplace',
-                style: theme.textTheme.caption?.copyWith(color: theme.hintColor),
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
               ),
               GetBuilder<BaseController>(
                 builder: (ctrl) => Text(
                   _sectionTitles[ctrl.currentIndex] ?? 'Home',
-                  style: theme.textTheme.headline6?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -270,7 +270,7 @@ class BaseView extends GetView<BaseController> {
             icon: Icon(Icons.person_outline, color: theme.primaryColor),
             label: Text(
               'Mi perfil',
-              style: theme.textTheme.bodyText2?.copyWith(color: theme.primaryColor),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.primaryColor),
             ),
           ),
         ],

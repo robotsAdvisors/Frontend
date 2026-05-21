@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/http/api_client.dart';
 import '../../../routes/app_pages.dart';
 
 class LoginController extends GetxController {
@@ -37,10 +37,10 @@ class LoginController extends GetxController {
                 ? Routes.GENERAL_ADMIN
                 : Routes.BASE,
       );
-    } on FirebaseAuthException catch (exception) {
+    } on ApiException catch (exception) {
       Get.snackbar(
         'Error',
-        _messageForFirebaseException(exception),
+        exception.message,
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (error) {
@@ -71,10 +71,10 @@ class LoginController extends GetxController {
                 ? Routes.GENERAL_ADMIN
                 : Routes.BASE,
       );
-    } on FirebaseAuthException catch (exception) {
+    } on ApiException catch (exception) {
       Get.snackbar(
         'Error',
-        _messageForFirebaseException(exception),
+        exception.message,
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (error) {
@@ -88,22 +88,33 @@ class LoginController extends GetxController {
     }
   }
 
-  String _messageForFirebaseException(FirebaseAuthException exception) {
-    switch (exception.code) {
-      case 'invalid-email':
-        return 'Correo inválido.';
-      case 'user-disabled':
-        return 'El usuario ha sido deshabilitado.';
-      case 'user-not-found':
-        return 'Usuario no encontrado.';
-      case 'wrong-password':
-        return 'Contraseña incorrecta.';
-      case 'email-already-in-use':
-        return 'El correo ya está registrado.';
-      case 'weak-password':
-        return 'La contraseña es muy débil.';
-      default:
-        return exception.message ?? 'Error de autenticación.';
+  /// Login social: Google -> Firebase -> backend (`/accounts/auth/social-login/`).
+  Future<void> loginWithGoogle() async {
+    isLoading.value = true;
+    try {
+      final ok = await AuthService.signInWithGoogle(role: selectedRole.value);
+      if (!ok) return; // usuario cancelo
+      Get.offAllNamed(
+        AuthService.isStoreAdmin || AuthService.isStoreViewer
+            ? Routes.ADMIN
+            : AuthService.isGeneralAdmin
+                ? Routes.GENERAL_ADMIN
+                : Routes.BASE,
+      );
+    } on ApiException catch (exception) {
+      Get.snackbar(
+        'Error',
+        exception.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (error) {
+      Get.snackbar(
+        'Error',
+        'No se pudo iniciar sesion con Google: $error',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading.value = false;
     }
   }
 

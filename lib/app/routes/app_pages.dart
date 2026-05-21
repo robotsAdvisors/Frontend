@@ -20,6 +20,8 @@ import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
+import '../modules/stores/bindings/stores_binding.dart';
+import '../modules/stores/views/stores_view.dart';
 import '../modules/welcome/bindings/welcome_binding.dart';
 import '../modules/welcome/views/welcome_view.dart';
 import '../modules/login/bindings/login_binding.dart';
@@ -114,6 +116,11 @@ class AppPages {
       name: _Paths.CUSTOMER_HISTORY,
       page: () => const CustomerHistoryView(),
       binding: CustomerHistoryBinding(),
+    ),
+    GetPage(
+      name: _Paths.STORES,
+      page: () => const StoresView(),
+      binding: StoresBinding(),
     ),
   ];
 }

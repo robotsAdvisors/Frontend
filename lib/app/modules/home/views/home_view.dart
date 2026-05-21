@@ -11,6 +11,7 @@ import '../../../components/custom_form_field.dart';
 import '../../../components/custom_icon_button.dart';
 import '../../../components/dark_transition.dart';
 import '../../../components/product_item.dart';
+import '../../../data/models/order_model.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/home_controller.dart';
 
@@ -48,13 +49,13 @@ class HomeView extends GetView<HomeController> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 24.w),
                       title: Text(
                         'Buenos dias',
-                        style: theme.textTheme.bodyText2?.copyWith(
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           fontSize: 12.sp
                         ),
                       ),
                       subtitle: Text(
                         'Amelia Barlow',
-                        style: theme.textTheme.headline5?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -149,7 +150,7 @@ class HomeView extends GetView<HomeController> {
                               border: Border.all(color: theme.dividerColor),
                               boxShadow: [
                                 BoxShadow(
-                                  color: theme.primaryColor.withOpacity(0.08),
+                                  color: theme.primaryColor.withValues(alpha: 0.08),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -164,15 +165,42 @@ class HomeView extends GetView<HomeController> {
                     14.verticalSpace,
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24.w),
-                      child: CustomButton(
-                        text: 'Historial',
-                        onPressed: () => Get.toNamed(Routes.CUSTOMER_HISTORY),
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                        radius: 14.r,
-                        verticalPadding: 14.h,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Historial',
+                              onPressed: () =>
+                                  Get.toNamed(Routes.CUSTOMER_HISTORY),
+                              backgroundColor: theme.primaryColor,
+                              foregroundColor: Colors.white,
+                              radius: 14.r,
+                              verticalPadding: 14.h,
+                            ),
+                          ),
+                          12.horizontalSpace,
+                          Expanded(
+                            child: CustomButton(
+                              text: 'Tiendas',
+                              onPressed: () => Get.toNamed(Routes.STORES),
+                              backgroundColor: theme.primaryColorDark,
+                              foregroundColor: theme.primaryColor,
+                              radius: 14.r,
+                              verticalPadding: 14.h,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    14.verticalSpace,
+                    Obx(() {
+                      final stats = controller.ordersStats.value;
+                      if (stats == null) return const SizedBox.shrink();
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24.w),
+                        child: _StatsCard(stats: stats),
+                      );
+                    }),
                   ],
                 ),
                     Padding(
@@ -185,11 +213,11 @@ class HomeView extends GetView<HomeController> {
                         children: [
                           Text(
                             'Categorias',
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           Text(
                             'Ver todo',
-                            style: theme.textTheme.headline6?.copyWith(
+                            style: theme.textTheme.titleLarge?.copyWith(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.normal,
                             ),
@@ -197,23 +225,23 @@ class HomeView extends GetView<HomeController> {
                         ],
                       ),
                       16.verticalSpace,
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: controller.categories.map((category) {
-                          return CategoryItem(category: category);
-                        }).toList(),
-                      ),
+                      Obx(() => Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: controller.categories.map((category) {
+                              return CategoryItem(category: category);
+                            }).toList(),
+                          )),
                       20.verticalSpace,
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Mas vendidos',
-                            style: theme.textTheme.headline4,
+                            style: theme.textTheme.headlineMedium,
                           ),
                           Text(
                             'Ver todo',
-                            style: theme.textTheme.headline6?.copyWith(
+                            style: theme.textTheme.titleLarge?.copyWith(
                               color: theme.primaryColor,
                               fontWeight: FontWeight.normal,
                             ),
@@ -229,20 +257,25 @@ class HomeView extends GetView<HomeController> {
                           } else if (constraints.maxWidth >= 640) {
                             columns = 3;
                           }
-                          return GridView.builder(
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: columns,
-                              crossAxisSpacing: 16.w,
-                              mainAxisSpacing: 16.h,
-                              mainAxisExtent: 214.h,
-                            ),
-                            shrinkWrap: true,
-                            primary: false,
-                            itemCount: 2,
-                            itemBuilder: (context, index) => ProductItem(
-                              product: controller.products[index],
-                            ),
-                          );
+                          return Obx(() {
+                            final items = controller.products;
+                            final visible = items.length < 2 ? items.length : 2;
+                            return GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: 16.w,
+                                mainAxisSpacing: 16.h,
+                                mainAxisExtent: 214.h,
+                              ),
+                              shrinkWrap: true,
+                              primary: false,
+                              itemCount: visible,
+                              itemBuilder: (context, index) => ProductItem(
+                                product: items[index],
+                              ),
+                            );
+                          });
                         },
                       ),
                       20.verticalSpace,
@@ -256,6 +289,118 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  const _StatsCard({required this.stats});
+
+  final OrdersStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16.r),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.primaryColor,
+            theme.primaryColor.withValues(alpha: 0.75),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: theme.primaryColor.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.stars_rounded, color: Colors.white, size: 22),
+              8.horizontalSpace,
+              Text(
+                'Mis puntos',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          8.verticalSpace,
+          Text(
+            '${stats.currentPoints}',
+            style: theme.textTheme.displaySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          12.verticalSpace,
+          Row(
+            children: [
+              Expanded(
+                child: _StatTile(
+                  label: 'Compras',
+                  value: '${stats.totalOrders}',
+                ),
+              ),
+              Expanded(
+                child: _StatTile(
+                  label: 'Gastado',
+                  value: '\$${stats.totalSpent.toStringAsFixed(2)}',
+                ),
+              ),
+              Expanded(
+                child: _StatTile(
+                  label: 'Ahorrado',
+                  value: '\$${stats.totalSaved.toStringAsFixed(2)}',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white70,
+          ),
+        ),
+        2.verticalSpace,
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -21,7 +21,7 @@ class AdminView extends GetView<AdminController> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Panel de tienda', style: theme.textTheme.headline3),
+          title: Text('Panel de tienda', style: theme.textTheme.displaySmall),
           centerTitle: true,
           bottom: const TabBar(
             tabs: [
@@ -55,7 +55,7 @@ class AdminView extends GetView<AdminController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Visión general', style: theme.textTheme.headline4),
+        Text('Visión general', style: theme.textTheme.headlineMedium),
         20.verticalSpace,
         Obx(
           () => Row(
@@ -104,16 +104,16 @@ class AdminView extends GetView<AdminController> {
             width: double.infinity,
             padding: EdgeInsets.all(14.w),
             decoration: BoxDecoration(
-              color: theme.primaryColor.withOpacity(0.08),
+              color: theme.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14.r),
             ),
             child: Text(
               'Estás en modo solo visualización. No puedes agregar ni editar productos.',
-              style: theme.textTheme.bodyText2,
+              style: theme.textTheme.bodyMedium,
             ),
           ),
         30.verticalSpace,
-        Text('Productos de la tienda', style: theme.textTheme.headline5),
+        Text('Productos de la tienda', style: theme.textTheme.headlineSmall),
         16.verticalSpace,
         Expanded(
           child: Obx(
@@ -122,7 +122,7 @@ class AdminView extends GetView<AdminController> {
                 return Center(
                   child: Text(
                     'No hay productos registrados para esta tienda.',
-                    style: theme.textTheme.bodyText1,
+                    style: theme.textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
                 );
@@ -177,9 +177,9 @@ class AdminView extends GetView<AdminController> {
             ),
           ),
           20.verticalSpace,
-          Text(store.name, style: theme.textTheme.headline5),
+          Text(store.name, style: theme.textTheme.headlineSmall),
           8.verticalSpace,
-          Text(store.description, style: theme.textTheme.bodyText2),
+          Text(store.description, style: theme.textTheme.bodyMedium),
           24.verticalSpace,
           _sectionTitle(theme, 'Datos fiscales'),
           10.verticalSpace,
@@ -215,8 +215,8 @@ class AdminView extends GetView<AdminController> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(user.email, style: theme.textTheme.bodyText1),
-                            Text(user.role == AuthService.storeAdminRole ? 'Administrador' : 'Visualizador', style: theme.textTheme.caption),
+                            Text(user.email, style: theme.textTheme.bodyLarge),
+                            Text(user.role == AuthService.storeAdminRole ? 'Administrador' : 'Visualizador', style: theme.textTheme.bodySmall),
                           ],
                         ),
                       ),
@@ -247,7 +247,7 @@ class AdminView extends GetView<AdminController> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Dashboard de Vouchers', style: theme.textTheme.headline4),
+                  Text('Dashboard de Vouchers', style: theme.textTheme.headlineMedium),
                   CustomButton(
                     text: 'Ver historial',
                     onPressed: () => Get.toNamed(Routes.VOUCHER_HISTORY),
@@ -280,13 +280,13 @@ class AdminView extends GetView<AdminController> {
                 ),
               ),
               24.verticalSpace,
-              Text('Vouchers activos (3 meses)', style: theme.textTheme.headline5),
+              Text('Vouchers activos (3 meses)', style: theme.textTheme.headlineSmall),
               12.verticalSpace,
               Obx(
                 () {
                   final vouchers = controller.recentValidVouchers;
                   if (vouchers.isEmpty) {
-                    return Text('No hay vouchers activos en los últimos 3 meses.', style: theme.textTheme.bodyText2);
+                    return Text('No hay vouchers activos en los últimos 3 meses.', style: theme.textTheme.bodyMedium);
                   }
                   if (isWide) {
                     return _voucherTable(theme, vouchers);
@@ -297,13 +297,13 @@ class AdminView extends GetView<AdminController> {
                 },
               ),
               24.verticalSpace,
-              Text('Vouchers activos (30 días)', style: theme.textTheme.headline5),
+              Text('Vouchers activos (30 días)', style: theme.textTheme.headlineSmall),
               12.verticalSpace,
               Obx(
                 () {
                   final vouchers = controller.lastMonthValidVouchers;
                   if (vouchers.isEmpty) {
-                    return Text('No hay vouchers activos en los últimos 30 días.', style: theme.textTheme.bodyText2);
+                    return Text('No hay vouchers activos en los últimos 30 días.', style: theme.textTheme.bodyMedium);
                   }
                   if (isWide) {
                     return _voucherTable(theme, vouchers);
@@ -329,18 +329,18 @@ class AdminView extends GetView<AdminController> {
       ),
       clipBehavior: Clip.antiAlias,
       child: DataTable(
-        headingRowColor: MaterialStateProperty.all(theme.primaryColor.withOpacity(0.08)),
-        dataRowColor: MaterialStateProperty.resolveWith(
-          (states) => states.contains(MaterialState.selected)
-              ? theme.primaryColor.withOpacity(0.05)
+        headingRowColor: WidgetStateProperty.all(theme.primaryColor.withValues(alpha: 0.08)),
+        dataRowColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? theme.primaryColor.withValues(alpha: 0.05)
               : null,
         ),
         columnSpacing: 24,
         columns: [
-          DataColumn(label: Text('Código', style: theme.textTheme.subtitle2?.copyWith(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text('Usuario', style: theme.textTheme.subtitle2?.copyWith(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text('Email', style: theme.textTheme.subtitle2?.copyWith(fontWeight: FontWeight.bold))),
-          DataColumn(label: Text('Creado', style: theme.textTheme.subtitle2?.copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text('Código', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text('Usuario', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text('Email', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+          DataColumn(label: Text('Creado', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
         ],
         rows: vouchers.map((voucher) {
           return DataRow(cells: [
@@ -348,15 +348,15 @@ class AdminView extends GetView<AdminController> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: theme.primaryColor.withOpacity(0.1),
+                  color: theme.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Text(voucher.code, style: theme.textTheme.caption?.copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
+                child: Text(voucher.code, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
               ),
             ),
-            DataCell(Text(controller.customerNameFor(voucher), style: theme.textTheme.bodyText2)),
-            DataCell(Text(controller.customerEmailFor(voucher), style: theme.textTheme.bodyText2)),
-            DataCell(Text(voucher.createdAt.toLocal().toString().split(' ').first, style: theme.textTheme.caption)),
+            DataCell(Text(controller.customerNameFor(voucher), style: theme.textTheme.bodyMedium)),
+            DataCell(Text(controller.customerEmailFor(voucher), style: theme.textTheme.bodyMedium)),
+            DataCell(Text(voucher.createdAt.toLocal().toString().split(' ').first, style: theme.textTheme.bodySmall)),
           ]);
         }).toList(),
       ),
@@ -376,11 +376,11 @@ class AdminView extends GetView<AdminController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Código: ${voucher.code}', style: theme.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold)),
+          Text('Código: ${voucher.code}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           8.verticalSpace,
-          Text('Usuario: ${controller.customerNameFor(voucher)}', style: theme.textTheme.bodyText2),
-          Text('Email: ${controller.customerEmailFor(voucher)}', style: theme.textTheme.bodyText2),
-          Text('Creado: ${voucher.createdAt.toLocal().toString().split(' ').first}', style: theme.textTheme.caption),
+          Text('Usuario: ${controller.customerNameFor(voucher)}', style: theme.textTheme.bodyMedium),
+          Text('Email: ${controller.customerEmailFor(voucher)}', style: theme.textTheme.bodyMedium),
+          Text('Creado: ${voucher.createdAt.toLocal().toString().split(' ').first}', style: theme.textTheme.bodySmall),
         ],
       ),
     );
@@ -396,7 +396,7 @@ class AdminView extends GetView<AdminController> {
         border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.08),
+            color: theme.primaryColor.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -410,16 +410,16 @@ class AdminView extends GetView<AdminController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.name, style: theme.textTheme.headline6),
+                Text(item.name, style: theme.textTheme.titleLarge),
                 8.verticalSpace,
-                Text(item.description, style: theme.textTheme.bodyText2),
+                Text(item.description, style: theme.textTheme.bodyMedium),
                 8.verticalSpace,
-                Text('Stock disponible: ${item.quantity}', style: theme.textTheme.bodyText2),
+                Text('Stock disponible: ${item.quantity}', style: theme.textTheme.bodyMedium),
                 4.verticalSpace,
-                Text('Categoria: ${item.category}', style: theme.textTheme.bodyText2),
-                Text('SKU: ${item.sku}', style: theme.textTheme.bodyText2),
-                Text('Precio original: \$${item.originalPrice.toStringAsFixed(2)}', style: theme.textTheme.bodyText2),
-                Text('Precio con descuento: \$${item.discountPrice.toStringAsFixed(2)}', style: theme.textTheme.bodyText2),
+                Text('Categoria: ${item.category}', style: theme.textTheme.bodyMedium),
+                Text('SKU: ${item.sku}', style: theme.textTheme.bodyMedium),
+                Text('Precio original: \$${item.originalPrice.toStringAsFixed(2)}', style: theme.textTheme.bodyMedium),
+                Text('Precio con descuento: \$${item.discountPrice.toStringAsFixed(2)}', style: theme.textTheme.bodyMedium),
               ],
             ),
           ),
@@ -454,7 +454,7 @@ class AdminView extends GetView<AdminController> {
   }
 
   Widget _sectionTitle(ThemeData theme, String title) {
-    return Text(title, style: theme.textTheme.headline6?.copyWith(fontWeight: FontWeight.bold));
+    return Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold));
   }
 
   Widget _infoRow(ThemeData theme, String label, String value) {
@@ -465,11 +465,11 @@ class AdminView extends GetView<AdminController> {
         children: [
           Expanded(
             flex: 2,
-            child: Text('$label:', style: theme.textTheme.bodyText2?.copyWith(fontWeight: FontWeight.w600)),
+            child: Text('$label:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
           ),
           Expanded(
             flex: 3,
-            child: Text(value, style: theme.textTheme.bodyText2),
+            child: Text(value, style: theme.textTheme.bodyMedium),
           ),
         ],
       ),
@@ -486,18 +486,18 @@ class AdminView extends GetView<AdminController> {
       child: Container(
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: color.withOpacity(0.25)),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: color, size: 24.w),
             18.verticalSpace,
-            Text(value, style: Get.textTheme.headline5?.copyWith(color: color, fontWeight: FontWeight.bold)),
+            Text(value, style: Get.textTheme.headlineSmall?.copyWith(color: color, fontWeight: FontWeight.bold)),
             8.verticalSpace,
-            Text(label, style: Get.textTheme.bodyText2?.copyWith(color: color.withOpacity(0.8))),
+            Text(label, style: Get.textTheme.bodyMedium?.copyWith(color: color.withValues(alpha: 0.8))),
           ],
         ),
       ),
@@ -581,7 +581,7 @@ class AdminView extends GetView<AdminController> {
               }
 
               final product = ProductModel(
-                id: DateTime.now().millisecondsSinceEpoch,
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
                 image: image.isNotEmpty ? image : Constants.background,
                 name: name,
                 description: description,

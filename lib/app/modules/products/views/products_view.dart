@@ -9,9 +9,38 @@ import '../../../components/custom_icon_button.dart';
 import '../../../components/product_item.dart';
 import '../controllers/products_controller.dart';
 
-class ProductsView extends GetView<ProductsController> {
+class ProductsView extends StatefulWidget {
   const ProductsView({Key? key}) : super(key: key);
-  
+
+  @override
+  State<ProductsView> createState() => _ProductsViewState();
+}
+
+class _ProductsViewState extends State<ProductsView> {
+  final ProductsController controller = Get.find<ProductsController>();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      controller.loadMore();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
@@ -37,7 +66,7 @@ class ProductsView extends GetView<ProductsController> {
               ),
               Text(
                 'Marketplace',
-                style: theme.textTheme.headline3,
+                style: theme.textTheme.displaySmall,
               ),
               CustomIconButton(
                 onPressed: () => controller.clearSearch(),
@@ -82,10 +111,43 @@ class ProductsView extends GetView<ProductsController> {
             ),
             16.verticalSpace,
             Obx(
-              () => Text(
-                '${controller.filteredProducts.length} productos encontrados',
-                style: theme.textTheme.caption,
-              ),
+              () {
+                if (controller.storeName.value.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: Wrap(
+                    children: [
+                      InputChip(
+                        avatar: Icon(
+                          Icons.storefront_outlined,
+                          size: 18,
+                          color: theme.primaryColor,
+                        ),
+                        label: Text('Tienda: ${controller.storeName.value}'),
+                        onDeleted: controller.clearStoreFilter,
+                        backgroundColor:
+                            theme.primaryColor.withValues(alpha: 0.10),
+                        labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            Obx(
+              () {
+                final shown = controller.filteredProducts.length;
+                final total = controller.meta.value.total;
+                final label = total > 0 && total >= shown
+                    ? 'Mostrando $shown de $total productos'
+                    : '$shown productos encontrados';
+                return Text(label, style: theme.textTheme.bodySmall);
+              },
             ),
             10.verticalSpace,
             Obx(
@@ -99,9 +161,9 @@ class ProductsView extends GetView<ProductsController> {
                       child: ChoiceChip(
                         label: Text(category),
                         selected: isSelected,
-                        selectedColor: theme.primaryColor.withOpacity(0.16),
-                        labelStyle: theme.textTheme.bodyText2?.copyWith(
-                          color: isSelected ? theme.primaryColor : theme.textTheme.bodyText2?.color,
+                        selectedColor: theme.primaryColor.withValues(alpha: 0.16),
+                        labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: isSelected ? theme.primaryColor : theme.textTheme.bodyMedium?.color,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                         ),
                         onSelected: (_) => controller.onCategorySelected(category),
@@ -120,11 +182,12 @@ class ProductsView extends GetView<ProductsController> {
                     return Center(
                       child: Text(
                         'No hay productos para el filtro seleccionado.',
-                        style: theme.textTheme.bodyText2,
+                        style: theme.textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
                     );
                   }
+                  final isLoadingMore = controller.isLoadingMore.value;
                   return LayoutBuilder(
                     builder: (context, constraints) {
                       int columns = 2;
@@ -133,16 +196,39 @@ class ProductsView extends GetView<ProductsController> {
                       } else if (constraints.maxWidth >= 640) {
                         columns = 3;
                       }
-                      return GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columns,
-                          crossAxisSpacing: 16.w,
-                          mainAxisSpacing: 16.h,
-                          mainAxisExtent: 214.h,
-                        ),
-                        itemCount: items.length,
-                        itemBuilder: (context, index) => ProductItem(
-                          product: items[index],
+                      return RefreshIndicator(
+                        onRefresh: controller.fetchProducts,
+                        child: CustomScrollView(
+                          controller: _scrollController,
+                          slivers: [
+                            SliverGrid(
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: columns,
+                                crossAxisSpacing: 16.w,
+                                mainAxisSpacing: 16.h,
+                                mainAxisExtent: 214.h,
+                              ),
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) => ProductItem(product: items[index]),
+                                childCount: items.length,
+                              ),
+                            ),
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16.h),
+                                child: Center(
+                                  child: isLoadingMore
+                                      ? const CircularProgressIndicator()
+                                      : (controller.meta.value.hasMore
+                                          ? Text(
+                                              'Desliza para cargar más',
+                                              style: theme.textTheme.bodySmall,
+                                            )
+                                          : const SizedBox.shrink()),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },

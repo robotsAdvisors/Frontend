@@ -1,19 +1,24 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../local/my_shared_pref.dart';
+import '../repositories/auth_repository.dart';
 
+/// Fachada de autenticacion usada por la UI.
+///
+/// Internamente delega en [AuthRepository] (backend Django Letdem).
+/// Mantiene la misma API estatica que el codigo existente espera.
 class AuthService {
   AuthService._();
-
-  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   static const String customerRole = 'customer';
   static const String storeAdminRole = 'store_admin';
   static const String storeViewerRole = 'store_viewer';
   static const String generalAdminRole = 'general_admin';
 
-  static String? get currentUserEmail =>
-      _firebaseAuth.currentUser?.email ?? MySharedPref.getLoggedInUserEmail();
+  static String? get currentUserEmail => MySharedPref.getLoggedInUserEmail();
 
   static String get currentUserRole =>
       MySharedPref.getLoggedInUserRoleOrDefault();
@@ -24,64 +29,115 @@ class AuthService {
 
   static bool get isGeneralAdmin => currentUserRole == generalAdminRole;
 
-  static bool get isLoggedIn =>
-      _firebaseAuth.currentUser != null || MySharedPref.getIsLoggedIn();
+  static bool get isLoggedIn {
+    final token = MySharedPref.getAccessToken();
+    return MySharedPref.getIsLoggedIn() && token != null && token.isNotEmpty;
+  }
 
+  /// Login contra POST /api/v1/accounts/auth/login/
   static Future<bool> signInWithEmailPassword(
     String email,
     String password,
     String role,
   ) async {
-    try {
-      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    await AuthRepository.instance.login(email: email, password: password);
 
-      final String? savedRole = MySharedPref.getLoggedInUserRole();
-      final String nextRole = (savedRole == null || savedRole.isEmpty) ? role : savedRole;
+    final savedRole = MySharedPref.getLoggedInUserRole();
+    final nextRole =
+        (savedRole == null || savedRole.isEmpty) ? role : savedRole;
+    await MySharedPref.setLoggedInUserRole(nextRole);
 
-      await MySharedPref.setLoggedIn(true);
-      await MySharedPref.setLoggedInUserEmail(userCredential.user?.email ?? email);
-      await MySharedPref.setLoggedInUserRole(nextRole);
-      return true;
-    } on FirebaseAuthException catch (e) {
-      rethrow;
-    }
+    // Cargar perfil en background (no bloquea el login).
+    AuthRepository.instance.fetchMe();
+    return true;
   }
 
+  /// Signup contra POST /api/v1/accounts/auth/signup/
   static Future<bool> registerWithEmailPassword(
     String email,
     String password,
     String role,
   ) async {
-    try {
-      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    await AuthRepository.instance.signup(email: email, password: password);
+    await MySharedPref.setLoggedInUserRole(role);
+    AuthRepository.instance.fetchMe();
+    return true;
+  }
 
-      await MySharedPref.setLoggedIn(true);
-      await MySharedPref.setLoggedInUserEmail(userCredential.user?.email ?? email);
-      await MySharedPref.setLoggedInUserRole(role);
-      return true;
-    } on FirebaseAuthException catch (e) {
-      rethrow;
+  /// Login social con Google.
+  ///
+  /// Flujo:
+  /// 1. `google_sign_in` obtiene `idToken` + `accessToken` del usuario Google.
+  /// 2. Se intercambian por una credencial Firebase y se hace `signInWithCredential`.
+  /// 3. Se solicita el ID token Firebase y se envia al backend Django:
+  ///    `POST /accounts/auth/social-login/` que devuelve un JWT propio.
+  /// 4. El JWT propio queda persistido para el resto de la app.
+  ///
+  /// Devuelve `true` si todo salio bien, `false` si el usuario cancelo.
+  static Future<bool> signInWithGoogle({String role = customerRole}) async {
+    final googleSignIn = GoogleSignIn();
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) return false; // usuario cancelo
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final userCred =
+        await FirebaseAuth.instance.signInWithCredential(credential);
+    final firebaseUser = userCred.user;
+    if (firebaseUser == null) {
+      throw Exception('Firebase no devolvio usuario.');
     }
+
+    final firebaseIdToken = await firebaseUser.getIdToken(true);
+    if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+      throw Exception('No se pudo obtener el ID token de Firebase.');
+    }
+
+    await AuthRepository.instance.socialLogin(
+      firebaseIdToken: firebaseIdToken,
+      deviceId: _deviceId(firebaseUser.uid),
+      email: firebaseUser.email,
+    );
+
+    final savedRole = MySharedPref.getLoggedInUserRole();
+    final nextRole =
+        (savedRole == null || savedRole.isEmpty) ? role : savedRole;
+    await MySharedPref.setLoggedInUserRole(nextRole);
+
+    AuthRepository.instance.fetchMe();
+    return true;
   }
 
   static Future<void> signOut() async {
+    // Cierra Firebase si hay sesion social activa.
     try {
-      await _firebaseAuth.signOut();
+      await GoogleSignIn().signOut();
     } catch (_) {}
-    await MySharedPref.setLoggedIn(false);
-    await MySharedPref.setLoggedInUserEmail('');
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+
+    await AuthRepository.instance.logout();
     await MySharedPref.setLoggedInUserRole(customerRole);
   }
 
-  /// Simulates a backend call that assigns a virtual card for the current user.
+  /// Identificador estable por instalacion para enviar al backend.
+  static String _deviceId(String uid) {
+    final platform = Platform.isAndroid
+        ? 'android'
+        : Platform.isIOS
+            ? 'ios'
+            : 'web';
+    return 'letdem-$platform-$uid';
+  }
+
+  /// Tarjeta virtual asignada al usuario. Mientras no exista un endpoint
+  /// dedicado en el backend, derivamos un numero estable a partir del email.
   static Future<Map<String, String>> fetchAssignedVirtualCard() async {
-    await Future.delayed(const Duration(milliseconds: 600));
     final email = currentUserEmail ?? 'cliente@example.com';
     final digits = email
         .replaceAll(RegExp(r'[^0-9]'), '')

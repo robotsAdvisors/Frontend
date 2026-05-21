@@ -41,7 +41,7 @@ class LoginView extends GetView<LoginController> {
                     12.horizontalSpace,
                     Text(
                       'Letdem',
-                      style: theme.textTheme.headline4?.copyWith(
+                      style: theme.textTheme.headlineMedium?.copyWith(
                         color: theme.primaryColor,
                         fontWeight: FontWeight.w800,
                       ),
@@ -51,12 +51,12 @@ class LoginView extends GetView<LoginController> {
                 24.verticalSpace,
                 Text(
                   'Bienvenido',
-                  style: theme.textTheme.headline4?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 10.verticalSpace,
                 Text(
                   'Inicia sesión con tu correo y contraseña para continuar en el marketplace.',
-                  style: theme.textTheme.bodyText1,
+                  style: theme.textTheme.bodyLarge,
                 ),
                 40.verticalSpace,
                 CustomFormField(
@@ -72,7 +72,7 @@ class LoginView extends GetView<LoginController> {
                   () => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tipo de cuenta', style: theme.textTheme.subtitle1),
+                      Text('Tipo de cuenta', style: theme.textTheme.titleMedium),
                       10.verticalSpace,
                       Column(
                         children: [
@@ -90,16 +90,16 @@ class LoginView extends GetView<LoginController> {
                                       : theme.dividerColor,
                                 ),
                                 color: controller.selectedRole.value == AuthService.customerRole
-                                    ? theme.primaryColor.withOpacity(0.1)
+                                    ? theme.primaryColor.withValues(alpha: 0.1)
                                     : null,
                               ),
                               child: Center(
                                 child: Text(
                                   'Usuario',
-                                  style: theme.textTheme.bodyText1?.copyWith(
+                                  style: theme.textTheme.bodyLarge?.copyWith(
                                     color: controller.selectedRole.value == AuthService.customerRole
                                         ? theme.primaryColor
-                                        : theme.textTheme.bodyText1?.color,
+                                        : theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -119,16 +119,16 @@ class LoginView extends GetView<LoginController> {
                                       : theme.dividerColor,
                                 ),
                                 color: controller.selectedRole.value == AuthService.storeAdminRole
-                                    ? theme.primaryColor.withOpacity(0.1)
+                                    ? theme.primaryColor.withValues(alpha: 0.1)
                                     : null,
                               ),
                               child: Center(
                                 child: Text(
                                   'Administrador de Tienda',
-                                  style: theme.textTheme.bodyText1?.copyWith(
+                                  style: theme.textTheme.bodyLarge?.copyWith(
                                     color: controller.selectedRole.value == AuthService.storeAdminRole
                                         ? theme.primaryColor
-                                        : theme.textTheme.bodyText1?.color,
+                                        : theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -148,16 +148,16 @@ class LoginView extends GetView<LoginController> {
                                       : theme.dividerColor,
                                 ),
                                 color: controller.selectedRole.value == AuthService.storeViewerRole
-                                    ? theme.primaryColor.withOpacity(0.1)
+                                    ? theme.primaryColor.withValues(alpha: 0.1)
                                     : null,
                               ),
                               child: Center(
                                 child: Text(
                                   'Visualizador de Tienda',
-                                  style: theme.textTheme.bodyText1?.copyWith(
+                                  style: theme.textTheme.bodyLarge?.copyWith(
                                     color: controller.selectedRole.value == AuthService.storeViewerRole
                                         ? theme.primaryColor
-                                        : theme.textTheme.bodyText1?.color,
+                                        : theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -176,16 +176,16 @@ class LoginView extends GetView<LoginController> {
                                       : theme.dividerColor,
                                 ),
                                 color: controller.selectedRole.value == AuthService.generalAdminRole
-                                    ? theme.primaryColor.withOpacity(0.1)
+                                    ? theme.primaryColor.withValues(alpha: 0.1)
                                     : null,
                               ),
                               child: Center(
                                 child: Text(
                                   'Administrador General',
-                                  style: theme.textTheme.bodyText1?.copyWith(
+                                  style: theme.textTheme.bodyLarge?.copyWith(
                                     color: controller.selectedRole.value == AuthService.generalAdminRole
                                         ? theme.primaryColor
-                                        : theme.textTheme.bodyText1?.color,
+                                        : theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -229,13 +229,46 @@ class LoginView extends GetView<LoginController> {
                     hasShadow: true,
                   ),
                 ),
+                12.verticalSpace,
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w),
+                      child: Text(
+                        'o',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                12.verticalSpace,
+                Obx(
+                  () => CustomButton(
+                    text: 'Continuar con Google',
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : controller.loginWithGoogle,
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black87,
+                    radius: 14.r,
+                    verticalPadding: 14.h,
+                    disabled: controller.isLoading.value,
+                    hasShadow: true,
+                    icon: const Icon(
+                      Icons.account_circle,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ),
                 16.verticalSpace,
                 Center(
                   child: TextButton(
                     onPressed: controller.register,
                     child: Text(
                       '¿No tienes cuenta? Regístrate',
-                      style: theme.textTheme.bodyText2?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.primaryColor,
                         fontWeight: FontWeight.w600,
                       ),

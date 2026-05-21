@@ -40,7 +40,7 @@ class CustomIconButton extends StatelessWidget {
           child: InkWell(
             onTap: onPressed,
             child: icon,
-            highlightColor: theme.primaryColor.withOpacity(0.2),
+            highlightColor: theme.primaryColor.withValues(alpha: 0.2),
             customBorder: const CircleBorder(),
           ),
         ),

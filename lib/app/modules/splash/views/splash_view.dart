@@ -28,7 +28,7 @@ class SplashView extends GetView<SplashController> {
             children: [
               CircleAvatar(
                 radius: 55.r,
-                backgroundColor: Colors.white.withOpacity(0.18),
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
                 child: Image.asset(Constants.logo, width: 67.w, height: 55.h),
               ).animate().fade().slideY(
                 duration: 500.ms,
@@ -38,7 +38,7 @@ class SplashView extends GetView<SplashController> {
               20.verticalSpace,
               Text(
                 'Letdem',
-                style: theme.textTheme.headline2?.copyWith(
+                style: theme.textTheme.displayMedium?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 2,
@@ -47,7 +47,7 @@ class SplashView extends GetView<SplashController> {
               8.verticalSpace,
               Text(
                 'Tu marketplace de confianza',
-                style: theme.textTheme.bodyText2?.copyWith(color: Colors.white70),
+                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
               ).animate().fade(delay: 350.ms, duration: 400.ms),
             ],
           ),

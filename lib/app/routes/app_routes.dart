@@ -18,6 +18,7 @@ abstract class Routes {
   static const PRODUCTS = _Paths.PRODUCTS;
   static const VOUCHER_HISTORY = _Paths.VOUCHER_HISTORY;
   static const CUSTOMER_HISTORY = _Paths.CUSTOMER_HISTORY;
+  static const STORES = _Paths.STORES;
 }
 
 abstract class _Paths {
@@ -37,4 +38,5 @@ abstract class _Paths {
   static const PRODUCTS = '/products';
   static const VOUCHER_HISTORY = '/voucher-history';
   static const CUSTOMER_HISTORY = '/customer-history';
+  static const STORES = '/stores';
 }

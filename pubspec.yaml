@@ -16,10 +16,12 @@ dependencies:
   flutter_svg: # for svg icons
   firebase_core: ^2.14.0
   firebase_auth: ^4.10.0
+  google_sign_in: ^6.2.1 # social login Google -> Firebase -> backend
   carousel_slider: # for image slider
   badges: # for badges
   flutter_animate: # for animation
   image_picker: ^1.0.4 # for picking photos from gallery/camera
+  dio: ^5.4.0 # HTTP client for Django REST backend
 
   flutter: 
     sdk: flutter

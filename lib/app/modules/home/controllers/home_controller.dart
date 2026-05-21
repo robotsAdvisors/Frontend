@@ -8,13 +8,21 @@ import '../../../../utils/constants.dart';
 import '../../../../utils/dummy_helper.dart';
 import '../../../data/local/my_shared_pref.dart';
 import '../../../data/models/category_model.dart';
+import '../../../data/models/order_model.dart';
 import '../../../data/models/product_model.dart';
+import '../../../data/repositories/marketplace_repository.dart';
 
 class HomeController extends GetxController {
 
   // to hold categories & products
-  List<CategoryModel> categories = [];
-  List<ProductModel> products = [];
+  RxList<CategoryModel> categories = <CategoryModel>[].obs;
+  RxList<ProductModel> products = <ProductModel>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+
+  /// Estadísticas del cliente (puntos, gasto, ahorro…). Se carga aparte
+  /// porque requiere autenticación y puede fallar silenciosamente.
+  final Rxn<OrdersStats> ordersStats = Rxn<OrdersStats>();
 
   // for app theme
   var isLightTheme = MySharedPref.getThemeIsLight();
@@ -43,19 +51,44 @@ class HomeController extends GetxController {
 
   @override
   void onInit() {
-    getCategories();
-    getProducts();
+    loadCatalog();
+    loadOrdersStats();
     super.onInit();
   }
 
-  /// get categories from dummy helper
-  getCategories() {
-    categories = DummyHelper.categories;
+  /// Carga categorias y productos desde el backend Letdem.
+  /// Si el backend falla, hace fallback a [DummyHelper] para no dejar la UI vacia.
+  Future<void> loadCatalog() async {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      final results = await Future.wait([
+        MarketplaceRepository.instance.fetchCategories(),
+        MarketplaceRepository.instance.fetchProducts(),
+      ]);
+      categories.assignAll(results[0] as List<CategoryModel>);
+      products.assignAll(results[1] as List<ProductModel>);
+    } catch (e) {
+      errorMessage.value = e.toString();
+      // Fallback a datos locales para que la UI no quede en blanco.
+      categories.assignAll(DummyHelper.categories);
+      products.assignAll(DummyHelper.products);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  /// get products from dummy helper
-  getProducts() {
-    products = DummyHelper.products;
+  /// Carga las estadísticas del cliente (puntos actuales, gasto total…)
+  /// desde el envelope `meta.stats` de `GET /marketplace/orders/`.
+  /// Falla en silencio si el usuario no está autenticado.
+  Future<void> loadOrdersStats() async {
+    try {
+      final page = await MarketplaceRepository.instance
+          .fetchOrders(page: 1, pageSize: 1);
+      ordersStats.value = page.stats;
+    } catch (_) {
+      // Sin sesión o sin red: dejamos el card oculto.
+    }
   }
 
   /// when the user press on change theme icon

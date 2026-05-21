@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../data/models/order_model.dart';
 import '../../../data/models/voucher_model.dart';
 import '../controllers/customer_history_controller.dart';
 
@@ -16,7 +17,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
     final double contentMaxWidth = isWide ? 980 : double.infinity;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Historial Wallet', style: theme.textTheme.headline3),
+        title: Text('Historial Wallet', style: theme.textTheme.displaySmall),
         centerTitle: true,
       ),
       body: Align(
@@ -32,16 +33,22 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
               children: [
                 _walletCard(theme),
                 20.verticalSpace,
-                Text('Movimientos y canjes', style: theme.textTheme.headline5),
+                _statsCard(theme),
+                20.verticalSpace,
+                Text('Movimientos y canjes', style: theme.textTheme.headlineSmall),
                 12.verticalSpace,
                 if (controller.walletMovements.isEmpty)
-                  Text('No hay movimientos en tu wallet todavía.', style: theme.textTheme.bodyText2)
+                  Text('No hay movimientos en tu wallet todavía.', style: theme.textTheme.bodyMedium)
                 else
                   Column(
                     children: controller.walletMovements
                         .map((voucher) => _movementCard(theme, voucher))
                         .toList(),
                   ),
+                20.verticalSpace,
+                Text('Mis compras', style: theme.textTheme.headlineSmall),
+                12.verticalSpace,
+                _ordersSection(theme),
               ],
                 ),
               ),
@@ -75,7 +82,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
         borderRadius: BorderRadius.circular(18.r),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.24),
+            color: theme.primaryColor.withValues(alpha: 0.24),
             blurRadius: 12,
             offset: const Offset(0, 5),
           ),
@@ -84,14 +91,14 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tarjeta virtual de puntos', style: theme.textTheme.headline6?.copyWith(color: Colors.white)),
+          Text('Tarjeta virtual de puntos', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
           12.verticalSpace,
           Text(
             controller.walletCode.value,
-            style: theme.textTheme.headline5?.copyWith(color: Colors.white, letterSpacing: 1.1),
+            style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, letterSpacing: 1.1),
           ),
           10.verticalSpace,
-          Text('Estado wallet: ${controller.walletStatus.value}', style: theme.textTheme.bodyText2?.copyWith(color: Colors.white70)),
+          Text('Estado wallet: ${controller.walletStatus.value}', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
           14.verticalSpace,
           OutlinedButton.icon(
             onPressed: () async {
@@ -127,7 +134,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
         border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withOpacity(0.08),
+            color: theme.primaryColor.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -140,12 +147,12 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text('Código: ${voucher.code}', style: theme.textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold)),
+                child: Text('Código: ${voucher.code}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
@@ -153,15 +160,15 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
             ],
           ),
           8.verticalSpace,
-          Text('Producto: ${controller.productNameFor(voucher)}', style: theme.textTheme.bodyText2),
-          Text('Descuento obtenido: ${controller.discountText(voucher)}', style: theme.textTheme.bodyText2),
-          Text('Creado: ${voucher.createdAt.toLocal()}', style: theme.textTheme.caption),
+          Text('Producto: ${controller.productNameFor(voucher)}', style: theme.textTheme.bodyMedium),
+          Text('Descuento obtenido: ${controller.discountText(voucher)}', style: theme.textTheme.bodyMedium),
+          Text('Creado: ${voucher.createdAt.toLocal()}', style: theme.textTheme.bodySmall),
           if (voucher.redeemedAt != null)
-            Text('Canjeado: ${voucher.redeemedAt!.toLocal()}', style: theme.textTheme.caption),
-          Text('Tiempo restante: ${controller.remainingTime(voucher)}', style: theme.textTheme.caption),
+            Text('Canjeado: ${voucher.redeemedAt!.toLocal()}', style: theme.textTheme.bodySmall),
+          Text('Tiempo restante: ${controller.remainingTime(voucher)}', style: theme.textTheme.bodySmall),
           if (controller.canRate(voucher)) ...[
             10.verticalSpace,
-            Text('Valorar producto', style: theme.textTheme.bodyText2?.copyWith(fontWeight: FontWeight.w600)),
+            Text('Valorar producto', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
             6.verticalSpace,
             Row(
               children: List.generate(5, (index) {
@@ -180,6 +187,145 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
               }),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _statsCard(ThemeData theme) {
+    if (controller.loadingOrders.value) {
+      return SizedBox(
+        height: 80.h,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final page = controller.ordersPage.value;
+    if (page == null) {
+      return const SizedBox.shrink();
+    }
+    final stats = page.stats;
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Resumen de actividad', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          12.verticalSpace,
+          Wrap(
+            spacing: 16.w,
+            runSpacing: 12.h,
+            children: [
+              _statTile(theme, 'Compras', '${stats.totalOrders}'),
+              _statTile(theme, 'Gastado', '\u20ac${stats.totalSpent.toStringAsFixed(2)}'),
+              _statTile(theme, 'Ahorrado', '\u20ac${stats.totalSaved.toStringAsFixed(2)}'),
+              _statTile(theme, 'Puntos usados', '${stats.totalPointsUsed}'),
+              _statTile(theme, 'Puntos actuales', '${stats.currentPoints}'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statTile(ThemeData theme, String label, String value) {
+    return SizedBox(
+      width: 120.w,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: theme.textTheme.bodySmall),
+          4.verticalSpace,
+          Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _ordersSection(ThemeData theme) {
+    if (controller.loadingOrders.value) {
+      return SizedBox(
+        height: 80.h,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final page = controller.ordersPage.value;
+    if (page == null) {
+      return Text('No se pudo cargar el historial de compras.', style: theme.textTheme.bodyMedium);
+    }
+    if (controller.orders.isEmpty) {
+      return Text('Aún no tienes compras registradas.', style: theme.textTheme.bodyMedium);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Mostrando ${controller.orders.length} de ${page.meta.total} compras',
+          style: theme.textTheme.bodySmall,
+        ),
+        12.verticalSpace,
+        ...controller.orders.map((order) => _orderCard(theme, order)),
+        if (page.meta.hasMore) ...[
+          8.verticalSpace,
+          Center(
+            child: controller.loadingMoreOrders.value
+                ? const CircularProgressIndicator()
+                : OutlinedButton.icon(
+                    onPressed: controller.loadMoreOrders,
+                    icon: const Icon(Icons.expand_more),
+                    label: const Text('Cargar más compras'),
+                  ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _orderCard(ThemeData theme, OrderModel order) {
+    final color = order.status == 'PAID' || order.status == 'CLOSED'
+        ? Colors.green
+        : order.status == 'CANCELLED'
+            ? Colors.redAccent
+            : Colors.orange;
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Orden #${order.id}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Text(order.status, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+          6.verticalSpace,
+          Text('Fecha: ${order.createdAt.toLocal()}', style: theme.textTheme.bodySmall),
+          Text('Artículos: ${order.items.length}', style: theme.textTheme.bodySmall),
+          if (order.pointsDiscount > 0)
+            Text('Descuento puntos: -\u20ac${order.pointsDiscount.toStringAsFixed(2)}', style: theme.textTheme.bodySmall),
+          4.verticalSpace,
+          Text('Total: \u20ac${order.total.toStringAsFixed(2)}',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
         ],
       ),
     );

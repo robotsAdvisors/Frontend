@@ -35,7 +35,7 @@ class ProductCountItem extends GetView<BaseController> {
           id: 'ProductQuantity',
           builder: (_) => Text(
             product.quantity.toString(),
-            style: theme.textTheme.headline4,
+            style: theme.textTheme.headlineMedium,
           ),
         ),
         16.horizontalSpace,

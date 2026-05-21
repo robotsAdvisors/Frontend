@@ -16,7 +16,7 @@ class ProfileView extends GetView<ProfileController> {
     final double contentMaxWidth = isWide ? 980 : double.infinity;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mi perfil', style: theme.textTheme.headline3),
+        title: Text('Mi perfil', style: theme.textTheme.displaySmall),
         centerTitle: true,
       ),
       body: Align(
@@ -29,7 +29,7 @@ class ProfileView extends GetView<ProfileController> {
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Configuración de cliente', style: theme.textTheme.headline5),
+              Text('Configuración de cliente', style: theme.textTheme.headlineSmall),
               16.verticalSpace,
               Container(
                 width: double.infinity,
@@ -40,7 +40,7 @@ class ProfileView extends GetView<ProfileController> {
                   border: Border.all(color: theme.dividerColor),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.primaryColor.withOpacity(0.08),
+                      color: theme.primaryColor.withValues(alpha: 0.08),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -84,10 +84,11 @@ class ProfileView extends GetView<ProfileController> {
                           ),
                         ),
                         14.verticalSpace,
-                        // ── Mis datos header ───────────────────────────                        Row(
+                        // ── Mis datos header ───────────────────────────
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Mis datos', style: theme.textTheme.headline6),
+                            Text('Mis datos', style: theme.textTheme.titleLarge),
                             if (!isEditing)
                               TextButton(
                                 onPressed: controller.startEditingProfile,
@@ -161,7 +162,7 @@ class ProfileView extends GetView<ProfileController> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: theme.primaryColor.withOpacity(0.25),
+                      color: theme.primaryColor.withValues(alpha: 0.25),
                       blurRadius: 12,
                       offset: const Offset(0, 5),
                     ),
@@ -179,12 +180,12 @@ class ProfileView extends GetView<ProfileController> {
                       children: [
                         Text(
                           controller.virtualCardType.value,
-                          style: theme.textTheme.headline6?.copyWith(color: Colors.white),
+                          style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
                         ),
                         18.verticalSpace,
                         Text(
                           controller.virtualCardNumber.value,
-                          style: theme.textTheme.headline5?.copyWith(
+                          style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                             letterSpacing: 1.2,
                           ),
@@ -192,12 +193,12 @@ class ProfileView extends GetView<ProfileController> {
                         14.verticalSpace,
                         Text(
                           'Válida hasta ${controller.virtualCardExpiry.value}',
-                          style: theme.textTheme.bodyText2?.copyWith(color: Colors.white70),
+                          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
                         ),
                         10.verticalSpace,
                         Text(
                           'Tarjeta asignada por backend (solo lectura)',
-                          style: theme.textTheme.caption?.copyWith(color: Colors.white70),
+                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70),
                         ),
                       ],
                     );
@@ -217,9 +218,9 @@ class ProfileView extends GetView<ProfileController> {
                   () => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Preferencias', style: theme.textTheme.headline6),
+                      Text('Preferencias', style: theme.textTheme.titleLarge),
                       14.verticalSpace,
-                      Text('Idioma', style: theme.textTheme.bodyText2?.copyWith(fontWeight: FontWeight.w600)),
+                      Text('Idioma', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
                       10.verticalSpace,
                       Row(
                         children: [
@@ -232,7 +233,7 @@ class ProfileView extends GetView<ProfileController> {
                                   : theme.primaryColorDark,
                               foregroundColor: controller.selectedLanguageCode.value == 'es'
                                   ? Colors.white
-                                  : (theme.textTheme.bodyText1?.color ?? Colors.black),
+                                  : (theme.textTheme.bodyLarge?.color ?? Colors.black),
                               radius: 12,
                               verticalPadding: 12,
                               hasShadow: controller.selectedLanguageCode.value == 'es',
@@ -248,7 +249,7 @@ class ProfileView extends GetView<ProfileController> {
                                   : theme.primaryColorDark,
                               foregroundColor: controller.selectedLanguageCode.value == 'en'
                                   ? Colors.white
-                                  : (theme.textTheme.bodyText1?.color ?? Colors.black),
+                                  : (theme.textTheme.bodyLarge?.color ?? Colors.black),
                               radius: 12,
                               verticalPadding: 12,
                               hasShadow: controller.selectedLanguageCode.value == 'en',
@@ -263,11 +264,11 @@ class ProfileView extends GetView<ProfileController> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Modo oscuro', style: theme.textTheme.bodyText2?.copyWith(fontWeight: FontWeight.w600)),
+                              Text('Modo oscuro', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
                               2.verticalSpace,
                               Text(
                                 controller.isDarkMode.value ? 'Activado' : 'Desactivado',
-                                style: theme.textTheme.caption,
+                                style: theme.textTheme.bodySmall,
                               ),
                             ],
                           ),
@@ -285,7 +286,7 @@ class ProfileView extends GetView<ProfileController> {
               24.verticalSpace,
               Text(
                 'Gestión del servicio',
-                style: theme.textTheme.headline6,
+                style: theme.textTheme.titleLarge,
               ),
               12.verticalSpace,
               CustomButton(
@@ -324,13 +325,13 @@ class ProfileView extends GetView<ProfileController> {
             width: 90,
             child: Text(
               '$label:',
-              style: theme.textTheme.bodyText2?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: theme.textTheme.bodyText2,
+              style: theme.textTheme.bodyMedium,
             ),
           ),
         ],

@@ -65,13 +65,13 @@ class CustomButton extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(buttonRadius),
               border: Border.all(color: borderColor ?? Colors.transparent),
-              color: !disabled ? backgroundColor ?? theme.primaryColor : theme.primaryColor.withOpacity(0.5),
+              color: !disabled ? backgroundColor ?? theme.primaryColor : theme.primaryColor.withValues(alpha: 0.5),
               gradient: gradient,
               boxShadow: !hasShadow || disabled
                 ? null
                 : [
                     BoxShadow(
-                      color: (shadowColor ?? theme.primaryColor).withOpacity(shadowOpacity),
+                      color: (shadowColor ?? theme.primaryColor).withValues(alpha: shadowOpacity),
                       spreadRadius: shadowSpreadRadius,
                       blurRadius: shadowBlurRadius,
                       offset: const Offset(0, 2),
@@ -84,7 +84,7 @@ class CustomButton extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: Get.theme.textTheme.bodyText1?.copyWith(
+                  style: Get.theme.textTheme.bodyLarge?.copyWith(
                     fontSize: fontSize,
                     fontWeight: fontWeight,
                     color: foregroundColor ?? theme.colorScheme.onPrimary,

@@ -28,7 +28,7 @@ class DummyHelper {
 
   static List<ProductModel> products = [
     ProductModel(
-      id: 1,
+      id: '1',
       image: Constants.bellPepper,
       name: 'Bell Pepper Red',
       description: _description,
@@ -40,7 +40,7 @@ class DummyHelper {
       storeId: 'store_1',
     ),
     ProductModel(
-      id: 2,
+      id: '2',
       image: Constants.lambMeat,
       name: 'Lamb Meat',
       description: _description,
@@ -52,7 +52,7 @@ class DummyHelper {
       storeId: 'store_1',
     ),
     ProductModel(
-      id: 3,
+      id: '3',
       image: Constants.ginger,
       name: 'Arabic Ginger',
       description: _description,
@@ -64,7 +64,7 @@ class DummyHelper {
       storeId: 'store_1',
     ),
     ProductModel(
-      id: 4,
+      id: '4',
       image: Constants.cabbage,
       name: 'Fresh Lettuce',
       description: _description,
@@ -76,7 +76,7 @@ class DummyHelper {
       storeId: 'store_2',
     ),
     ProductModel(
-      id: 5,
+      id: '5',
       image: Constants.pumpkin,
       name: 'Butternut Squash',
       description: _description,
@@ -88,7 +88,7 @@ class DummyHelper {
       storeId: 'store_2',
     ),
     ProductModel(
-      id: 6,
+      id: '6',
       image: Constants.carrot,
       name: 'Organic Carrots',
       description: _description,
@@ -100,7 +100,7 @@ class DummyHelper {
       storeId: 'store_2',
     ),
     ProductModel(
-      id: 7,
+      id: '7',
       image: Constants.cauliflower,
       name: 'Fresh Broccoli',
       description: _description,
@@ -112,7 +112,7 @@ class DummyHelper {
       storeId: 'store_2',
     ),
     ProductModel(
-      id: 8,
+      id: '8',
       image: Constants.tomatoes,
       name: 'Cherry Tomato',
       description: _description,
@@ -124,7 +124,7 @@ class DummyHelper {
       storeId: 'store_2',
     ),
     ProductModel(
-      id: 9,
+      id: '9',
       image: Constants.spinach,
       name: 'Fresh Spinach',
       description: _description,
@@ -324,14 +324,10 @@ class DummyHelper {
   }
 
   static String productNameById(String productId) {
-    final int? parsed = int.tryParse(productId);
-    if (parsed == null) {
-      return 'Producto desconocido';
-    }
     final product = products.firstWhere(
-      (item) => item.id == parsed,
+      (item) => item.id == productId,
       orElse: () => ProductModel(
-        id: -1,
+        id: '',
         image: '',
         name: 'Producto desconocido',
         description: '',

@@ -21,6 +21,10 @@ class MySharedPref {
     static const String _customerPhoneKey = 'customer_phone';
     static const String _customerAddressKey = 'customer_address';
     static const String _customerProfileImageKey = 'customer_profile_image';
+    // JWT tokens del backend Django
+    static const String _accessTokenKey = 'access_token';
+    static const String _refreshTokenKey = 'refresh_token';
+    static const String _totalPointsKey = 'user_total_points';
 
   /// init get storage services
   static Future<void> init() async {
@@ -114,6 +118,31 @@ class MySharedPref {
 
   static String? getCustomerProfileImage() =>
       _sharedPreferences.getString(_customerProfileImageKey);
+
+  // ---- JWT del backend Django ----
+  static Future<void> setAccessToken(String token) =>
+      _sharedPreferences.setString(_accessTokenKey, token);
+
+  static String? getAccessToken() =>
+      _sharedPreferences.getString(_accessTokenKey);
+
+  static Future<void> setRefreshToken(String token) =>
+      _sharedPreferences.setString(_refreshTokenKey, token);
+
+  static String? getRefreshToken() =>
+      _sharedPreferences.getString(_refreshTokenKey);
+
+  static Future<void> clearTokens() async {
+    await _sharedPreferences.remove(_accessTokenKey);
+    await _sharedPreferences.remove(_refreshTokenKey);
+  }
+
+  // ---- Total points (gamificacion / wallet) ----
+  static Future<void> setTotalPoints(int points) =>
+      _sharedPreferences.setInt(_totalPointsKey, points);
+
+  static int getTotalPoints() =>
+      _sharedPreferences.getInt(_totalPointsKey) ?? 0;
 
   /// clear all data from shared pref
   static Future<void> clear() async => await _sharedPreferences.clear();

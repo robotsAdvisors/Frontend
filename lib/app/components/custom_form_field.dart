@@ -129,9 +129,9 @@ class _CustomFormFieldState extends State<CustomFormField> {
           //cursorHeight: 15,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           initialValue: widget.initialValue,
-          style: MyStyles.getTextTheme(isLightTheme: !Get.isDarkMode).bodyText2!.copyWith(
+          style: MyStyles.getTextTheme(isLightTheme: !Get.isDarkMode).bodyMedium!.copyWith(
             fontSize: widget.textSize ?? 14.sp,
-            color: widget.textColor ?? theme.textTheme.bodyText1?.color,
+            color: widget.textColor ?? theme.textTheme.bodyLarge?.color,
           ),
           onSaved: widget.onFieldSubmit,
           onEditingComplete: widget.onEditingComplete,
@@ -166,7 +166,7 @@ class _CustomFormFieldState extends State<CustomFormField> {
             ),
             hintText: widget.hint,
             focusedErrorBorder: widget.errorBorder ?? OutlineInputBorder(borderSide: const BorderSide(color: Colors.redAccent, width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
-            disabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.withOpacity(0), width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
+            disabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.grey.withValues(alpha: 0), width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
             errorBorder: widget.errorBorder ?? OutlineInputBorder(borderSide: const BorderSide(color: Colors.redAccent, width: 0.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 10)),
             enabledBorder: widget.enabledBorder ?? OutlineInputBorder(borderSide: BorderSide(color: widget.enabledBorderColor ?? theme.dividerColor, width: 1.0), borderRadius: BorderRadius.circular(widget.borderRound ?? 12)),
             focusedBorder: widget.focusedBorder ?? OutlineInputBorder(

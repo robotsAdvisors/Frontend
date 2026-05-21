@@ -50,7 +50,7 @@ class WelcomeView extends GetView<WelcomeController> {
                 30.verticalSpace,
                 Text(
                   'Bienvenido a Letdem',
-                  style: theme.textTheme.headline1,
+                  style: theme.textTheme.displayLarge,
                   textAlign: TextAlign.center,
                 ).animate().fade().slideY(
                   duration: 300.ms,
@@ -60,7 +60,7 @@ class WelcomeView extends GetView<WelcomeController> {
                 24.verticalSpace,
                 Text(
                   'Tu marketplace de productos frescos con beneficios, vouchers y experiencia personalizada.',
-                  style: theme.textTheme.bodyText1,
+                  style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ).animate().fade().slideY(
                   duration: 300.ms,
