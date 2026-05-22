@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
@@ -80,7 +81,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
             backgroundColor: theme.primaryColorDark,
             child: Padding(
               padding: const EdgeInsets.all(3),
-              child: Image.asset(Constants.logo),
+              child: SvgPicture.asset(Constants.logo),
             ),
           ),
           8.horizontalSpace,

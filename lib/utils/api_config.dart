@@ -30,7 +30,7 @@ class ApiConfig {
   static const String tokenRefresh = '/accounts/token/refresh/';
 
   // Profile
-  static const String me = '/accounts/me';
+  static const String me = '/users/me';
 
   // Marketplace - catalogo publico
   static const String categories = '/marketplace/categories/';

@@ -247,13 +247,21 @@ class HomeView extends GetView<HomeController> {
           ),
           20.verticalSpace,
           Obx(() {
+            if (controller.isLoading.value) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.r),
+                  child: CircularProgressIndicator(color: theme.primaryColor),
+                ),
+              );
+            }
             final all = _visibleProducts;
             if (all.isEmpty) {
               return Center(
                 child: Padding(
                   padding: EdgeInsets.all(40.r),
-                  child: CircularProgressIndicator(
-                      color: theme.primaryColor),
+                  child: Text('No hay productos disponibles.',
+                      style: theme.textTheme.bodyLarge),
                 ),
               );
             }

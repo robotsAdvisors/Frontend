@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../config/translations/strings_enum.dart';
@@ -35,7 +36,7 @@ Widget _getLoadingIndicator({String? msg}){
       border: Border.all(color: theme.dividerColor),
     ),
     child: Column(mainAxisSize: MainAxisSize.min,children: [
-      Image.asset(Constants.logo,height: 45.h,),
+      SvgPicture.asset(Constants.logo, height: 45.h),
       SizedBox(width: 8.h,),
       Text(msg ?? Strings.loading.tr,style: Get.theme.textTheme.bodyLarge),
     ],),

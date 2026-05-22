@@ -147,7 +147,7 @@ class BaseView extends GetView<BaseController> {
             backgroundColor: theme.primaryColorDark,
             child: Padding(
               padding: const EdgeInsets.all(4),
-              child: Image.asset(Constants.logo),
+              child: SvgPicture.asset(Constants.logo),
             ),
           ),
           8.horizontalSpace,

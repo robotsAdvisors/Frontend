@@ -68,8 +68,10 @@ class HomeController extends GetxController {
         MarketplaceRepository.instance.fetchCategories(),
         MarketplaceRepository.instance.fetchProducts(),
       ]);
-      categories.assignAll(results[0] as List<CategoryModel>);
-      products.assignAll(results[1] as List<ProductModel>);
+      final remoteCategories = results[0] as List<CategoryModel>;
+      final remoteProducts = results[1] as List<ProductModel>;
+      categories.assignAll(remoteCategories.isNotEmpty ? remoteCategories : DummyHelper.categories);
+      products.assignAll(remoteProducts.isNotEmpty ? remoteProducts : DummyHelper.products);
     } catch (e) {
       errorMessage.value = e.toString();
       // Fallback a datos locales para que la UI no quede en blanco.

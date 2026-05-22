@@ -379,8 +379,11 @@ class MarketplaceRepository {
   /// Acepta también una lista plana por compatibilidad mínima.
   static List<dynamic> _toList(dynamic data) {
     if (data is List) return data;
-    if (data is Map && data['data'] is List) {
-      return List<dynamic>.from(data['data'] as List);
+    if (data is Map) {
+      // DRF PageNumberPagination → { "results": [...] }
+      if (data['results'] is List) return List<dynamic>.from(data['results'] as List);
+      // Custom envelope → { "data": [...] }
+      if (data['data'] is List) return List<dynamic>.from(data['data'] as List);
     }
     return const [];
   }
