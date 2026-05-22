@@ -12,14 +12,6 @@ class LoginController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
   final RxString selectedRole = AuthService.customerRole.obs;
-  final RxBool showAdminRoles = false.obs;
-
-  void toggleAdminPanel() {
-    showAdminRoles.value = !showAdminRoles.value;
-    selectedRole.value = showAdminRoles.value
-        ? AuthService.storeAdminRole
-        : AuthService.customerRole;
-  }
 
   @override
   void onClose() {
@@ -112,18 +104,36 @@ class LoginController extends GetxController {
     } on ApiException catch (exception) {
       Get.snackbar(
         'Error',
-        exception.message,
+        _shortenError(exception.message),
         snackPosition: SnackPosition.BOTTOM,
+        maxWidth: 500,
+        duration: const Duration(seconds: 5),
       );
     } catch (error) {
       Get.snackbar(
         'Error',
-        'No se pudo iniciar sesion con Google: $error',
+        _shortenError('No se pudo iniciar sesión con Google: $error'),
         snackPosition: SnackPosition.BOTTOM,
+        maxWidth: 500,
+        duration: const Duration(seconds: 5),
       );
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Recorta mensajes de error gigantes (JSON, stack) para que el snackbar
+  /// no rompa el layout.
+  String _shortenError(String raw) {
+    final oneLine = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (oneLine.contains('People API has not been used')) {
+      return 'Google rechazó la petición: el proyecto no tiene habilitada la People API. '
+          'Actívala en Google Cloud Console y vuelve a intentarlo.';
+    }
+    if (oneLine.contains('PERMISSION_DENIED')) {
+      return 'Google denegó el acceso (PERMISSION_DENIED). Revisa los permisos del OAuth Client.';
+    }
+    return oneLine.length > 220 ? '${oneLine.substring(0, 220)}…' : oneLine;
   }
 
   String? validateEmail(String? value) {
