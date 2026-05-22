@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -75,18 +76,38 @@ class AuthService {
   ///
   /// Devuelve `true` si todo salio bien, `false` si el usuario cancelo.
   static Future<bool> signInWithGoogle({String role = customerRole}) async {
-    final googleSignIn = GoogleSignIn();
-    final googleUser = await googleSignIn.signIn();
-    if (googleUser == null) return false; // usuario cancelo
+    UserCredential userCred;
+    if (kIsWeb) {
+      // En web `google_sign_in.signIn()` no devuelve idToken de forma confiable,
+      // asi que delegamos en Firebase Auth directamente, que abre su propio
+      // popup OAuth y entrega un `UserCredential` ya listo.
+      final provider = GoogleAuthProvider()
+        ..addScope('email')
+        ..addScope('profile');
+      try {
+        userCred =
+            await FirebaseAuth.instance.signInWithPopup(provider);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'popup-closed-by-user' ||
+            e.code == 'cancelled-popup-request') {
+          return false; // usuario cerro el popup
+        }
+        rethrow;
+      }
+    } else {
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) return false; // usuario cancelo
 
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      userCred =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+    }
 
-    final userCred =
-        await FirebaseAuth.instance.signInWithCredential(credential);
     final firebaseUser = userCred.user;
     if (firebaseUser == null) {
       throw Exception('Firebase no devolvio usuario.');
@@ -127,11 +148,16 @@ class AuthService {
 
   /// Identificador estable por instalacion para enviar al backend.
   static String _deviceId(String uid) {
-    final platform = Platform.isAndroid
-        ? 'android'
-        : Platform.isIOS
-            ? 'ios'
-            : 'web';
+    String platform;
+    if (kIsWeb) {
+      platform = 'web';
+    } else if (Platform.isAndroid) {
+      platform = 'android';
+    } else if (Platform.isIOS) {
+      platform = 'ios';
+    } else {
+      platform = 'other';
+    }
     return 'letdem-$platform-$uid';
   }
 

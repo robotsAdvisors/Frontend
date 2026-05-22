@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
-import '../../../../utils/constants.dart';
 import '../controllers/splash_controller.dart';
 
 class SplashView extends GetView<SplashController> {
@@ -26,25 +26,31 @@ class SplashView extends GetView<SplashController> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                radius: 55.r,
-                backgroundColor: Colors.white.withValues(alpha: 0.18),
-                child: Image.asset(Constants.logo, width: 67.w, height: 55.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: SvgPicture.asset(
+                  'assets/vectors/letdem_logo.svg',
+                  width: 200.w,
+                  height: 44.h,
+                  fit: BoxFit.contain,
+                ),
               ).animate().fade().slideY(
                 duration: 500.ms,
                 begin: 1,
                 curve: Curves.easeInSine,
               ),
               20.verticalSpace,
-              Text(
-                'Letdem',
-                style: theme.textTheme.displayMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                ),
-              ).animate().fade(delay: 200.ms, duration: 400.ms),
-              8.verticalSpace,
               Text(
                 'Tu marketplace de confianza',
                 style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),

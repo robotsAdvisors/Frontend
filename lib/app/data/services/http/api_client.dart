@@ -129,7 +129,11 @@ ApiException toApiException(Object error) {
         message = data.entries.map((e) => '${e.key}: ${e.value}').join(' | ');
       }
     } else if (data is String && data.isNotEmpty) {
-      message = data;
+      // HTML error pages (e.g. Django 500) must not be shown raw in the UI.
+      final isHtml = data.trimLeft().startsWith('<');
+      message = isHtml
+          ? 'Error del servidor (${error.response?.statusCode ?? 500})'
+          : data.length > 200 ? '${data.substring(0, 200)}…' : data;
     }
     return ApiException(
       message,

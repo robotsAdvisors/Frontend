@@ -5,11 +5,9 @@ import '../../cart/controllers/cart_controller.dart';
 
 class BaseController extends GetxController {
 
-  // current screen index
   int currentIndex = 0;
-
-  // to count the number of products in the cart
   int cartItemsCount = 0;
+  final RxInt userPoints = 0.obs;
 
   @override
   void onInit() {

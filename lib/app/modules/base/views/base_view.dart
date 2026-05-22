@@ -15,6 +15,14 @@ import '../../home/views/home_view.dart';
 class BaseView extends GetView<BaseController> {
   const BaseView({Key? key}) : super(key: key);
 
+  static const List<Widget> _pages = [
+    HomeView(),
+    CategoryView(),
+    Center(),
+    CalendarView(),
+    ProfileView(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     var theme = context.theme;
@@ -24,121 +32,31 @@ class BaseView extends GetView<BaseController> {
         if (isDesktop) {
           return Scaffold(
             resizeToAvoidBottomInset: false,
-            body: Row(
-              children: [
-                SafeArea(
-                  child: Container(
-                    width: 108,
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      border: Border(right: BorderSide(color: theme.dividerColor)),
-                    ),
-                    child: NavigationRail(
-                      selectedIndex: _desktopSelectedIndex(controller.currentIndex),
-                      onDestinationSelected: (value) => controller.changeScreen(_desktopIndexToBaseIndex(value)),
-                      backgroundColor: Colors.transparent,
-                      useIndicator: true,
-                      indicatorColor: theme.primaryColor.withValues(alpha: 0.15),
-                      labelType: NavigationRailLabelType.all,
-                      destinations: [
-                        NavigationRailDestination(
-                          icon: SvgPicture.asset(Constants.homeIcon, color: theme.iconTheme.color),
-                          selectedIcon: SvgPicture.asset(Constants.homeIcon, color: theme.primaryColor),
-                          label: const Text('Home'),
-                        ),
-                        NavigationRailDestination(
-                          icon: SvgPicture.asset(Constants.categoryIcon, color: theme.iconTheme.color),
-                          selectedIcon: SvgPicture.asset(Constants.categoryIcon, color: theme.primaryColor),
-                          label: const Text('Categorias'),
-                        ),
-                        NavigationRailDestination(
-                          icon: SvgPicture.asset(Constants.calendarIcon, color: theme.iconTheme.color),
-                          selectedIcon: SvgPicture.asset(Constants.calendarIcon, color: theme.primaryColor),
-                          label: const Text('Calendario'),
-                        ),
-                        NavigationRailDestination(
-                          icon: SvgPicture.asset(Constants.userIcon, color: theme.iconTheme.color),
-                          selectedIcon: SvgPicture.asset(Constants.userIcon, color: theme.primaryColor),
-                          label: const Text('Perfil'),
-                        ),
-                      ],
-                      trailing: Expanded(
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(bottom: 16.h),
-                            child: GetBuilder<BaseController>(
-                              id: 'CartBadge',
-                              builder: (_) => IconButton(
-                                onPressed: () => Get.toNamed(Routes.CART),
-                                icon: badges.Badge(
-                                  position: badges.BadgePosition.topEnd(top: -10, end: -8),
-                                  badgeContent: Text(
-                                    controller.cartItemsCount.toString(),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  badgeStyle: badges.BadgeStyle(
-                                    elevation: 2,
-                                    badgeColor: theme.colorScheme.secondary,
-                                    borderSide: const BorderSide(color: Colors.white, width: 1),
-                                  ),
-                                  child: CircleAvatar(
-                                    radius: 20.r,
-                                    backgroundColor: theme.primaryColor,
-                                    child: SvgPicture.asset(Constants.cartIcon, fit: BoxFit.none),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+            body: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  _desktopHeader(context, theme),
+                  Expanded(
+                    child: IndexedStack(
+                      index: controller.currentIndex,
+                      children: _pages,
                     ),
                   ),
-                ),
-                Expanded(
-                  child: SafeArea(
-                    bottom: false,
-                    child: Column(
-                      children: [
-                        _desktopHeader(theme),
-                        Expanded(
-                          child: IndexedStack(
-                            index: controller.currentIndex,
-                            children: const [
-                              HomeView(),
-                              CategoryView(),
-                              Center(),
-                              CalendarView(),
-                              ProfileView()
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         }
 
+        // ─── MOBILE ───────────────────────────────────────────────────────────
         return Scaffold(
           resizeToAvoidBottomInset: false,
           body: SafeArea(
             bottom: false,
             child: IndexedStack(
               index: controller.currentIndex,
-              children: const [
-                HomeView(),
-                CategoryView(),
-                Center(),
-                CalendarView(),
-                ProfileView()
-              ],
+              children: _pages,
             ),
           ),
           bottomNavigationBar: Container(
@@ -162,39 +80,29 @@ class BaseView extends GetView<BaseController> {
               showUnselectedLabels: false,
               selectedFontSize: 0.0,
               items: [
+                _mBottomNavItem(label: 'Home', icon: Constants.homeIcon),
                 _mBottomNavItem(
-                  label: 'Home',
-                  icon: Constants.homeIcon,
-                ),
-                _mBottomNavItem(
-                  label: 'category',
-                  icon: Constants.categoryIcon,
-                ),
+                    label: 'category', icon: Constants.categoryIcon),
                 const BottomNavigationBarItem(
-                  label: '',
-                  icon: Center(),
-                ),
+                    label: '', icon: Center()),
                 _mBottomNavItem(
-                  label: 'Calendar',
-                  icon: Constants.calendarIcon,
-                ),
-                _mBottomNavItem(
-                  label: 'Profile',
-                  icon: Constants.userIcon,
-                ),
+                    label: 'Calendar', icon: Constants.calendarIcon),
+                _mBottomNavItem(label: 'Profile', icon: Constants.userIcon),
               ],
               onTap: controller.changeScreen,
             ),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
           floatingActionButton: FloatingActionButton(
             elevation: 0.0,
             backgroundColor: Colors.transparent,
-            onPressed:() => Get.toNamed(Routes.CART),
+            onPressed: () => Get.toNamed(Routes.CART),
             child: GetBuilder<BaseController>(
               id: 'CartBadge',
               builder: (_) => badges.Badge(
-                position: badges.BadgePosition.bottomEnd(bottom: -16, end: 13),
+                position:
+                    badges.BadgePosition.bottomEnd(bottom: -16, end: 13),
                 badgeContent: Text(
                   controller.cartItemsCount.toString(),
                   style: theme.textTheme.bodyMedium?.copyWith(
@@ -210,9 +118,8 @@ class BaseView extends GetView<BaseController> {
                 child: CircleAvatar(
                   radius: 22.r,
                   backgroundColor: theme.primaryColor,
-                  child: SvgPicture.asset(
-                    Constants.cartIcon, fit: BoxFit.none,
-                  ),
+                  child: SvgPicture.asset(Constants.cartIcon,
+                      fit: BoxFit.none),
                 ),
               ),
             ),
@@ -222,14 +129,9 @@ class BaseView extends GetView<BaseController> {
     );
   }
 
-  static const Map<int, String> _sectionTitles = {
-    0: 'Home',
-    1: 'Categorías',
-    3: 'Calendario',
-    4: 'Mi perfil',
-  };
+  // ─── DESKTOP HEADER ────────────────────────────────────────────────────────
 
-  Widget _desktopHeader(ThemeData theme) {
+  Widget _desktopHeader(BuildContext context, ThemeData theme) {
     return Container(
       height: 64,
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -239,6 +141,7 @@ class BaseView extends GetView<BaseController> {
       ),
       child: Row(
         children: [
+          // Logo + brand name
           CircleAvatar(
             radius: 16,
             backgroundColor: theme.primaryColorDark,
@@ -247,73 +150,145 @@ class BaseView extends GetView<BaseController> {
               child: Image.asset(Constants.logo),
             ),
           ),
-          10.horizontalSpace,
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Letdem Marketplace',
-                style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
-              ),
-              GetBuilder<BaseController>(
-                builder: (ctrl) => Text(
-                  _sectionTitles[ctrl.currentIndex] ?? 'Home',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          8.horizontalSpace,
+          Text(
+            'Letdem',
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          20.horizontalSpace,
+          // Search bar
+          Expanded(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 380),
+              child: SizedBox(
+                height: 38,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Buscar en el marketplace...',
+                    hintStyle: TextStyle(
+                        color: theme.hintColor, fontSize: 13.sp),
+                    prefixIcon: Icon(Icons.search,
+                        size: 18, color: theme.hintColor),
+                    filled: true,
+                    fillColor: theme.primaryColorDark,
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: 8.h, horizontal: 12.w),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50.r),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(50.r),
+                      borderSide:
+                          BorderSide(color: theme.primaryColor, width: 1.2),
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
-          const Spacer(),
-          TextButton.icon(
-            onPressed: () => controller.changeScreen(4),
-            icon: Icon(Icons.person_outline, color: theme.primaryColor),
-            label: Text(
-              'Mi perfil',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.primaryColor),
             ),
           ),
+          20.horizontalSpace,
+          // Navigation tabs
+          _navTab(theme, 'Marketplace', 0),
+          4.horizontalSpace,
+          _navTab(theme, 'Earning', 1),
+          4.horizontalSpace,
+          _navTab(theme, 'Rewards', 3),
+          12.horizontalSpace,
+          // Bell notification
+          IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.notifications_outlined,
+                color: theme.appBarTheme.iconTheme?.color, size: 22),
+          ),
+          8.horizontalSpace,
+          // Points badge
+          Obx(() => Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: theme.primaryColor,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.stars_rounded,
+                        color: Colors.white, size: 13),
+                    4.horizontalSpace,
+                    Text(
+                      controller.userPoints.value > 0
+                          ? '${controller.userPoints.value} pts'
+                          : 'Mis pts',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              )),
+          10.horizontalSpace,
+          // Avatar
+          GestureDetector(
+            onTap: () => controller.changeScreen(4),
+            child: CircleAvatar(
+              radius: 18.r,
+              backgroundColor: theme.primaryColorDark,
+              child: ClipOval(
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Image.asset(Constants.avatar),
+                ),
+              ),
+            ),
+          ),
+          6.horizontalSpace,
         ],
       ),
     );
   }
 
-  int _desktopSelectedIndex(int baseIndex) {
-    switch (baseIndex) {
-      case 0:
-        return 0;
-      case 1:
-        return 1;
-      case 3:
-        return 2;
-      case 4:
-        return 3;
-      default:
-        return 0;
-    }
-  }
-
-  int _desktopIndexToBaseIndex(int desktopIndex) {
-    switch (desktopIndex) {
-      case 0:
-        return 0;
-      case 1:
-        return 1;
-      case 2:
-        return 3;
-      case 3:
-        return 4;
-      default:
-        return 0;
-    }
-  }
-
-  _mBottomNavItem({required String label, required String icon}) {
-    return BottomNavigationBarItem(
-      label: label,
-      icon: SvgPicture.asset(icon, color: Get.theme.iconTheme.color),
-      activeIcon: SvgPicture.asset(icon, color: Get.theme.appBarTheme.iconTheme?.color),
+  Widget _navTab(ThemeData theme, String label, int index) {
+    final selected = controller.currentIndex == index;
+    return GestureDetector(
+      onTap: () => controller.changeScreen(index),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: selected ? theme.primaryColor : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected
+                ? theme.primaryColor
+                : theme.textTheme.bodyMedium?.color,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13.sp,
+          ),
+        ),
+      ),
     );
   }
 
+  BottomNavigationBarItem _mBottomNavItem(
+      {required String label, required String icon}) {
+    return BottomNavigationBarItem(
+      label: label,
+      icon: SvgPicture.asset(icon,
+            colorFilter: ColorFilter.mode(
+                Get.theme.iconTheme.color ?? Colors.grey, BlendMode.srcIn)),
+      activeIcon: SvgPicture.asset(icon,
+            colorFilter: ColorFilter.mode(
+                Get.theme.appBarTheme.iconTheme?.color ?? Colors.grey,
+                BlendMode.srcIn)),
+    );
+  }
 }

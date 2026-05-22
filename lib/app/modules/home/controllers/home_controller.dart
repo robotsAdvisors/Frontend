@@ -7,6 +7,7 @@ import '../../../../config/theme/my_theme.dart';
 import '../../../../utils/constants.dart';
 import '../../../../utils/dummy_helper.dart';
 import '../../../data/local/my_shared_pref.dart';
+import '../../base/controllers/base_controller.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/models/product_model.dart';
@@ -23,6 +24,7 @@ class HomeController extends GetxController {
   /// Estadísticas del cliente (puntos, gasto, ahorro…). Se carga aparte
   /// porque requiere autenticación y puede fallar silenciosamente.
   final Rxn<OrdersStats> ordersStats = Rxn<OrdersStats>();
+  final RxInt selectedCategoryId = (-1).obs;
 
   // for app theme
   var isLightTheme = MySharedPref.getThemeIsLight();
@@ -86,6 +88,10 @@ class HomeController extends GetxController {
       final page = await MarketplaceRepository.instance
           .fetchOrders(page: 1, pageSize: 1);
       ordersStats.value = page.stats;
+      if (Get.isRegistered<BaseController>()) {
+        Get.find<BaseController>().userPoints.value =
+            page.stats.currentPoints;
+      }
     } catch (_) {
       // Sin sesión o sin red: dejamos el card oculto.
     }
