@@ -16,7 +16,7 @@ class LoginView extends GetView<LoginController> {
     final theme = context.theme;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
           child: Form(
             key: controller.formKey,

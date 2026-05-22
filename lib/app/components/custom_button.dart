@@ -82,12 +82,16 @@ class CustomButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  text,
-                  style: Get.theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: fontSize,
-                    fontWeight: fontWeight,
-                    color: foregroundColor ?? theme.colorScheme.onPrimary,
+                Flexible(
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    style: Get.theme.textTheme.bodyLarge?.copyWith(
+                      fontSize: fontSize,
+                      fontWeight: fontWeight,
+                      color: foregroundColor ?? theme.colorScheme.onPrimary,
+                    ),
                   ),
                 ),
                 if (icon != null)
