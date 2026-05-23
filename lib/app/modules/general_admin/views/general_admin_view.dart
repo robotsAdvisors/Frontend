@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
 import '../../../data/models/store_model.dart';
-import '../../../data/models/store_user_model.dart';
 import '../controllers/general_admin_controller.dart';
 
 class GeneralAdminView extends GetView<GeneralAdminController> {
@@ -13,6 +12,30 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
   static const Color _purple = Color(0xFF7C3AED);
   static const Color _purpleLight = Color(0xFFEDE9FE);
   static const Color _bg = Color(0xFFF8F7FF);
+
+  static String _ownerName(String email) {
+    final local = email.split('@').first;
+    return local
+        .split(RegExp(r'[._\-]'))
+        .where((w) => w.isNotEmpty)
+        .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
+  }
+
+  static String _formatPts(int pts) {
+    if (pts == 0) return '0 pts';
+    final formatted = pts.toString().replaceAllMapped(
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => ',',
+    );
+    return '$formatted pts';
+  }
+
+  static String _formatCount(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}k';
+    return n.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,49 +68,50 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: _purple,
-                  child: Padding(
-                    padding: const EdgeInsets.all(3),
-                    child: SvgPicture.asset(Constants.logo),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text('Letdem',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: Color(0xFF1E1B4B))),
+                SvgPicture.asset(Constants.logo, height: 28),
               ],
             ),
           ),
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 6),
+            child: Text('SHOP MANAGEMENT',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF9CA3AF),
+                    letterSpacing: 0.8)),
+          ),
           _sideNavItem(icon: Icons.dashboard_outlined, label: 'Dashboard', selected: true),
           _sideNavItem(icon: Icons.store_outlined, label: 'Stores', onTap: () {}),
           _sideNavItem(icon: Icons.security_outlined, label: 'Permissions', onTap: () {}),
           _sideNavItem(icon: Icons.bar_chart_outlined, label: 'Global Metrics', onTap: () {}),
           _sideNavItem(icon: Icons.settings_outlined, label: 'Settings', onTap: () {}),
           const Spacer(),
+          const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 16,
-                  backgroundColor: _purpleLight,
-                  child: const Icon(Icons.admin_panel_settings_outlined, size: 16, color: _purple),
+                  radius: 18,
+                  backgroundColor: _purple,
+                  child: const Text('SA',
+                      style: TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Super Admin',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text('General Admin', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      Text('General Admin',
+                          style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -165,7 +189,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
               Text('Super Admin Dashboard',
                   style: TextStyle(
                       fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
-              Text('Letdem Network Control Panel',
+              Text("Welcome back, here's what's happening with Letdem today.",
                   style: TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
@@ -231,23 +255,24 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     return Obx(() {
       final totalStores = controller.totalStores.value;
       final activeUsers = controller.totalStoreUsers.value;
-      final redemptions = 0; // placeholder — backend not yet exposing global redemptions
+      final redemptions = controller.totalRedemptions.value;
+      final pointsPts = controller.totalPointsPts.value;
       return LayoutBuilder(builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 600;
         final cards = [
           _statCard(
             title: 'Total Stores',
-            value: totalStores.toString(),
-            sub: 'Registered networks',
-            subColor: Colors.grey,
+            value: _formatCount(totalStores),
+            sub: '↗ 12% from last month',
+            subColor: Colors.green,
             icon: Icons.store_outlined,
             iconBg: const Color(0xFFEDE9FE),
             iconColor: _purple,
           ),
           _statCard(
             title: 'Active Users',
-            value: activeUsers.toString(),
-            sub: '+8% this month',
+            value: _formatCount(activeUsers),
+            sub: '↗ 8.4% weekly growth',
             subColor: Colors.green,
             icon: Icons.people_outline,
             iconBg: const Color(0xFFECFDF5),
@@ -255,8 +280,8 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           ),
           _statCard(
             title: 'Total Redemptions',
-            value: redemptions.toString(),
-            sub: '0 pts distributed',
+            value: _formatCount(redemptions),
+            sub: pointsPts > 0 ? 'Points value: ${_formatCount(pointsPts)}' : 'Pts distribuidos',
             subColor: Colors.grey,
             icon: Icons.redeem_outlined,
             iconBg: const Color(0xFFFEF3C7),
@@ -331,8 +356,22 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => _showCreateUserDialog(context),
-                  child: const Text('+ Usuario', style: TextStyle(fontSize: 12, color: _purple)),
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('View All',
+                          style: TextStyle(
+                              fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_forward, size: 13, color: _purple),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -348,11 +387,11 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
             ),
             child: const Row(
               children: [
-                Expanded(flex: 3, child: Text('Store Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 2, child: Text('Owner', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 1, child: Text('Status', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 1, child: Text('Admins', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                SizedBox(width: 60),
+                Expanded(flex: 3, child: Text('STORE NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
+                Expanded(flex: 2, child: Text('OWNER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
+                Expanded(flex: 1, child: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
+                Expanded(flex: 2, child: Text('REVENUE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
+                SizedBox(width: 80),
               ],
             ),
           ),
@@ -376,7 +415,9 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     final initials = store.name.isNotEmpty
         ? store.name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
         : '?';
-    return Container(
+    return GestureDetector(
+      onLongPress: () => _confirmDeleteStore(store.id),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
@@ -404,7 +445,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           ),
           Expanded(
             flex: 2,
-            child: Text(store.ownerEmail,
+            child: Text(_ownerName(store.ownerEmail),
                 style: const TextStyle(fontSize: 11, color: Colors.grey),
                 maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
@@ -413,38 +454,54 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.12),
+                color: store.isPublished
+                    ? Colors.green.withValues(alpha: 0.12)
+                    : Colors.grey.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text('Active',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.green),
-                  textAlign: TextAlign.center),
+              child: Text(
+                store.isPublished ? 'Active' : 'Pending',
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: store.isPublished ? Colors.green : Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
           Expanded(
-            flex: 1,
-            child: Text('${store.adminUserIds.length}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                textAlign: TextAlign.center),
+            flex: 2,
+            child: Obx(() {
+              final pts = controller.storeRevenue[store.id] ?? 0;
+              return Text(
+                _formatPts(pts),
+                style: const TextStyle(
+                    fontSize: 12, color: Color(0xFF1E1B4B), fontWeight: FontWeight.w500),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            }),
           ),
           SizedBox(
-            width: 60,
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {},
-                  child: const Icon(Icons.edit_outlined, size: 16, color: _purple),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _confirmDeleteStore(store.id),
-                  child: Icon(Icons.delete_outline, size: 16, color: Colors.red.shade300),
-                ),
-              ],
+            width: 80,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purpleLight,
+                foregroundColor: _purple,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Edit',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ),
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -718,43 +775,6 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                 ));
                 Get.back();
                 Get.snackbar('Éxito', 'Tienda creada correctamente');
-              }
-            },
-            child: const Text('Crear'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCreateUserDialog(BuildContext context) {
-    final emailController = TextEditingController();
-    final storeIdController = TextEditingController();
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Crear Usuario de Tienda'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email del usuario')),
-            TextField(controller: storeIdController, decoration: const InputDecoration(labelText: 'ID de la tienda')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              if (emailController.text.isNotEmpty && storeIdController.text.isNotEmpty) {
-                controller.addStoreUser(StoreUserModel(
-                  id: 'admin_${DateTime.now().millisecondsSinceEpoch}',
-                  email: emailController.text,
-                  role: 'store_admin',
-                  storeId: storeIdController.text,
-                  createdAt: DateTime.now(),
-                ));
-                Get.back();
-                Get.snackbar('Éxito', 'Usuario creado correctamente');
               }
             },
             child: const Text('Crear'),

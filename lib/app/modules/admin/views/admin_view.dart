@@ -47,22 +47,13 @@ class AdminView extends GetView<AdminController> {
           // Brand
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: _purple,
-                  child: Padding(
-                    padding: const EdgeInsets.all(3),
-                    child: SvgPicture.asset(Constants.logo),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text('Letdem',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: Color(0xFF1E1B4B))),
+                SvgPicture.asset(Constants.logo, height: 24),
+                const SizedBox(height: 4),
+                const Text('Shop Management',
+                    style: TextStyle(fontSize: 11, color: Colors.grey)),
               ],
             ),
           ),
@@ -96,9 +87,10 @@ class AdminView extends GetView<AdminController> {
               ),
             ),
           const Spacer(),
+          const Divider(height: 1),
           // User profile footer
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
               children: [
                 CircleAvatar(
@@ -119,6 +111,13 @@ class AdminView extends GetView<AdminController> {
                           style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
                   ),
+                ),
+                IconButton(
+                  tooltip: 'Cerrar sesión',
+                  icon: const Icon(Icons.logout, size: 18, color: Colors.grey),
+                  onPressed: () => _confirmLogout(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
@@ -398,7 +397,25 @@ class AdminView extends GetView<AdminController> {
           const Text('Store Rating', style: TextStyle(fontSize: 12, color: Colors.white70)),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () {},
+            onTap: () => showDialog<void>(
+              context: Get.context!,
+              builder: (ctx) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: const Text('Reseñas'),
+                content: const Text('La sección de reseñas estará disponible próximamente.'),
+                actions: [
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _purple,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('Entendido'),
+                  ),
+                ],
+              ),
+            ),
             child: const Text('View Reviews →',
                 style: TextStyle(
                     fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600,
@@ -449,7 +466,7 @@ class AdminView extends GetView<AdminController> {
                 Expanded(flex: 3, child: Text('Product Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
                 Expanded(flex: 2, child: Text('Points Cost', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
                 Expanded(flex: 2, child: Text('Stock Level', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 1, child: Text('Status', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
+                Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
               ],
             ),
           ),
@@ -533,23 +550,27 @@ class AdminView extends GetView<AdminController> {
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isLow
-                        ? Colors.orange.withValues(alpha: 0.12)
-                        : Colors.green.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    isLow ? 'Low Stock' : 'Active',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: isLow ? Colors.orange.shade700 : Colors.green.shade700,
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isLow
+                          ? Colors.orange.withValues(alpha: 0.12)
+                          : Colors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      isLow ? 'Low Stock' : 'Active',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isLow ? Colors.orange.shade700 : Colors.green.shade700,
+                      ),
                     ),
                   ),
                 ),
@@ -557,7 +578,7 @@ class AdminView extends GetView<AdminController> {
                   GestureDetector(
                     onTap: () => controller.deleteProduct(item),
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 8),
+                      padding: const EdgeInsets.only(left: 6),
                       child: Icon(Icons.delete_outline, size: 16, color: Colors.red.shade300),
                     ),
                   ),
@@ -709,6 +730,38 @@ class AdminView extends GetView<AdminController> {
         child: SafeArea(child: _sidebar(context)),
       ),
       body: _mainArea(context, desktop: false),
+    );
+  }
+
+  // ─── LOGOUT ─────────────────────────────────────────────────────────────────
+
+  void _confirmLogout(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Seguro que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await AuthService.signOut();
+              Get.offAllNamed(Routes.LOGIN);
+            },
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
     );
   }
 

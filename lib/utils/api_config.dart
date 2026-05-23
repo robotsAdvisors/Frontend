@@ -50,4 +50,5 @@ class ApiConfig {
   static const String adminCategories = '/marketplace/admin/categories/';
   static const String adminStores = '/marketplace/admin/stores/';
   static const String adminProducts = '/marketplace/admin/products/';
+  static const String adminStats = '/marketplace/admin/stats/';
 }

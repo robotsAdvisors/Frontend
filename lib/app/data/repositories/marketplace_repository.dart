@@ -337,6 +337,20 @@ class MarketplaceRepository {
     return null;
   }
 
+  /// Estadísticas globales del Super Admin.
+  /// GET /marketplace/admin/stats/
+  Future<Map<String, dynamic>?> fetchAdminStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminStats);
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
   /// Helper genérico para endpoints paginados con envelope `{data, meta}`.
   Future<Paginated<T>> _fetchPage<T>({
     required String url,

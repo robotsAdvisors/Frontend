@@ -266,40 +266,46 @@ class HomeView extends GetView<HomeController> {
               );
             }
             final featured = all.first;
-            final rest = all.skip(1).take(3).toList();
-            return LayoutBuilder(builder: (context, constraints) {
-              if (constraints.maxWidth > 500) {
-                return Row(
+            final rest = all.skip(1).toList();
+            final row2 = rest.length > 1 ? rest.skip(1).take(3).toList() : <ProductModel>[];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Row 1: featured (large) + first portrait card
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       flex: 3,
                       child: _featuredCard(context, featured),
                     ),
-                    16.horizontalSpace,
-                    Expanded(
-                      flex: 2,
-                      child: Column(
-                        children: rest
-                            .map((p) => Padding(
-                                  padding: EdgeInsets.only(bottom: 12.h),
-                                  child: _smallProductCard(context, p),
-                                ))
-                            .toList(),
+                    if (rest.isNotEmpty) ...[
+                      16.horizontalSpace,
+                      Expanded(
+                        flex: 2,
+                        child: _portraitProductCard(context, rest[0]),
                       ),
-                    ),
+                    ],
                   ],
-                );
-              }
-              return Column(
-                children: all
-                    .map((p) => Padding(
-                          padding: EdgeInsets.only(bottom: 12.h),
-                          child: _smallProductCard(context, p),
-                        ))
-                    .toList(),
-              );
-            });
+                ),
+                // Row 2: up to 3 portrait cards
+                if (row2.isNotEmpty) ...[
+                  20.verticalSpace,
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (int i = 0; i < row2.length; i++) ...[
+                          if (i > 0) 16.horizontalSpace,
+                          Expanded(child: _portraitProductCard(context, row2[i])),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            );
           }),
           24.verticalSpace,
           Center(
@@ -463,93 +469,6 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _smallProductCard(BuildContext context, ProductModel product) {
-    final theme = context.theme;
-    return GestureDetector(
-      onTap: () => Get.toNamed(Routes.PRODUCT_DETAILS, arguments: product),
-      child: Container(
-        padding: EdgeInsets.all(10.r),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: theme.dividerColor),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: SizedBox(
-                width: 64.w,
-                height: 64.h,
-                child: _productImage(product.image, BoxFit.cover),
-              ),
-            ),
-            12.horizontalSpace,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (product.category.isNotEmpty)
-                    Text(
-                      product.category.toUpperCase(),
-                      style: TextStyle(
-                          color: theme.primaryColor,
-                          fontSize: 9.sp,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  4.verticalSpace,
-                  Text(
-                    product.name,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600, fontSize: 13.sp),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (product.storeName != null) ...[
-                    2.verticalSpace,
-                    Row(
-                      children: [
-                        Icon(Icons.storefront,
-                            size: 10, color: theme.iconTheme.color),
-                        4.horizontalSpace,
-                        Expanded(
-                          child: Text(product.storeName!,
-                              style: theme.textTheme.bodySmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                        ),
-                      ],
-                    ),
-                  ],
-                  6.verticalSpace,
-                  Row(
-                    children: [
-                      Text(
-                        '${product.price.toInt()} pts',
-                        style: TextStyle(
-                          color: theme.primaryColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                      const Spacer(),
-                      CircleAvatar(
-                        radius: 14.r,
-                        backgroundColor: theme.primaryColor,
-                        child: const Icon(Icons.add_rounded,
-                            color: Colors.white, size: 16),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ─── HERO BANNER ───────────────────────────────────────────────────────────
 
   Widget _heroBanner(BuildContext context, {required bool tall}) {
@@ -667,6 +586,138 @@ class HomeView extends GetView<HomeController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _portraitProductCard(BuildContext context, ProductModel product) {
+    final theme = context.theme;
+    return GestureDetector(
+      onTap: () => Get.toNamed(Routes.PRODUCT_DETAILS, arguments: product),
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: theme.dividerColor),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryColor.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Image ──────────────────────────────────────────────────────
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(16.r)),
+                  child: SizedBox(
+                    height: 160.h,
+                    width: double.infinity,
+                    child: _productImage(product.image, BoxFit.cover),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: CircleAvatar(
+                    radius: 14.r,
+                    backgroundColor: theme.cardColor,
+                    child: Icon(Icons.favorite_border,
+                        size: 14, color: theme.primaryColor),
+                  ),
+                ),
+              ],
+            ),
+            // ── Text ───────────────────────────────────────────────────────
+            Padding(
+              padding: EdgeInsets.all(12.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.category.toUpperCase(),
+                    style: TextStyle(
+                      color: theme.hintColor,
+                      fontSize: 9.sp,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  4.verticalSpace,
+                  Text(
+                    product.name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700, fontSize: 13.sp),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  6.verticalSpace,
+                  if (product.storeName != null)
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 8.r,
+                          backgroundColor: theme.primaryColorDark,
+                          child: Icon(Icons.storefront,
+                              size: 8, color: theme.primaryColor),
+                        ),
+                        5.horizontalSpace,
+                        Expanded(
+                          child: Text(
+                            product.storeName!,
+                            style: theme.textTheme.bodySmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 5.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7C3AED).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                          child: Text(
+                            'TIENDA OFICIAL',
+                            style: TextStyle(
+                              color: const Color(0xFF7C3AED),
+                              fontSize: 7.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  10.verticalSpace,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${product.price.toInt()} pts',
+                        style: TextStyle(
+                          color: theme.primaryColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16.sp,
+                        ),
+                      ),
+                      CircleAvatar(
+                        radius: 16.r,
+                        backgroundColor: theme.primaryColor,
+                        child: const Icon(Icons.add_shopping_cart_outlined,
+                            color: Colors.white, size: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

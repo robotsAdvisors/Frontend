@@ -14,6 +14,11 @@ class GeneralAdminController extends GetxController {
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxInt totalStores = 0.obs;
   final RxInt totalStoreUsers = 0.obs;
+  final RxInt totalCategories = 0.obs;
+  final RxInt totalProducts = 0.obs;
+  final RxInt totalRedemptions = 0.obs;
+  final RxInt totalPointsPts = 0.obs;
+  final RxMap<String, int> storeRevenue = <String, int>{}.obs;
   final RxBool isLoading = false.obs;
 
   final _repo = MarketplaceRepository.instance;
@@ -33,10 +38,12 @@ class GeneralAdminController extends GetxController {
       final results = await Future.wait<dynamic>([
         _repo.fetchStores(),
         _repo.fetchCategories(),
+        _repo.fetchAdminStats(),
       ]);
 
       final remoteStores = results[0] as List<StoreModel>;
       final remoteCategories = results[1] as List<CategoryModel>;
+      final stats = results[2] as Map<String, dynamic>?;
 
       if (remoteStores.isNotEmpty) {
         stores.assignAll(remoteStores);
@@ -44,6 +51,11 @@ class GeneralAdminController extends GetxController {
       if (remoteCategories.isNotEmpty) {
         categories.assignAll(remoteCategories);
       }
+
+      if (stats != null) {
+        _applyStats(stats);
+      }
+
       _calculateMetrics();
     } catch (_) {
       // Datos dummy ya cargados, ignoramos el error.
@@ -52,9 +64,49 @@ class GeneralAdminController extends GetxController {
     }
   }
 
+  void _applyStats(Map<String, dynamic> stats) {
+    totalStores.value = _parseInt(stats['total_stores'] ?? stats['stores']) ?? totalStores.value;
+    totalCategories.value = _parseInt(stats['total_categories'] ?? stats['categories']) ?? totalCategories.value;
+    totalProducts.value = _parseInt(stats['total_products'] ?? stats['products']) ?? totalProducts.value;
+    totalRedemptions.value = _parseInt(stats['total_redemptions'] ?? stats['redemptions']) ?? totalRedemptions.value;
+    totalPointsPts.value = _parseInt(stats['total_points'] ?? stats['points_value']) ?? totalPointsPts.value;
+
+    final usersRaw = stats['total_users'] ?? stats['active_users'] ?? stats['users'];
+    if (usersRaw != null) {
+      totalStoreUsers.value = _parseInt(usersRaw) ?? totalStoreUsers.value;
+    }
+
+    // Revenue por tienda: acepta lista [{store_id, revenue}] o map {store_id: revenue}
+    final storeStats = stats['stores_stats'] ?? stats['store_stats'] ?? stats['stores_revenue'];
+    if (storeStats is List) {
+      for (final item in storeStats) {
+        if (item is Map) {
+          final id = (item['store_id'] ?? item['id'] ?? '').toString();
+          final rev = _parseInt(item['revenue'] ?? item['total_revenue'] ?? item['total_points']);
+          if (id.isNotEmpty && rev != null) {
+            storeRevenue[id] = rev;
+          }
+        }
+      }
+    } else if (storeStats is Map) {
+      storeStats.forEach((k, v) {
+        final rev = _parseInt(v);
+        if (rev != null) storeRevenue[k.toString()] = rev;
+      });
+    }
+  }
+
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    return int.tryParse(value.toString());
+  }
+
   void _calculateMetrics() {
-    totalStores.value = stores.length;
-    totalStoreUsers.value = storeUsers.length;
+    if (totalStores.value == 0) totalStores.value = stores.length;
+    if (totalStoreUsers.value == 0) totalStoreUsers.value = storeUsers.length;
+    if (totalCategories.value == 0) totalCategories.value = categories.length;
   }
 
   Future<void> addStore(StoreModel store) async {

@@ -75,19 +75,7 @@ class ProductDetailsView extends GetView<ProductDetailsController> {
       ),
       child: Row(
         children: [
-          // Logo + brand
-          CircleAvatar(
-            radius: 14,
-            backgroundColor: theme.primaryColorDark,
-            child: Padding(
-              padding: const EdgeInsets.all(3),
-              child: SvgPicture.asset(Constants.logo),
-            ),
-          ),
-          8.horizontalSpace,
-          Text('Letdem',
-              style: theme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w700)),
+          SvgPicture.asset(Constants.logo, height: 28),
           const Spacer(),
           // Back link
           TextButton.icon(

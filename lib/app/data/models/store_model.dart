@@ -43,34 +43,44 @@ class StoreModel {
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
-    final hours = json['openingHours'] ?? const {};
+    // Support both Django snake_case and legacy camelCase keys.
+    final hours = json['opening_hours'] ?? json['openingHours'] ?? const {};
     final cats = json['categories'] ?? const [];
-    final published = json['isPublished'] ?? true;
+    final published = json['is_published'] ?? json['isPublished'] ?? true;
+
+    // owner can be a nested object {id, email} or a plain ID.
+    final ownerRaw = json['owner'];
+    final ownerId = ownerRaw is Map
+        ? (ownerRaw['id']?.toString() ?? '')
+        : (json['owner_id'] ?? json['ownerId'] ?? ownerRaw ?? '').toString();
+    final ownerEmail = ownerRaw is Map
+        ? (ownerRaw['email']?.toString() ?? '')
+        : (json['owner_email'] ?? json['ownerEmail'] ?? '').toString();
+
+    final adminRaw = json['admin_user_ids'] ?? json['adminUserIds'];
 
     return StoreModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] ?? '').toString(),
       description: (json['description'] ?? '').toString(),
-      ownerId: (json['ownerId'] ?? '').toString(),
-      ownerEmail: (json['ownerEmail'] ?? json['email'] ?? '').toString(),
-      adminUserIds: List<String>.from(
-        (json['adminUserIds'] as List?) ?? const [],
-      ),
-      fiscalId: (json['fiscalId'] ?? '').toString(),
+      ownerId: ownerId,
+      ownerEmail: ownerEmail.isNotEmpty ? ownerEmail : (json['email'] ?? '').toString(),
+      adminUserIds: adminRaw is List
+          ? List<String>.from(adminRaw.map((e) => e.toString()))
+          : const [],
+      fiscalId: (json['fiscal_id'] ?? json['fiscalId'] ?? '').toString(),
       address: (json['address'] ?? '').toString(),
-      logoUrl: (json['logo'] ?? '').toString(),
-      billingEmail: (json['billingEmail'] ?? json['email'] ?? '').toString(),
-      billingPhone: (json['phoneNumber'] ?? '').toString(),
+      logoUrl: (json['logo'] ?? json['logo_url'] ?? '').toString(),
+      billingEmail: (json['billing_email'] ?? json['billingEmail'] ?? json['email'] ?? '').toString(),
+      billingPhone: (json['phone_number'] ?? json['phoneNumber'] ?? '').toString(),
       pin: (json['pin'] ?? '').toString(),
       createdAt:
-          DateTime.tryParse((json['createdAt'] ?? '').toString()) ??
+          DateTime.tryParse((json['created_at'] ?? json['createdAt'] ?? '').toString()) ??
               DateTime.now(),
       banner: (json['banner'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       website: (json['website'] ?? '').toString(),
-      openingHours: hours is Map
-          ? Map<String, dynamic>.from(hours)
-          : const {},
+      openingHours: hours is Map ? Map<String, dynamic>.from(hours) : const {},
       isPublished: published is bool
           ? published
           : published.toString().toLowerCase() == 'true',

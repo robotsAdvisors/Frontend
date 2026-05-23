@@ -54,13 +54,15 @@ class ProductModel {
       description: (json['description'] ?? '').toString(),
       category: (json['category'] ?? json['category_name'] ?? '').toString(),
       sku: (json['sku'] ?? '').toString(),
-      quantity: 0,
-      originalPrice: price,
-      discountPrice: finalPrice,
-      discountPercent: discount,
       stock: json['stock'] is int
           ? json['stock'] as int
           : int.tryParse('${json['stock']}') ?? 0,
+      quantity: json['stock'] is int
+          ? json['stock'] as int
+          : int.tryParse('${json['stock']}') ?? 0,
+      originalPrice: price,
+      discountPrice: finalPrice,
+      discountPercent: discount,
       rating: _toDouble(json['rating']),
       reviewCount: json['review_count'] is int
           ? json['review_count'] as int

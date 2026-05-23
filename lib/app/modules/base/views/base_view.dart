@@ -141,21 +141,7 @@ class BaseView extends GetView<BaseController> {
       ),
       child: Row(
         children: [
-          // Logo + brand name
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: theme.primaryColorDark,
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: SvgPicture.asset(Constants.logo),
-            ),
-          ),
-          8.horizontalSpace,
-          Text(
-            'Letdem',
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w700),
-          ),
+          SvgPicture.asset(Constants.logo, height: 32),
           20.horizontalSpace,
           // Search bar
           Expanded(

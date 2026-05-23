@@ -23,6 +23,8 @@ class VoucherModel {
   final String? qrCode;
   final String? productName;
   final String? storeName;
+  final String? customerName;
+  final String? customerEmail;
 
   VoucherModel({
     required this.id,
@@ -41,6 +43,8 @@ class VoucherModel {
     this.qrCode,
     this.productName,
     this.storeName,
+    this.customerName,
+    this.customerEmail,
   });
 
   // Compatibility alias for old UI fields.
@@ -90,6 +94,10 @@ class VoucherModel {
       qrCode: json['qr_code']?.toString(),
       productName: product is Map ? product['name']?.toString() : null,
       storeName: store is Map ? store['name']?.toString() : null,
+      customerName: user is Map
+          ? (user['name'] ?? user['username'] ?? user['email'] ?? '').toString()
+          : null,
+      customerEmail: user is Map ? user['email']?.toString() : null,
     );
   }
 

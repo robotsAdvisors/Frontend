@@ -96,6 +96,43 @@ class LoginView extends GetView<LoginController> {
                                 children: [
                                   _buildLogoSection(),
                                   24.verticalSpace,
+                                  Obx(() {
+                                    final role = controller.selectedRole.value;
+                                    final isAdmin = role != AuthService.customerRole;
+                                    if (!isAdmin) return const SizedBox.shrink();
+                                    final label = role == AuthService.generalAdminRole
+                                        ? 'Super Admin'
+                                        : role == AuthService.storeViewerRole
+                                            ? 'Store Viewer'
+                                            : 'Store Admin';
+                                    return Column(children: [
+                                      Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF7C3AED).withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(12.r),
+                                          border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.3)),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.admin_panel_settings, size: 16, color: Color(0xFF7C3AED)),
+                                            6.horizontalSpace,
+                                            Text(
+                                              'Modo administrador — $label',
+                                              style: const TextStyle(
+                                                color: Color(0xFF7C3AED),
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      12.verticalSpace,
+                                    ]);
+                                  }),
                                   Text(
                                     'Bienvenido a Letdem',
                                     style: theme.textTheme.headlineMedium
@@ -193,51 +230,59 @@ class LoginView extends GetView<LoginController> {
                                       )),
                                   28.verticalSpace,
                                   // Login button
-                                  Obx(() => SizedBox(
-                                        width: double.infinity,
-                                        height: 52.h,
-                                        child: ElevatedButton(
-                                          onPressed: controller.isLoading.value
-                                              ? null
-                                              : controller.login,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor:
-                                                const Color(0xFF7C3AED),
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor:
-                                                const Color(0xFF7C3AED)
-                                                    .withValues(alpha: 0.5),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(14.r),
-                                            ),
-                                            elevation: 0,
+                                  Obx(() {
+                                    final role = controller.selectedRole.value;
+                                    final isAdmin = role != AuthService.customerRole;
+                                    final btnLabel = controller.isLoading.value
+                                        ? 'Cargando...'
+                                        : isAdmin
+                                            ? 'Entrar como Administrador'
+                                            : 'Iniciar Sesión';
+                                    return SizedBox(
+                                      width: double.infinity,
+                                      height: 52.h,
+                                      child: ElevatedButton(
+                                        onPressed: controller.isLoading.value
+                                            ? null
+                                            : controller.login,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isAdmin
+                                              ? const Color(0xFF5B21B6)
+                                              : const Color(0xFF7C3AED),
+                                          foregroundColor: Colors.white,
+                                          disabledBackgroundColor:
+                                              const Color(0xFF7C3AED).withValues(alpha: 0.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(14.r),
                                           ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                controller.isLoading.value
-                                                    ? 'Cargando...'
-                                                    : 'Iniciar Sesión',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 15,
-                                                ),
-                                              ),
-                                              if (!controller.isLoading.value)
-                                                ...[
-                                                8.horizontalSpace,
-                                                const Icon(Icons.arrow_forward,
-                                                    color: Colors.white,
-                                                    size: 18),
-                                              ],
-                                            ],
-                                          ),
+                                          elevation: 0,
                                         ),
-                                      )),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            if (isAdmin && !controller.isLoading.value) ...[
+                                              const Icon(Icons.admin_panel_settings,
+                                                  color: Colors.white, size: 18),
+                                              8.horizontalSpace,
+                                            ],
+                                            Text(
+                                              btnLabel,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 15,
+                                              ),
+                                            ),
+                                            if (!isAdmin && !controller.isLoading.value) ...[
+                                              8.horizontalSpace,
+                                              const Icon(Icons.arrow_forward,
+                                                  color: Colors.white, size: 18),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
                                   20.verticalSpace,
                                   // Divider
                                   Row(
@@ -384,7 +429,7 @@ class LoginView extends GetView<LoginController> {
                 8.horizontalSpace,
                 _adminRoleChip(theme, 'Viewer', AuthService.storeViewerRole),
                 8.horizontalSpace,
-                _adminRoleChip(theme, 'General', AuthService.generalAdminRole),
+                _adminRoleChip(theme, 'Super Admin', AuthService.generalAdminRole),
               ],
             ),
           ],

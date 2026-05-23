@@ -43,9 +43,15 @@ class AuthService {
   ) async {
     await AuthRepository.instance.login(email: email, password: password);
 
-    final savedRole = MySharedPref.getLoggedInUserRole();
-    final nextRole =
-        (savedRole == null || savedRole.isEmpty) ? role : savedRole;
+    // El rol seleccionado en el formulario siempre tiene prioridad.
+    // Solo caemos a un rol guardado si el backend lo devolvió en _persistTokens
+    // y el usuario no eligió un rol específico (customer = default).
+    final backendRole = MySharedPref.getLoggedInUserRole();
+    final nextRole = (backendRole != null &&
+            backendRole.isNotEmpty &&
+            backendRole != customerRole)
+        ? backendRole
+        : role;
     await MySharedPref.setLoggedInUserRole(nextRole);
 
     // Cargar perfil en background (no bloquea el login).
@@ -124,9 +130,12 @@ class AuthService {
       email: firebaseUser.email,
     );
 
-    final savedRole = MySharedPref.getLoggedInUserRole();
-    final nextRole =
-        (savedRole == null || savedRole.isEmpty) ? role : savedRole;
+    final backendRole = MySharedPref.getLoggedInUserRole();
+    final nextRole = (backendRole != null &&
+            backendRole.isNotEmpty &&
+            backendRole != customerRole)
+        ? backendRole
+        : role;
     await MySharedPref.setLoggedInUserRole(nextRole);
 
     AuthRepository.instance.fetchMe();
@@ -143,7 +152,8 @@ class AuthService {
     } catch (_) {}
 
     await AuthRepository.instance.logout();
-    await MySharedPref.setLoggedInUserRole(customerRole);
+    await MySharedPref.setLoggedInUserRole('');
+    await MySharedPref.setLoggedIn(false);
   }
 
   /// Identificador estable por instalacion para enviar al backend.
