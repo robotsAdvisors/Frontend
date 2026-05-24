@@ -11,23 +11,23 @@ class ApiConfig {
   /// Base host del backend (sin /api/v1).
   static const String baseUrl = String.fromEnvironment(
     'LETDEM_API_BASE_URL',
-    defaultValue: 'http://127.0.0.1:8000',
+    defaultValue: 'https://api.letdem.net',
   );
 
   /// Prefijo de la API REST.
-  static const String apiPrefix = '/api/v1';
+  static const String apiPrefix = '/v1';
 
   /// URL completa base para las peticiones.
   static String get apiBaseUrl => '$baseUrl$apiPrefix';
 
   // ---- Endpoints ----
   // Auth
-  static const String authLogin = '/accounts/auth/login/';
-  static const String authSignup = '/accounts/auth/signup/';
-  static const String authSocialLogin = '/accounts/auth/social-login/';
-  static const String authResetPassword = '/accounts/auth/reset-password/';
-  static const String authSetPassword = '/accounts/auth/set-password/';
-  static const String tokenRefresh = '/accounts/token/refresh/';
+  static const String authLogin = '/auth/login';
+  static const String authSignup = '/auth/signup';
+  static const String authSocialLogin = '/auth/social-login';
+  static const String authResetPassword = '/auth/reset-password';
+  static const String authSetPassword = '/auth/set-password';
+  static const String tokenRefresh = '/auth/token/refresh';
 
   // Profile
   static const String me = '/users/me';
@@ -51,4 +51,8 @@ class ApiConfig {
   static const String adminStores = '/marketplace/admin/stores/';
   static const String adminProducts = '/marketplace/admin/products/';
   static const String adminStats = '/marketplace/admin/stats/';
+
+  // Marketplace - analytics
+  static const String analyticsVouchersDaily = '/marketplace/analytics/vouchers/daily/';
+  static const String analyticsSummary = '/marketplace/analytics/summary/';
 }

@@ -27,6 +27,8 @@ import '../modules/welcome/views/welcome_view.dart';
 import '../modules/login/bindings/login_binding.dart';
 import '../modules/login/views/login_view.dart';
 import '../modules/admin/bindings/admin_binding.dart';
+import '../modules/admin/views/add_product_view.dart';
+import '../modules/admin/views/analytics_view.dart';
 import '../modules/admin/views/admin_view.dart';
 import '../modules/admin/views/voucher_history_view.dart';
 import '../modules/general_admin/bindings/general_admin_binding.dart';
@@ -64,6 +66,20 @@ class AppPages {
       name: _Paths.VOUCHER_HISTORY,
       page: () => const VoucherHistoryView(),
       binding: AdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.ADD_PRODUCT,
+      page: () => const AddProductView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.ANALYTICS,
+      page: () => const AnalyticsView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
     ),
     GetPage(
       name: _Paths.GENERAL_ADMIN,

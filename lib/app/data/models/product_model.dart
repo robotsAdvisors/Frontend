@@ -16,6 +16,7 @@ class ProductModel {
   int stock;
   double rating;
   int reviewCount;
+  int pointsRequired;
   String storeId;
   String? storeName;
 
@@ -34,6 +35,7 @@ class ProductModel {
     this.stock = 0,
     this.rating = 0,
     this.reviewCount = 0,
+    this.pointsRequired = 0,
     this.storeName,
   });
 
@@ -67,6 +69,9 @@ class ProductModel {
       reviewCount: json['review_count'] is int
           ? json['review_count'] as int
           : int.tryParse('${json['review_count']}') ?? 0,
+      pointsRequired: json['points_required'] is int
+          ? json['points_required'] as int
+          : int.tryParse('${json['points_required'] ?? json['points_value']}') ?? 0,
       storeId: (json['store_id'] ?? json['store'] ?? '').toString(),
       storeName: json['store_name']?.toString(),
     );

@@ -337,6 +337,48 @@ class MarketplaceRepository {
     return null;
   }
 
+  /// Canjes por día para la tienda.
+  /// GET /marketplace/analytics/vouchers/daily/?store_id=X&days=30
+  Future<List<Map<String, dynamic>>> fetchAnalyticsVouchersDaily(
+      String storeId, {
+      int days = 30,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.analyticsVouchersDaily,
+        queryParameters: {
+          if (storeId.isNotEmpty) 'store_id': storeId,
+          'days': days,
+        },
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Resumen mensual con growth % para la tienda.
+  /// GET /marketplace/analytics/summary/?store_id=X
+  Future<Map<String, dynamic>> fetchAnalyticsSummary(String storeId) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.analyticsSummary,
+        queryParameters: {
+          if (storeId.isNotEmpty) 'store_id': storeId,
+        },
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// Estadísticas globales del Super Admin.
   /// GET /marketplace/admin/stats/
   Future<Map<String, dynamic>?> fetchAdminStats() async {

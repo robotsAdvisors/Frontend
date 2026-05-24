@@ -41,21 +41,34 @@ class AuthService {
     String password,
     String role,
   ) async {
-    await AuthRepository.instance.login(email: email, password: password);
+    final loginData = await AuthRepository.instance.login(
+      email: email,
+      password: password,
+    );
 
-    // El rol seleccionado en el formulario siempre tiene prioridad.
-    // Solo caemos a un rol guardado si el backend lo devolvió en _persistTokens
-    // y el usuario no eligió un rol específico (customer = default).
-    final backendRole = MySharedPref.getLoggedInUserRole();
-    final nextRole = (backendRole != null &&
-            backendRole.isNotEmpty &&
-            backendRole != customerRole)
-        ? backendRole
-        : role;
+    // Try to extract role from response body, then JWT payload.
+    String rawRole = (loginData['role'] ?? '').toString();
+    if (rawRole.isEmpty) {
+      final userMap = loginData['user'];
+      if (userMap is Map) rawRole = (userMap['role'] ?? '').toString();
+    }
+    if (rawRole.isEmpty) {
+      final access = (loginData['access'] as String?) ?? '';
+      if (access.isNotEmpty) {
+        final payload = AuthRepository.decodeJwt(access);
+        rawRole = (payload['role'] ??
+                payload['user_role'] ??
+                payload['type'] ??
+                '')
+            .toString();
+      }
+    }
+    final mappedRole = AuthRepository.mapRole(rawRole);
+    final nextRole = mappedRole.isNotEmpty ? mappedRole : role;
     await MySharedPref.setLoggedInUserRole(nextRole);
 
-    // Cargar perfil en background (no bloquea el login).
-    AuthRepository.instance.fetchMe();
+    // Await fetchMe so it can override the role with the backend's authoritative value.
+    await AuthRepository.instance.fetchMe();
     return true;
   }
 

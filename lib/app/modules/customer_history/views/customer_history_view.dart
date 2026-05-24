@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/order_model.dart';
@@ -10,105 +8,469 @@ import '../controllers/customer_history_controller.dart';
 class CustomerHistoryView extends GetView<CustomerHistoryController> {
   const CustomerHistoryView({Key? key}) : super(key: key);
 
+  static const _purple = Color(0xFF7C3AED);
+  static const _purpleLight = Color(0xFFEDE9FE);
+  static const _bgTop = Color(0xFFF5F0FF);
+  static const _bgBottom = Color(0xFFEADDFF);
+  static const _darkQr1 = Color(0xFF1A1A2E);
+  static const _darkQr2 = Color(0xFF2D1B4E);
+
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-    final bool isWide = MediaQuery.of(context).size.width >= 1000;
-    final double contentMaxWidth = isWide ? 980 : double.infinity;
     return Scaffold(
+      backgroundColor: _bgTop,
       appBar: AppBar(
-        title: Text('Historial Wallet', style: theme.textTheme.displaySmall),
-        centerTitle: true,
-      ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: contentMaxWidth),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
-            child: Obx(
-              () => SingleChildScrollView(
-                child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _walletCard(theme),
-                20.verticalSpace,
-                _statsCard(theme),
-                20.verticalSpace,
-                Text('Movimientos y canjes', style: theme.textTheme.headlineSmall),
-                12.verticalSpace,
-                if (controller.walletMovements.isEmpty)
-                  Text('No hay movimientos en tu wallet todavía.', style: theme.textTheme.bodyMedium)
-                else
-                  Column(
-                    children: controller.walletMovements
-                        .map((voucher) => _movementCard(theme, voucher))
-                        .toList(),
-                  ),
-                20.verticalSpace,
-                Text('Mis compras', style: theme.textTheme.headlineSmall),
-                12.verticalSpace,
-                _ordersSection(theme),
-              ],
-                ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leadingWidth: 120,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: _purple, size: 20),
+              const SizedBox(width: 4),
+              const Text(
+                'Letdem',
+                style: TextStyle(
+                    color: _purple,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20),
               ),
-            ),
+            ],
           ),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _navTab('Marketplace', false),
+            const SizedBox(width: 24),
+            _navTab('Earning', false),
+            const SizedBox(width: 24),
+            _navTab('My Rewards', true),
+          ],
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: Colors.black54),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_vert, color: Colors.black54),
+            onPressed: () {},
+          ),
+          const CircleAvatar(
+            radius: 18,
+            backgroundColor: _purpleLight,
+            child: Icon(Icons.person_outline, color: _purple, size: 20),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [_bgTop, _bgBottom],
+          ),
+        ),
+        child: Obx(() => _body()),
+      ),
+    );
+  }
+
+  Widget _navTab(String label, bool selected) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: selected ? _purple : Colors.black54,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 2),
+        if (selected)
+          Container(
+            height: 2,
+            width: 40,
+            decoration: BoxDecoration(
+              color: _purple,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          )
+        else
+          const SizedBox(height: 2),
+      ],
+    );
+  }
+
+  Widget _body() {
+    if (controller.loadingWallet.value || controller.loadingHistory.value) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final all = controller.walletMovements;
+    final pending = all.where((v) => !v.isRedeemed && !v.isExpired).toList();
+    final past = all.where((v) => v.isRedeemed || v.isExpired).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          pending.isEmpty
+              ? _emptyState()
+              : _voucherSection(pending),
+          _footerLinks(pending.isNotEmpty ? pending.first.storeName : null),
+          const SizedBox(height: 32),
+          if (past.isNotEmpty) _historySection(past),
+          if (controller.orders.isNotEmpty) _ordersSection(),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  // ── Voucher cards (pending) ──────────────────────────────────────────────
+
+  Widget _voucherSection(List<VoucherModel> vouchers) {
+    if (vouchers.length == 1) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: _voucherCard(vouchers.first),
+      );
+    }
+    return SizedBox(
+      height: 680,
+      child: PageView.builder(
+        controller: PageController(viewportFraction: 0.9),
+        itemCount: vouchers.length,
+        itemBuilder: (_, i) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: _voucherCard(vouchers[i]),
         ),
       ),
     );
   }
 
-  Widget _walletCard(ThemeData theme) {
-    if (controller.loadingWallet.value) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.all(18.w),
-        decoration: BoxDecoration(
-          color: theme.primaryColor,
-          borderRadius: BorderRadius.circular(18.r),
-        ),
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
-        ),
-      );
-    }
+  Widget _voucherCard(VoucherModel voucher) {
+    final productName = voucher.productName?.isNotEmpty == true
+        ? voucher.productName!
+        : controller.productNameFor(voucher);
+    final storeName =
+        voucher.storeName?.isNotEmpty == true ? voucher.storeName! : '';
+    final expiresAt = voucher.expiresAt;
+    final expiryStr =
+        expiresAt != null ? _formatDate(expiresAt.toLocal()) : '—';
 
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(18.w),
       decoration: BoxDecoration(
-        color: theme.primaryColor,
-        borderRadius: BorderRadius.circular(18.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withValues(alpha: 0.24),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
+            color: _purple.withValues(alpha: 0.15),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Tarjeta virtual de puntos', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
-          12.verticalSpace,
-          Text(
-            controller.walletCode.value,
-            style: theme.textTheme.headlineSmall?.copyWith(color: Colors.white, letterSpacing: 1.1),
+          const SizedBox(height: 28),
+          _productImage(voucher),
+          const SizedBox(height: 14),
+          _statusBadge(voucher),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              productName,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87),
+            ),
           ),
-          10.verticalSpace,
-          Text('Estado wallet: ${controller.walletStatus.value}', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
-          14.verticalSpace,
-          OutlinedButton.icon(
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: controller.walletCode.value));
-              Get.snackbar('Código listo', 'Código de wallet copiado para canjear en tienda.');
-            },
-            icon: const Icon(Icons.qr_code_2, color: Colors.white),
-            label: const Text('Usar código para canjear', style: TextStyle(color: Colors.white)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.white70),
+          const SizedBox(height: 6),
+          if (storeName.isNotEmpty)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.storefront_outlined,
+                    size: 15, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text(
+                  storeName,
+                  style:
+                      const TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+              ],
+            ),
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: _DashedDivider(),
+          ),
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _qrArea(voucher),
+          ),
+          const SizedBox(height: 14),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 36),
+            child: Text(
+              'Show this QR code at the physical store\nto claim your reward.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 13, color: Colors.grey, height: 1.5),
+            ),
+          ),
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'POINTS SPENT',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          letterSpacing: 0.8,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '${voucher.pointsUsed} pts',
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: _purple),
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'EXPIRATION',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                          letterSpacing: 0.8,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      expiryStr,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                _fullButton(
+                  label: 'Add to Apple Wallet',
+                  icon: Icons.account_balance_wallet_outlined,
+                  filled: true,
+                  onTap: () => Get.snackbar(
+                      'Próximamente', 'Add to Wallet estará disponible pronto.'),
+                ),
+                const SizedBox(height: 10),
+                _fullButton(
+                  label: 'Download PDF Receipt',
+                  icon: Icons.download_outlined,
+                  filled: false,
+                  onTap: () => Get.snackbar(
+                      'Próximamente', 'Descarga de PDF estará disponible pronto.'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+        ],
+      ),
+    );
+  }
+
+  Widget _productImage(VoucherModel voucher) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: _purpleLight,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Icon(Icons.card_giftcard_outlined,
+          size: 34, color: _purple),
+    );
+  }
+
+  Widget _statusBadge(VoucherModel voucher) {
+    if (voucher.isRedeemed) {
+      return _badge('Redeemed', Colors.grey.shade500, Icons.check_circle_outline);
+    }
+    if (voucher.isExpired) {
+      return _badge('Expired', Colors.redAccent, Icons.cancel_outlined);
+    }
+    return _badge('Ready to Redeem', Colors.green.shade600, Icons.check_circle_outline);
+  }
+
+  Widget _badge(String label, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _qrArea(VoucherModel voucher) {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_darkQr1, _darkQr2],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: voucher.qrCode != null &&
+                (voucher.qrCode!.startsWith('http') ||
+                    voucher.qrCode!.startsWith('data:'))
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  voucher.qrCode!,
+                  width: 148,
+                  height: 148,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => _qrPlaceholder(voucher),
+                ),
+              )
+            : _qrPlaceholder(voucher),
+      ),
+    );
+  }
+
+  Widget _qrPlaceholder(VoucherModel voucher) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.qr_code_2, size: 100, color: Colors.white),
+        const SizedBox(height: 8),
+        Text(
+          voucher.code,
+          style: const TextStyle(
+              color: Colors.white60,
+              fontSize: 11,
+              letterSpacing: 2,
+              fontFamily: 'monospace'),
+        ),
+      ],
+    );
+  }
+
+  Widget _fullButton({
+    required String label,
+    required IconData icon,
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: filled
+          ? ElevatedButton.icon(
+              onPressed: onTap,
+              icon: Icon(icon, color: Colors.white, size: 18),
+              label: Text(label,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
+            )
+          : OutlinedButton.icon(
+              onPressed: onTap,
+              icon: Icon(icon, color: _purple, size: 18),
+              label: Text(label,
+                  style: const TextStyle(
+                      color: _purple,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: _purple, width: 1.5),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+    );
+  }
+
+  Widget _footerLinks(String? storeName) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.help_outline,
+                size: 15, color: Colors.grey),
+            label: const Text('Need help with redemption?',
+                style: TextStyle(color: Colors.grey, fontSize: 12)),
+          ),
+          const Text('|', style: TextStyle(color: Colors.grey)),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.location_on_outlined,
+                size: 15, color: Colors.grey),
+            label: Text(
+              storeName != null && storeName.isNotEmpty
+                  ? 'Find $storeName'
+                  : 'Find the Store',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ),
         ],
@@ -116,116 +478,145 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
     );
   }
 
-  Widget _movementCard(ThemeData theme, VoucherModel voucher) {
+  Widget _emptyState() {
+    return SizedBox(
+      height: 400,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: _purpleLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.confirmation_number_outlined,
+                  size: 48, color: _purple),
+            ),
+            const SizedBox(height: 20),
+            const Text('No tienes recompensas activas',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black54)),
+            const SizedBox(height: 8),
+            const Text('Canjea puntos en el Marketplace para obtener vouchers.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── History (redeemed / expired) ─────────────────────────────────────────
+
+  Widget _historySection(List<VoucherModel> past) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Historial',
+            style:
+                TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          ...past.map(_historyTile),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _historyTile(VoucherModel voucher) {
     final status = controller.statusLabel(voucher);
-    final color = status == 'Canjeado'
-        ? Colors.green
+    final statusColor = status == 'Canjeado'
+        ? Colors.green.shade600
         : status == 'Pendiente'
             ? Colors.orange
             : Colors.redAccent;
 
     return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(14.w),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: theme.dividerColor),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: theme.primaryColor.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8)
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text('Código: ${voucher.code}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-              ),
-            ],
-          ),
-          8.verticalSpace,
-          Text('Producto: ${controller.productNameFor(voucher)}', style: theme.textTheme.bodyMedium),
-          Text('Descuento obtenido: ${controller.discountText(voucher)}', style: theme.textTheme.bodyMedium),
-          Text('Creado: ${voucher.createdAt.toLocal()}', style: theme.textTheme.bodySmall),
-          if (voucher.redeemedAt != null)
-            Text('Canjeado: ${voucher.redeemedAt!.toLocal()}', style: theme.textTheme.bodySmall),
-          Text('Tiempo restante: ${controller.remainingTime(voucher)}', style: theme.textTheme.bodySmall),
-          if (controller.canRate(voucher)) ...[
-            10.verticalSpace,
-            Text('Valorar producto', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-            6.verticalSpace,
-            Row(
-              children: List.generate(5, (index) {
-                final score = index + 1;
-                return Obx(
-                  () => IconButton(
-                    onPressed: () => controller.rateVoucher(voucher.id, score),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      controller.ratingFor(voucher.id) >= score ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
-                    ),
-                  ),
-                );
-              }),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _statsCard(ThemeData theme) {
-    if (controller.loadingOrders.value) {
-      return SizedBox(
-        height: 80.h,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    final page = controller.ordersPage.value;
-    if (page == null) {
-      return const SizedBox.shrink();
-    }
-    final stats = page.stats;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Resumen de actividad', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          12.verticalSpace,
-          Wrap(
-            spacing: 16.w,
-            runSpacing: 12.h,
+            child: Icon(
+              status == 'Canjeado'
+                  ? Icons.check_circle_outline
+                  : Icons.cancel_outlined,
+              color: statusColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  controller.productNameFor(voucher),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  voucher.redeemedAt != null
+                      ? 'Canjeado ${_formatDate(voucher.redeemedAt!.toLocal())}'
+                      : 'Expirado ${voucher.expiresAt != null ? _formatDate(voucher.expiresAt!.toLocal()) : ''}',
+                  style:
+                      const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _statTile(theme, 'Compras', '${stats.totalOrders}'),
-              _statTile(theme, 'Gastado', '\u20ac${stats.totalSpent.toStringAsFixed(2)}'),
-              _statTile(theme, 'Ahorrado', '\u20ac${stats.totalSaved.toStringAsFixed(2)}'),
-              _statTile(theme, 'Puntos usados', '${stats.totalPointsUsed}'),
-              _statTile(theme, 'Puntos actuales', '${stats.currentPoints}'),
+              Text(
+                '${voucher.pointsUsed} pts',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _purple),
+              ),
+              if (controller.canRate(voucher))
+                Obx(() => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                          5,
+                          (i) => GestureDetector(
+                                onTap: () =>
+                                    controller.rateVoucher(voucher.id, i + 1),
+                                child: Icon(
+                                  controller.ratingFor(voucher.id) > i
+                                      ? Icons.star
+                                      : Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 14,
+                                ),
+                              )),
+                    )),
             ],
           ),
         ],
@@ -233,101 +624,149 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
     );
   }
 
-  Widget _statTile(ThemeData theme, String label, String value) {
-    return SizedBox(
-      width: 120.w,
+  // ── Orders ────────────────────────────────────────────────────────────────
+
+  Widget _ordersSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: theme.textTheme.bodySmall),
-          4.verticalSpace,
-          Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _ordersSection(ThemeData theme) {
-    if (controller.loadingOrders.value) {
-      return SizedBox(
-        height: 80.h,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    final page = controller.ordersPage.value;
-    if (page == null) {
-      return Text('No se pudo cargar el historial de compras.', style: theme.textTheme.bodyMedium);
-    }
-    if (controller.orders.isEmpty) {
-      return Text('Aún no tienes compras registradas.', style: theme.textTheme.bodyMedium);
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Mostrando ${controller.orders.length} de ${page.meta.total} compras',
-          style: theme.textTheme.bodySmall,
-        ),
-        12.verticalSpace,
-        ...controller.orders.map((order) => _orderCard(theme, order)),
-        if (page.meta.hasMore) ...[
-          8.verticalSpace,
-          Center(
-            child: controller.loadingMoreOrders.value
-                ? const CircularProgressIndicator()
-                : OutlinedButton.icon(
-                    onPressed: controller.loadMoreOrders,
-                    icon: const Icon(Icons.expand_more),
-                    label: const Text('Cargar más compras'),
-                  ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _orderCard(ThemeData theme, OrderModel order) {
-    final color = order.status == 'PAID' || order.status == 'CLOSED'
-        ? Colors.green
-        : order.status == 'CANCELLED'
-            ? Colors.redAccent
-            : Colors.orange;
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(14.w),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Orden #${order.id}', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12.r),
+          const Text('Mis compras',
+              style:
+                  TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          ...controller.orders.map(_orderTile),
+          if (controller.ordersPage.value?.meta.hasMore == true)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Center(
+                child: Obx(
+                  () => controller.loadingMoreOrders.value
+                      ? const CircularProgressIndicator()
+                      : OutlinedButton(
+                          onPressed: controller.loadMoreOrders,
+                          child: const Text('Cargar más'),
+                        ),
                 ),
-                child: Text(order.status, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _orderTile(OrderModel order) {
+    final statusColor =
+        order.status == 'PAID' || order.status == 'CLOSED'
+            ? Colors.green.shade600
+            : order.status == 'CANCELLED'
+                ? Colors.redAccent
+                : Colors.orange;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8)
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Orden #${order.id}',
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(
+                  '${order.items.length} artículo${order.items.length != 1 ? 's' : ''} · ${_formatDate(order.createdAt.toLocal())}',
+                  style:
+                      const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '\$${order.total.toStringAsFixed(2)}',
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87),
+              ),
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  order.status,
+                  style: TextStyle(
+                      fontSize: 10,
+                      color: statusColor,
+                      fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),
-          6.verticalSpace,
-          Text('Fecha: ${order.createdAt.toLocal()}', style: theme.textTheme.bodySmall),
-          Text('Artículos: ${order.items.length}', style: theme.textTheme.bodySmall),
-          if (order.pointsDiscount > 0)
-            Text('Descuento puntos: -\u20ac${order.pointsDiscount.toStringAsFixed(2)}', style: theme.textTheme.bodySmall),
-          4.verticalSpace,
-          Text('Total: \u20ac${order.total.toStringAsFixed(2)}',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.primaryColor)),
         ],
       ),
     );
   }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  static String _formatDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[d.month - 1]} ${d.day}, ${d.year}';
+  }
+}
+
+// ── Supporting widgets ────────────────────────────────────────────────────────
+
+class _DashedDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 1,
+      child: CustomPaint(
+        painter: _DashedLinePainter(),
+        size: const Size(double.infinity, 1),
+      ),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey.shade200
+      ..strokeWidth = 1;
+    const dashW = 6.0;
+    const gapW = 4.0;
+    double x = 0;
+    while (x < size.width) {
+      canvas.drawLine(Offset(x, 0), Offset(x + dashW, 0), paint);
+      x += dashW + gapW;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLinePainter old) => false;
 }

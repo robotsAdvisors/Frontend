@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../../../utils/dummy_helper.dart';
 import '../../../components/custom_snackbar.dart';
+import '../../../data/models/category_model.dart';
 import '../../../data/models/paginated.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/models/store_model.dart';
@@ -17,15 +18,20 @@ class AdminController extends GetxController {
   final RxList<ProductModel> products = <ProductModel>[].obs;
   final RxList<StoreUserModel> storeUsers = <StoreUserModel>[].obs;
   final RxList<VoucherModel> vouchers = <VoucherModel>[].obs;
+  final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxSet<String> favoriteVoucherIds = <String>{}.obs;
   late StoreModel currentStore;
   final RxInt totalProducts = 0.obs;
   final RxInt totalStock = 0.obs;
   final RxDouble averagePrice = 0.0.obs;
+  final RxDouble storeRating = 0.0.obs;
+  final RxInt storeReviewCount = 0.obs;
   final RxString storeId = ''.obs;
   final RxBool isLoading = true.obs;
   final RxBool isLoadingMoreVouchers = false.obs;
   final Rx<PageMeta> vouchersMeta = const PageMeta().obs;
+  final RxList<Map<String, dynamic>> dailyVouchers = <Map<String, dynamic>>[].obs;
+  final Rx<Map<String, dynamic>> analyticsSummary = Rx<Map<String, dynamic>>({});
 
   final _repo = MarketplaceRepository.instance;
 
@@ -57,6 +63,9 @@ class AdminController extends GetxController {
     _calculateStoreMetrics();
   }
 
+  List<String> get categoryNames =>
+      categories.map((c) => c.title).where((t) => t.isNotEmpty).toList();
+
   Future<void> _loadFromBackend() async {
     isLoading.value = true;
     try {
@@ -73,16 +82,26 @@ class AdminController extends GetxController {
         );
         currentStore = picked;
         storeId.value = picked.id;
+        storeRating.value = picked.rating;
+        storeReviewCount.value = picked.reviewCount;
       }
 
-      // 2. Cargar productos y vouchers en paralelo.
+      // 2. Cargar productos, vouchers, categorias y analytics en paralelo.
       final results = await Future.wait<dynamic>([
         _repo.fetchProducts(storeId: storeId.value),
         _repo.fetchVouchersPage(page: 1, pageSize: _vouchersPageSize),
+        _repo.fetchCategories().catchError((_) => <CategoryModel>[]),
+        _repo.fetchAnalyticsVouchersDaily(storeId.value)
+            .catchError((_) => <Map<String, dynamic>>[]),
+        _repo.fetchAnalyticsSummary(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
       ]);
 
       final remoteProducts = results[0] as List<ProductModel>;
       final vouchersPage = results[1] as Paginated<VoucherModel>;
+      final remoteCategories = results[2] as List<CategoryModel>;
+      final remoteDailyVouchers = results[3] as List<Map<String, dynamic>>;
+      final remoteSummary = results[4] as Map<String, dynamic>;
 
       products.assignAll(remoteProducts);
 
@@ -92,6 +111,10 @@ class AdminController extends GetxController {
             .where((v) => v.storeId.isEmpty || v.storeId == storeId.value)
             .toList(),
       );
+
+      if (remoteCategories.isNotEmpty) categories.assignAll(remoteCategories);
+      if (remoteDailyVouchers.isNotEmpty) dailyVouchers.assignAll(remoteDailyVouchers);
+      if (remoteSummary.isNotEmpty) analyticsSummary.value = remoteSummary;
 
       _calculateStoreMetrics();
     } catch (_) {
@@ -143,6 +166,7 @@ class AdminController extends GetxController {
         'price': product.originalPrice,
         'discount': product.discountPercent,
         'stock': product.stock > 0 ? product.stock : product.quantity,
+        if (product.category.isNotEmpty) 'category': product.category,
       }..removeWhere((_, v) => v == null);
 
       final created = await _repo.adminCreateProduct(payload);
@@ -223,6 +247,35 @@ class AdminController extends GetxController {
       return voucher.productName!;
     }
     return DummyHelper.productNameById(voucher.productId);
+  }
+
+  double get redemptionsGrowthPercent {
+    final now = DateTime.now();
+    final thisMonthStart = DateTime(now.year, now.month, 1);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+    final thisMonth = vouchers
+        .where((v) => v.isRedeemed && v.createdAt.isAfter(thisMonthStart))
+        .length;
+    final lastMonth = vouchers
+        .where((v) =>
+            v.isRedeemed &&
+            v.createdAt.isAfter(lastMonthStart) &&
+            v.createdAt.isBefore(thisMonthStart))
+        .length;
+    if (lastMonth == 0) return thisMonth > 0 ? 100.0 : 0.0;
+    return ((thisMonth - lastMonth) / lastMonth) * 100.0;
+  }
+
+  String get storeTier {
+    final count = vouchers.length;
+    if (count >= 200) return 'Gold';
+    if (count >= 50) return 'Silver';
+    return 'Bronze';
+  }
+
+  int get maxProductQuantity {
+    if (products.isEmpty) return 1;
+    return products.map((p) => p.quantity).reduce((a, b) => a > b ? a : b);
   }
 
   Future<bool> validateVoucherCode(String code) async {

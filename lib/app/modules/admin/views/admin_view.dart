@@ -16,6 +16,24 @@ class AdminView extends GetView<AdminController> {
   static const Color _purpleLight = Color(0xFFEDE9FE);
   static const Color _bg = Color(0xFFF8F7FF);
 
+  static String _formatGrowth(double pct, String suffix) {
+    if (pct == 0) return 'Sin cambios';
+    final sign = pct > 0 ? '↗ +' : '↘ ';
+    return '$sign${pct.abs().toStringAsFixed(1)}% $suffix';
+  }
+
+  static Color _growthColor(double pct) {
+    if (pct > 0) return Colors.green;
+    if (pct < 0) return Colors.red;
+    return Colors.grey;
+  }
+
+  static Color _tierColor(String tier) {
+    if (tier == 'Gold') return const Color(0xFFD97706);
+    if (tier == 'Silver') return Colors.blueGrey;
+    return const Color(0xFF92400E);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
@@ -62,7 +80,7 @@ class AdminView extends GetView<AdminController> {
           _sideNavItem(icon: Icons.dashboard_outlined, label: 'Dashboard', selected: true),
           _sideNavItem(icon: Icons.inventory_2_outlined, label: 'Inventory', onTap: () {}),
           _sideNavItem(icon: Icons.receipt_long_outlined, label: 'Vouchers', onTap: () => Get.toNamed(Routes.VOUCHER_HISTORY)),
-          _sideNavItem(icon: Icons.analytics_outlined, label: 'Analytics', onTap: () {}),
+          _sideNavItem(icon: Icons.analytics_outlined, label: 'Analytics', onTap: () => Get.toNamed(Routes.ANALYTICS)),
           _sideNavItem(icon: Icons.store_outlined, label: 'Datos tienda', onTap: () => _showStoreDetailsSheet(context)),
           const SizedBox(height: 12),
           const Divider(height: 1),
@@ -76,7 +94,7 @@ class AdminView extends GetView<AdminController> {
                   icon: const Icon(Icons.add, size: 16, color: Colors.white),
                   label: const Text('Añadir producto',
                       style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-                  onPressed: () => _showCreateProductDialog(context),
+                  onPressed: () => Get.toNamed(Routes.ADD_PRODUCT),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _purple,
                     elevation: 0,
@@ -268,14 +286,17 @@ class AdminView extends GetView<AdminController> {
       final redemptions = controller.redeemedVouchers.length;
       final distributed = controller.vouchers.length;
       final skus = controller.totalProducts.value;
+      final growthPct = controller.redemptionsGrowthPercent;
+      final tier = controller.storeTier;
+      final tierColor = _tierColor(tier);
       return LayoutBuilder(builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 600;
         final cards = [
           _statCard(
             title: 'Redemptions (Mo)',
             value: redemptions.toString(),
-            sub: '+12% vs last month',
-            subColor: Colors.green,
+            sub: _formatGrowth(growthPct, 'vs last month'),
+            subColor: _growthColor(growthPct),
             icon: Icons.redeem_outlined,
             iconBg: const Color(0xFFEDE9FE),
             iconColor: _purple,
@@ -283,12 +304,12 @@ class AdminView extends GetView<AdminController> {
           _statCard(
             title: 'Points Distributed',
             value: distributed.toString(),
-            sub: 'Gold Tier',
-            subColor: const Color(0xFFD97706),
+            sub: tier,
+            subColor: tierColor,
             icon: Icons.stars_rounded,
             iconBg: const Color(0xFFFEF3C7),
             iconColor: const Color(0xFFD97706),
-            badge: 'Gold',
+            badge: tier,
           ),
           _statCard(
             title: 'Active Inventory',
@@ -391,8 +412,13 @@ class AdminView extends GetView<AdminController> {
             child: const Icon(Icons.star_outlined, size: 18, color: Colors.white),
           ),
           const SizedBox(height: 12),
-          const Text('4.8',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+          Obx(() {
+            final r = controller.storeRating.value;
+            return Text(
+              r > 0 ? r.toStringAsFixed(1) : 'N/A',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
+            );
+          }),
           const SizedBox(height: 4),
           const Text('Store Rating', style: TextStyle(fontSize: 12, color: Colors.white70)),
           const SizedBox(height: 8),
@@ -445,7 +471,7 @@ class AdminView extends GetView<AdminController> {
                 const Spacer(),
                 if (AuthService.isStoreAdmin)
                   TextButton(
-                    onPressed: () => _showCreateProductDialog(context),
+                    onPressed: () => Get.toNamed(Routes.ADD_PRODUCT),
                     child: const Text('+ Añadir', style: TextStyle(fontSize: 12, color: _purple)),
                   ),
               ],
@@ -487,7 +513,8 @@ class AdminView extends GetView<AdminController> {
   }
 
   Widget _inventoryRow(BuildContext context, ProductModel item) {
-    final stockRatio = item.quantity > 0 ? (item.quantity / 100).clamp(0.0, 1.0) : 0.0;
+    final maxQty = controller.maxProductQuantity;
+    final stockRatio = maxQty > 0 ? (item.quantity / maxQty).clamp(0.0, 1.0) : 0.0;
     final isLow = item.quantity < 10;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -705,7 +732,7 @@ class AdminView extends GetView<AdminController> {
           ),
           if (AuthService.isStoreAdmin)
             ElevatedButton(
-              onPressed: () => _showCreateProductDialog(context),
+              onPressed: () => Get.toNamed(Routes.ADD_PRODUCT),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: _purple,

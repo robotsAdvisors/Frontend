@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
 import '../../../data/models/store_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
 
 class GeneralAdminView extends GetView<GeneralAdminController> {
@@ -20,6 +22,18 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
         .where((w) => w.isNotEmpty)
         .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
         .join(' ');
+  }
+
+  static String _formatGrowth(double pct, String suffix) {
+    if (pct == 0) return 'Sin cambios';
+    final sign = pct > 0 ? '↗' : '↘';
+    return '$sign ${pct.abs().toStringAsFixed(1)}% $suffix';
+  }
+
+  static Color _growthColor(double pct) {
+    if (pct > 0) return Colors.green;
+    if (pct < 0) return Colors.red;
+    return Colors.grey;
   }
 
   static String _formatPts(int pts) {
@@ -93,27 +107,42 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(
+                Obx(() => CircleAvatar(
                   radius: 18,
                   backgroundColor: _purple,
-                  child: const Text('SA',
-                      style: TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                ),
+                  child: Text(
+                    controller.currentUserInitials.value.isEmpty
+                        ? '?'
+                        : controller.currentUserInitials.value,
+                    style: const TextStyle(
+                        fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+                )),
                 const SizedBox(width: 10),
-                const Expanded(
-                  child: Column(
+                Expanded(
+                  child: Obx(() => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Super Admin',
-                          style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
-                      Text('General Admin',
+                      Text(
+                        controller.currentUserName.value.isEmpty
+                            ? 'Super Admin'
+                            : controller.currentUserName.value,
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const Text('General Admin',
                           style: TextStyle(fontSize: 11, color: Colors.grey)),
                     ],
-                  ),
+                  )),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout, size: 18, color: Colors.grey),
+                  tooltip: 'Sign out',
+                  onPressed: () async {
+                    await AuthService.signOut();
+                    Get.offAllNamed(Routes.WELCOME);
+                  },
                 ),
               ],
             ),
@@ -257,14 +286,16 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
       final activeUsers = controller.totalStoreUsers.value;
       final redemptions = controller.totalRedemptions.value;
       final pointsPts = controller.totalPointsPts.value;
+      final sg = controller.storesGrowthPercent.value;
+      final ug = controller.usersGrowthPercent.value;
       return LayoutBuilder(builder: (context, constraints) {
         final isWide = constraints.maxWidth >= 600;
         final cards = [
           _statCard(
             title: 'Total Stores',
             value: _formatCount(totalStores),
-            sub: '↗ 12% from last month',
-            subColor: Colors.green,
+            sub: _formatGrowth(sg, 'from last month'),
+            subColor: _growthColor(sg),
             icon: Icons.store_outlined,
             iconBg: const Color(0xFFEDE9FE),
             iconColor: _purple,
@@ -272,8 +303,8 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           _statCard(
             title: 'Active Users',
             value: _formatCount(activeUsers),
-            sub: '↗ 8.4% weekly growth',
-            subColor: Colors.green,
+            sub: _formatGrowth(ug, 'weekly growth'),
+            subColor: _growthColor(ug),
             icon: Icons.people_outline,
             iconBg: const Color(0xFFECFDF5),
             iconColor: Colors.green,
@@ -281,7 +312,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           _statCard(
             title: 'Total Redemptions',
             value: _formatCount(redemptions),
-            sub: pointsPts > 0 ? 'Points value: ${_formatCount(pointsPts)}' : 'Pts distribuidos',
+            sub: pointsPts > 0 ? 'Points value: ${_formatCount(pointsPts)}' : '—',
             subColor: Colors.grey,
             icon: Icons.redeem_outlined,
             iconBg: const Color(0xFFFEF3C7),
@@ -445,9 +476,11 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           ),
           Expanded(
             flex: 2,
-            child: Text(_ownerName(store.ownerEmail),
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
-                maxLines: 1, overflow: TextOverflow.ellipsis),
+            child: Text(
+              store.ownerName.isNotEmpty ? store.ownerName : _ownerName(store.ownerEmail),
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+            ),
           ),
           Expanded(
             flex: 1,
@@ -521,13 +554,13 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
           ),
           const Divider(height: 1),
-          _permissionRow(
+          Obx(() => _permissionRow(
             title: 'Super Admin',
-            sub: '1 user',
+            sub: '${controller.superAdminCount.value} users',
             icon: Icons.admin_panel_settings_outlined,
             iconColor: _purple,
             iconBg: _purpleLight,
-          ),
+          )),
           Obx(() => _permissionRow(
             title: 'Store Managers',
             sub: '${controller.totalStoreUsers.value} users',
@@ -535,41 +568,45 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
             iconColor: Colors.blue,
             iconBg: const Color(0xFFEFF6FF),
           )),
-          _permissionRow(
+          Obx(() => _permissionRow(
             title: 'Support Team',
-            sub: 'Read-only access',
+            sub: '${controller.supportTeamCount.value} users',
             icon: Icons.support_agent_outlined,
             iconColor: Colors.green,
             iconBg: const Color(0xFFECFDF5),
-          ),
+          )),
           const Divider(height: 1),
-          // Security compliance
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Text('Security Compliance',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1B4B))),
-                    Spacer(),
-                    Text('98%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: const LinearProgressIndicator(
-                    value: 0.98,
-                    minHeight: 6,
-                    backgroundColor: Color(0xFFEEEEEE),
-                    valueColor: AlwaysStoppedAnimation<Color>(_purple),
+          Obx(() {
+            final compliance = controller.securityCompliance.value;
+            final pct = compliance / 100.0;
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text('Security Compliance',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1B4B))),
+                      const Spacer(),
+                      Text('$compliance%',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: pct.clamp(0.0, 1.0),
+                      minHeight: 6,
+                      backgroundColor: const Color(0xFFEEEEEE),
+                      valueColor: const AlwaysStoppedAnimation<Color>(_purple),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             child: SizedBox(
@@ -627,10 +664,12 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
   }
 
   Widget _networkGrowthCard() {
-    final tabs = ['7D', '30D', '6M'];
-    final selectedTab = 1.obs;
+    const tabs = ['7D', '30D', '6M'];
     return Obx(() {
-      final sel = selectedTab.value;
+      final sel = controller.selectedGrowthTab.value;
+      final data = controller.currentGrowthData;
+      final labels = controller.currentGrowthLabels;
+      final hasData = data.isNotEmpty;
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -657,13 +696,15 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
                       final label = entry.value;
                       final isSelected = i == sel;
                       return GestureDetector(
-                        onTap: () => selectedTab.value = i,
+                        onTap: () => controller.selectedGrowthTab.value = i,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: isSelected ? Colors.white : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
-                            boxShadow: isSelected ? [const BoxShadow(color: Color(0x1A000000), blurRadius: 4)] : [],
+                            boxShadow: isSelected
+                                ? [const BoxShadow(color: Color(0x1A000000), blurRadius: 4)]
+                                : [],
                           ),
                           child: Text(label,
                               style: TextStyle(
@@ -678,43 +719,47 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
               ],
             ),
             const SizedBox(height: 20),
-            SizedBox(
-              height: 80,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: List.generate(7, (i) {
-                  final heightFactor = (0.3 + (i * 0.1)).clamp(0.0, 0.9);
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: Align(
-                        alignment: Alignment.bottomCenter,
-                        child: Container(
-                          height: 80 * heightFactor,
-                          decoration: BoxDecoration(
-                            color: i == 5 ? _purple : _purpleLight,
-                            borderRadius: BorderRadius.circular(4),
+            if (!hasData)
+              const SizedBox(
+                height: 80,
+                child: Center(child: Text('Sin datos', style: TextStyle(color: Colors.grey, fontSize: 12))),
+              )
+            else
+              SizedBox(
+                height: 80,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(data.length, (i) {
+                    final factor = data[i].clamp(0.0, 1.0);
+                    final isHighest = factor == data.reduce((a, b) => a > b ? a : b);
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            height: (80 * factor).clamp(4.0, 80.0),
+                            decoration: BoxDecoration(
+                              color: isHighest ? _purple : _purpleLight,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  }),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Mon', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Tue', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Wed', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Thu', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Fri', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Sat', style: TextStyle(fontSize: 10, color: Colors.grey)),
-                Text('Sun', style: TextStyle(fontSize: 10, color: Colors.grey)),
-              ],
-            ),
+            if (hasData && labels.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: labels
+                    .take(data.length)
+                    .map((l) => Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey)))
+                    .toList(),
+              ),
+            ],
           ],
         ),
       );

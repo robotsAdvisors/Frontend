@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../../../utils/api_config.dart';
 import '../local/my_shared_pref.dart';
 import '../services/http/api_client.dart';
@@ -137,10 +139,37 @@ class AuthRepository {
       final response = await _dio.get(ApiConfig.me);
       if (response.statusCode == 200 && response.data is Map) {
         final data = Map<String, dynamic>.from(response.data as Map);
+
         final totalPoints = data['total_points'];
         if (totalPoints is int) {
           await MySharedPref.setTotalPoints(totalPoints);
         }
+
+        // Extract role using all known possible key names
+        String rawRole = (data['role'] ??
+                data['user_role'] ??
+                data['account_type'] ??
+                data['type'] ??
+                data['user_type'] ??
+                '')
+            .toString();
+        if (rawRole.isEmpty) {
+          final nested = data['user'] ?? data['profile'];
+          if (nested is Map) {
+            rawRole = (nested['role'] ?? nested['user_role'] ?? nested['account_type'] ?? '').toString();
+          }
+        }
+        final mapped = mapRole(rawRole);
+        if (mapped.isNotEmpty) {
+          final current = MySharedPref.getLoggedInUserRole() ?? '';
+          const privileged = {'store_admin', 'store_viewer', 'general_admin'};
+          // Don't downgrade a privileged role to customer (backend may return wrong role for store admins).
+          final isDowngrade = mapped == 'customer' && privileged.contains(current);
+          if (!isDowngrade) {
+            await MySharedPref.setLoggedInUserRole(mapped);
+          }
+        }
+
         return data;
       }
     } catch (_) {}
@@ -175,6 +204,57 @@ class AuthRepository {
     }
     if (refresh != null && refresh.isNotEmpty) {
       await MySharedPref.setRefreshToken(refresh);
+    }
+    // Intentar leer el rol: cuerpo de respuesta → objeto user → JWT payload.
+    String rawRole = (data['role'] ?? '').toString();
+    if (rawRole.isEmpty) {
+      final userMap = data['user'];
+      if (userMap is Map) rawRole = (userMap['role'] ?? '').toString();
+    }
+    if (rawRole.isEmpty && access != null && access.isNotEmpty) {
+      final payload = decodeJwt(access);
+      rawRole = (payload['role'] ?? payload['user_role'] ?? payload['type'] ?? '').toString();
+    }
+    final role = mapRole(rawRole);
+    if (role.isNotEmpty) {
+      await MySharedPref.setLoggedInUserRole(role);
+    }
+  }
+
+  static Map<String, dynamic> decodeJwt(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return {};
+      final payload = base64Url.normalize(parts[1]);
+      return json.decode(utf8.decode(base64Url.decode(payload))) as Map<String, dynamic>;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static String mapRole(String backendRole) {
+    switch (backendRole.toLowerCase().trim()) {
+      case 'superadmin':
+      case 'super_admin':
+      case 'general_admin':
+        return 'general_admin';
+      case 'store_admin':
+      case 'storeadmin':
+      case 'shop_admin':
+      case 'branch_admin':
+      case 'manager':
+        return 'store_admin';
+      case 'store_viewer':
+      case 'storereviewer':
+      case 'store_reviewer':
+      case 'viewer':
+        return 'store_viewer';
+      case 'customer':
+      case 'user':
+      case 'client':
+        return 'customer';
+      default:
+        return '';
     }
   }
 }

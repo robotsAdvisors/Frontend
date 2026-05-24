@@ -4,6 +4,7 @@ class StoreModel {
   final String description;
   final String ownerId;
   final String ownerEmail;
+  final String ownerName;
   final List<String> adminUserIds;
   final String fiscalId;
   final String address;
@@ -19,6 +20,8 @@ class StoreModel {
   final Map<String, dynamic> openingHours;
   final bool isPublished;
   final List<String> categories;
+  final double rating;
+  final int reviewCount;
 
   StoreModel({
     required this.id,
@@ -26,6 +29,7 @@ class StoreModel {
     required this.description,
     required this.ownerId,
     required this.ownerEmail,
+    this.ownerName = '',
     required this.adminUserIds,
     required this.fiscalId,
     required this.address,
@@ -40,6 +44,8 @@ class StoreModel {
     this.openingHours = const {},
     this.isPublished = true,
     this.categories = const [],
+    this.rating = 0.0,
+    this.reviewCount = 0,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -56,6 +62,15 @@ class StoreModel {
     final ownerEmail = ownerRaw is Map
         ? (ownerRaw['email']?.toString() ?? '')
         : (json['owner_email'] ?? json['ownerEmail'] ?? '').toString();
+    String ownerName = (json['owner_name'] ?? '').toString().trim();
+    if (ownerName.isEmpty && ownerRaw is Map) {
+      final fn = (ownerRaw['first_name'] ?? ownerRaw['firstName'] ?? '').toString().trim();
+      final ln = (ownerRaw['last_name'] ?? ownerRaw['lastName'] ?? '').toString().trim();
+      ownerName = [fn, ln].where((s) => s.isNotEmpty).join(' ');
+      if (ownerName.isEmpty) {
+        ownerName = (ownerRaw['name'] ?? ownerRaw['username'] ?? '').toString().trim();
+      }
+    }
 
     final adminRaw = json['admin_user_ids'] ?? json['adminUserIds'];
 
@@ -65,6 +80,7 @@ class StoreModel {
       description: (json['description'] ?? '').toString(),
       ownerId: ownerId,
       ownerEmail: ownerEmail.isNotEmpty ? ownerEmail : (json['email'] ?? '').toString(),
+      ownerName: ownerName,
       adminUserIds: adminRaw is List
           ? List<String>.from(adminRaw.map((e) => e.toString()))
           : const [],
@@ -87,6 +103,12 @@ class StoreModel {
       categories: cats is List
           ? List<String>.from(cats.map((e) => e.toString()))
           : const [],
+      rating: double.tryParse(
+              (json['rating'] ?? json['average_rating'] ?? 0).toString()) ??
+          0.0,
+      reviewCount: json['review_count'] is int
+          ? json['review_count'] as int
+          : int.tryParse('${json['review_count'] ?? 0}') ?? 0,
     );
   }
 
@@ -97,6 +119,7 @@ class StoreModel {
       'description': description,
       'ownerId': ownerId,
       'ownerEmail': ownerEmail,
+      'ownerName': ownerName,
       'adminUserIds': adminUserIds,
       'fiscalId': fiscalId,
       'address': address,
@@ -111,6 +134,8 @@ class StoreModel {
       'openingHours': openingHours,
       'isPublished': isPublished,
       'categories': categories,
+      'rating': rating,
+      'review_count': reviewCount,
     };
   }
 }
