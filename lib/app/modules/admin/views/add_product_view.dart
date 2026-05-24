@@ -19,6 +19,8 @@ class _AddProductViewState extends State<AddProductView> {
 
   final AdminController _ctrl = Get.find<AdminController>();
 
+  ProductModel? _editingProduct;
+
   final _nameCtrl = TextEditingController();
   final _brandCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -33,6 +35,23 @@ class _AddProductViewState extends State<AddProductView> {
   bool _isFeatured = false;
   bool _isSaving = false;
   int _stock = 100;
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments;
+    if (args is ProductModel) {
+      _editingProduct = args;
+      _nameCtrl.text = args.name;
+      _descCtrl.text = args.description;
+      _imageUrlCtrl.text = args.image;
+      _selectedCategory = args.category.isNotEmpty ? args.category : null;
+      _originalPriceCtrl.text = args.originalPrice.toStringAsFixed(2);
+      _pointValueCtrl.text = args.discountPrice.toStringAsFixed(0);
+      _discountCtrl.text = args.discountPercent.toStringAsFixed(0);
+      _stock = args.quantity > 0 ? args.quantity : (args.stock > 0 ? args.stock : 100);
+    }
+  }
 
   @override
   void dispose() {
@@ -80,22 +99,36 @@ class _AddProductViewState extends State<AddProductView> {
 
     setState(() => _isSaving = true);
 
-    final product = ProductModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      image: _imageUrlCtrl.text.trim().isNotEmpty ? _imageUrlCtrl.text.trim() : '',
-      name: name,
-      description: desc,
-      category: _selectedCategory ?? '',
-      sku: '${name.replaceAll(' ', '-').toUpperCase()}-${DateTime.now().millisecondsSinceEpoch % 10000}',
-      quantity: _stock,
-      originalPrice: originalPrice,
-      discountPrice: pointValue,
-      discountPercent: discount,
-      stock: _stock,
-      storeId: _ctrl.storeId.value.isNotEmpty ? _ctrl.storeId.value : 'store_1',
-    );
-
-    await _ctrl.addProduct(product);
+    if (_editingProduct != null) {
+      final payload = <String, dynamic>{
+        'name': name,
+        'description': desc,
+        'price': originalPrice,
+        'discount': discount,
+        'stock': _stock,
+        if (_selectedCategory != null && _selectedCategory!.isNotEmpty)
+          'category': _selectedCategory,
+        if (_imageUrlCtrl.text.trim().isNotEmpty)
+          'image_url': _imageUrlCtrl.text.trim(),
+      };
+      await _ctrl.updateProduct(_editingProduct!.id, payload);
+    } else {
+      final product = ProductModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        image: _imageUrlCtrl.text.trim().isNotEmpty ? _imageUrlCtrl.text.trim() : '',
+        name: name,
+        description: desc,
+        category: _selectedCategory ?? '',
+        sku: '${name.replaceAll(' ', '-').toUpperCase()}-${DateTime.now().millisecondsSinceEpoch % 10000}',
+        quantity: _stock,
+        originalPrice: originalPrice,
+        discountPrice: pointValue,
+        discountPercent: discount,
+        stock: _stock,
+        storeId: _ctrl.storeId.value.isNotEmpty ? _ctrl.storeId.value : 'store_1',
+      );
+      await _ctrl.addProduct(product);
+    }
 
     setState(() => _isSaving = false);
     Get.offNamed(Routes.ADMIN);
@@ -136,15 +169,20 @@ class _AddProductViewState extends State<AddProductView> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add New Reward Product',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
+              Text(
+                _editingProduct != null ? 'Edit Reward Product' : 'Add New Reward Product',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B)),
+              ),
               RichText(
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 11),
+                text: TextSpan(
+                  style: const TextStyle(fontSize: 11),
                   children: [
-                    TextSpan(text: 'Inventory', style: TextStyle(color: Colors.grey)),
-                    TextSpan(text: ' / ', style: TextStyle(color: Colors.grey)),
-                    TextSpan(text: 'New Product', style: TextStyle(color: _purple, fontWeight: FontWeight.w600)),
+                    const TextSpan(text: 'Inventory', style: TextStyle(color: Colors.grey)),
+                    const TextSpan(text: ' / ', style: TextStyle(color: Colors.grey)),
+                    TextSpan(
+                      text: _editingProduct != null ? 'Edit Product' : 'New Product',
+                      style: const TextStyle(color: _purple, fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
@@ -172,7 +210,10 @@ class _AddProductViewState extends State<AddProductView> {
             ),
             child: _isSaving
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Save Product', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                : Text(
+                    _editingProduct != null ? 'Update Product' : 'Save Product',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
           ),
         ],
       ),

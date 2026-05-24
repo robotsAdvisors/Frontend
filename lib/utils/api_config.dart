@@ -27,10 +27,12 @@ class ApiConfig {
   static const String authSocialLogin = '/auth/social-login';
   static const String authResetPassword = '/auth/reset-password';
   static const String authSetPassword = '/auth/set-password';
+  static const String authChangePassword = '/v1/users/me/change-password';
   static const String tokenRefresh = '/auth/token/refresh';
 
   // Profile
   static const String me = '/users/me';
+  static const String mePreferences = '/v1/users/me/preferences';
 
   // Marketplace - catalogo publico
   static const String categories = '/marketplace/categories/';

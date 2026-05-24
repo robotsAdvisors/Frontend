@@ -21,6 +21,9 @@ abstract class Routes {
   static const STORES = _Paths.STORES;
   static const ADD_PRODUCT = _Paths.ADD_PRODUCT;
   static const ANALYTICS = _Paths.ANALYTICS;
+  static const PREFERENCES = _Paths.PREFERENCES;
+  static const CHANGE_PASSWORD = _Paths.CHANGE_PASSWORD;
+  static const FORGOT_PASSWORD = _Paths.FORGOT_PASSWORD;
 }
 
 abstract class _Paths {
@@ -43,4 +46,7 @@ abstract class _Paths {
   static const STORES = '/stores';
   static const ADD_PRODUCT = '/add-product';
   static const ANALYTICS = '/analytics';
+  static const PREFERENCES = '/preferences';
+  static const CHANGE_PASSWORD = '/change-password';
+  static const FORGOT_PASSWORD = '/forgot-password';
 }

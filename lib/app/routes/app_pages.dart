@@ -16,7 +16,10 @@ import '../modules/product_details/bindings/product_details_binding.dart';
 import '../modules/product_details/views/product_details_view.dart';
 import '../modules/products/bindings/products_binding.dart';
 import '../modules/products/views/products_view.dart';
+import '../modules/login/views/forgot_password_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/change_password_view.dart';
+import '../modules/profile/views/preferences_view.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
@@ -137,6 +140,24 @@ class AppPages {
       name: _Paths.STORES,
       page: () => const StoresView(),
       binding: StoresBinding(),
+    ),
+    GetPage(
+      name: _Paths.PREFERENCES,
+      page: () => const PreferencesView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.CHANGE_PASSWORD,
+      page: () => const ChangePasswordView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.FORGOT_PASSWORD,
+      page: () => const ForgotPasswordView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
     ),
   ];
 }

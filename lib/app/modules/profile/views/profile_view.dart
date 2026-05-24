@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../../../components/custom_button.dart';
 import '../../../components/custom_form_field.dart';
 import '../../../data/models/order_model.dart';
+import '../../../routes/app_pages.dart';
 import '../../base/controllers/base_controller.dart';
 import '../../home/controllers/home_controller.dart';
 import '../controllers/profile_controller.dart';
@@ -720,6 +721,26 @@ class ProfileView extends GetView<ProfileController> {
                 ),
               ],
             ),
+            16.verticalSpace,
+            const Divider(height: 1),
+            16.verticalSpace,
+            GestureDetector(
+              onTap: () => Get.toNamed(Routes.PREFERENCES),
+              child: Row(
+                children: [
+                  const Icon(Icons.notifications_outlined,
+                      size: 18, color: _purple),
+                  8.horizontalSpace,
+                  Expanded(
+                    child: Text('Notification Preferences',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                  ),
+                  const Icon(Icons.chevron_right,
+                      size: 18, color: Colors.grey),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -756,6 +777,15 @@ class ProfileView extends GetView<ProfileController> {
   Widget _actionsCard(ThemeData theme) {
     return Column(
       children: [
+        CustomButton(
+          text: 'Change Password',
+          onPressed: () => Get.toNamed(Routes.CHANGE_PASSWORD),
+          backgroundColor: _purple,
+          foregroundColor: Colors.white,
+          radius: 12,
+          verticalPadding: 14,
+        ),
+        10.verticalSpace,
         CustomButton(
           text: 'Cerrar sesión',
           onPressed: controller.logout,

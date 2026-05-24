@@ -308,6 +308,32 @@ class MarketplaceRepository {
     return null;
   }
 
+  /// PUT /marketplace/admin/products/<id>/
+  Future<Map<String, dynamic>?> adminUpdateProduct(
+      String productId, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConfig.adminProducts}$productId/',
+        data: payload,
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// DELETE /marketplace/admin/products/<id>/
+  Future<void> adminDeleteProduct(String productId) async {
+    try {
+      await _dio.delete('${ApiConfig.adminProducts}$productId/');
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   Future<StoreModel?> adminCreateStore(
       Map<String, dynamic> payload) async {
     try {

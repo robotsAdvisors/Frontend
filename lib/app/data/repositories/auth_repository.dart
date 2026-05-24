@@ -176,6 +176,29 @@ class AuthRepository {
     return null;
   }
 
+  /// Cambia un campo de preferencias/alertas del usuario.
+  /// Body: { "type": "traffic_alert", "value": true }
+  Future<void> changePreferenceAlert(String type, bool value) async {
+    try {
+      await _dio.put(
+        ApiConfig.mePreferences,
+        data: {'type': type, 'value': value},
+      );
+    } catch (error) {
+      throw toApiException(error);
+    }
+  }
+
+  /// Extrae el mapa de preferencias de la respuesta de GET /me.
+  /// Acepta que vengan en `preferences`, `alert_preferences`, o al nivel raíz.
+  static Map<String, dynamic> extractPreferences(Map<String, dynamic> me) {
+    for (final key in ['preferences', 'alert_preferences', 'notifications']) {
+      final v = me[key];
+      if (v is Map) return Map<String, dynamic>.from(v);
+    }
+    return me; // los campos están al nivel raíz
+  }
+
   /// Actualiza datos del perfil (nombre, telefono, direccion, etc.).
   Future<Map<String, dynamic>?> updateMe(Map<String, dynamic> payload) async {
     try {
@@ -187,6 +210,24 @@ class AuthRepository {
       throw toApiException(error);
     }
     return null;
+  }
+
+  /// Cambia la contraseña del usuario autenticado.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.put(
+        ApiConfig.authChangePassword,
+        data: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        },
+      );
+    } catch (error) {
+      throw toApiException(error);
+    }
   }
 
   /// Cierra sesion local (limpia tokens y flags).

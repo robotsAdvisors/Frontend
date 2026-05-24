@@ -189,9 +189,49 @@ class AdminController extends GetxController {
     } catch (_) {}
   }
 
-  void deleteProduct(ProductModel product) {
+  Future<void> deleteProduct(ProductModel product) async {
+    final index = products.indexOf(product);
     products.remove(product);
     _calculateStoreMetrics();
+    try {
+      await _repo.adminDeleteProduct(product.id);
+      CustomSnackBar.showCustomSnackBar(
+        title: 'Producto eliminado',
+        message: 'El producto fue eliminado correctamente.',
+      );
+    } on ApiException catch (e) {
+      if (index != -1) { products.insert(index, product); } else { products.add(product); }
+      _calculateStoreMetrics();
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error al eliminar',
+        message: e.message,
+      );
+    } catch (_) {
+      if (index != -1) { products.insert(index, product); } else { products.add(product); }
+      _calculateStoreMetrics();
+    }
+  }
+
+  Future<void> updateProduct(String productId, Map<String, dynamic> payload) async {
+    try {
+      final updated = await _repo.adminUpdateProduct(productId, payload);
+      if (updated != null) {
+        final idx = products.indexWhere((p) => p.id == productId);
+        if (idx != -1) {
+          products[idx] = ProductModel.fromJson(updated);
+          _calculateStoreMetrics();
+        }
+        CustomSnackBar.showCustomSnackBar(
+          title: 'Producto actualizado',
+          message: 'Los cambios se guardaron correctamente.',
+        );
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error al actualizar',
+        message: e.message,
+      );
+    } catch (_) {}
   }
 
   List<VoucherModel> get recentValidVouchers {

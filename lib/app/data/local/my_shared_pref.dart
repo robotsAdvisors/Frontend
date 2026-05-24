@@ -25,6 +25,7 @@ class MySharedPref {
     static const String _accessTokenKey = 'access_token';
     static const String _refreshTokenKey = 'refresh_token';
     static const String _totalPointsKey = 'user_total_points';
+    static const String _notifPrefsPrefix = 'notif_';
 
   /// init get storage services
   static Future<void> init() async {
@@ -143,6 +144,26 @@ class MySharedPref {
 
   static int getTotalPoints() =>
       _sharedPreferences.getInt(_totalPointsKey) ?? 0;
+
+  // ---- Notification preferences ----
+  static Future<void> setNotificationPrefs(Map<String, bool> prefs) async {
+    for (final e in prefs.entries) {
+      await _sharedPreferences.setBool('$_notifPrefsPrefix${e.key}', e.value);
+    }
+  }
+
+  static Map<String, bool>? getNotificationPrefs() {
+    const keys = [
+      'email', 'push', 'parking', 'police', 'road', 'traffic',
+      'marketplace', 'rewards', 'weather', 'events', 'friends',
+    ];
+    final stored = <String, bool>{};
+    for (final k in keys) {
+      final v = _sharedPreferences.getBool('$_notifPrefsPrefix$k');
+      if (v != null) stored[k] = v;
+    }
+    return stored.isEmpty ? null : stored;
+  }
 
   /// clear all data from shared pref
   static Future<void> clear() async => await _sharedPreferences.clear();
