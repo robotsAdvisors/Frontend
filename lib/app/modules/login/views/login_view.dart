@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../components/custom_form_field.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../routes/app_pages.dart';
 import '../controllers/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
@@ -185,13 +186,9 @@ class LoginView extends GetView<LoginController> {
                                       ),
                                       Flexible(
                                         child: GestureDetector(
-                                          onTap: () => Get.snackbar(
-                                            'Pronto disponible',
-                                            'La recuperación de contraseña estará disponible próximamente.',
-                                            snackPosition: SnackPosition.BOTTOM,
-                                          ),
+                                          onTap: () => Get.toNamed(Routes.FORGOT_PASSWORD),
                                           child: Text(
-                                            '¿Olvidaste?',
+                                            '¿Olvidaste tu contraseña?',
                                             textAlign: TextAlign.end,
                                             overflow: TextOverflow.ellipsis,
                                             style: TextStyle(
@@ -339,20 +336,6 @@ class LoginView extends GetView<LoginController> {
                                           ),
                                         ),
                                       )),
-                                  4.verticalSpace,
-                                  Center(
-                                    child: TextButton(
-                                      onPressed: controller.register,
-                                      child: Text(
-                                        '¿No tienes cuenta? Regístrate',
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                          color: theme.primaryColor,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                   const Divider(height: 24),
                                   _buildAdminSection(theme),
                                 ],
