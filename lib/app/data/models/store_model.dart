@@ -22,6 +22,11 @@ class StoreModel {
   final List<String> categories;
   final double rating;
   final int reviewCount;
+  final String cardId;       // e.g. "STR-000042" — assigned by backend
+  final double? latitude;    // GPS latitude
+  final double? longitude;   // GPS longitude
+  final String billingAddress;
+  final bool twoFactorEnabled;
 
   StoreModel({
     required this.id,
@@ -46,6 +51,11 @@ class StoreModel {
     this.categories = const [],
     this.rating = 0.0,
     this.reviewCount = 0,
+    this.cardId = '',
+    this.latitude,
+    this.longitude,
+    this.billingAddress = '',
+    this.twoFactorEnabled = false,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -84,7 +94,8 @@ class StoreModel {
       adminUserIds: adminRaw is List
           ? List<String>.from(adminRaw.map((e) => e.toString()))
           : const [],
-      fiscalId: (json['fiscal_id'] ?? json['fiscalId'] ?? '').toString(),
+      // Backend v2 uses 'cif'; keep 'fiscal_id'/'fiscalId' as fallback.
+      fiscalId: (json['cif'] ?? json['fiscal_id'] ?? json['fiscalId'] ?? '').toString(),
       address: (json['address'] ?? '').toString(),
       logoUrl: (json['logo'] ?? json['logo_url'] ?? '').toString(),
       billingEmail: (json['billing_email'] ?? json['billingEmail'] ?? json['email'] ?? '').toString(),
@@ -109,7 +120,19 @@ class StoreModel {
       reviewCount: json['review_count'] is int
           ? json['review_count'] as int
           : int.tryParse('${json['review_count'] ?? 0}') ?? 0,
+      cardId: (json['card_id'] ?? '').toString(),
+      latitude: _toDouble(json['latitude'] ?? json['lat']),
+      longitude: _toDouble(json['longitude'] ?? json['lng']),
+      billingAddress: (json['billing_address'] ?? json['billingAddress'] ?? '').toString(),
+      twoFactorEnabled: json['two_factor_enabled'] as bool? ?? json['twoFactorEnabled'] as bool? ?? false,
     );
+  }
+
+  static double? _toDouble(dynamic v) {
+    if (v == null) return null;
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    return double.tryParse(v.toString());
   }
 
   Map<String, dynamic> toJson() {
@@ -136,6 +159,12 @@ class StoreModel {
       'categories': categories,
       'rating': rating,
       'review_count': reviewCount,
+      'card_id': cardId,
+      'cif': fiscalId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'billing_address': billingAddress,
+      'two_factor_enabled': twoFactorEnabled,
     };
   }
 }

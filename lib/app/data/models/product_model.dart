@@ -1,8 +1,5 @@
-/// Modelo de producto.
-///
-/// Soporta IDs UUID (string) que vienen del backend Django.
+/// Modelo de producto / premio del marketplace Letdem.
 class ProductModel {
-  /// UUID del producto en el backend; tambien admite ids numericos como string.
   String id;
   String image;
   String name;
@@ -19,6 +16,10 @@ class ProductModel {
   int pointsRequired;
   String storeId;
   String? storeName;
+  DateTime? expiryDate;
+  bool isPublished;    // false → "Pausado"
+  bool isRedeemable;   // toggle "¿Canjeable?"
+  double monetaryPrice; // precio vía Stripe (€), 0 si no aplica
 
   ProductModel({
     required this.id,
@@ -37,9 +38,29 @@ class ProductModel {
     this.reviewCount = 0,
     this.pointsRequired = 0,
     this.storeName,
+    this.expiryDate,
+    this.isPublished = true,
+    this.isRedeemable = true,
+    this.monetaryPrice = 0,
   });
 
+  bool get isExpired =>
+      expiryDate != null && expiryDate!.isBefore(DateTime.now());
+
+  bool get isExpiringSoon {
+    if (expiryDate == null) return false;
+    final days30 = DateTime.now().add(const Duration(days: 30));
+    return !isExpired && expiryDate!.isBefore(days30);
+  }
+
   double get price => discountPrice;
+
+  /// Estado derivado para mostrar en tablas de la UI.
+  String get statusLabel {
+    if (quantity == 0) return 'Sin Stock';
+    if (!isPublished) return 'Pausado';
+    return 'Activo';
+  }
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     final price = _toDouble(json['price']);
@@ -71,10 +92,21 @@ class ProductModel {
           : int.tryParse('${json['review_count']}') ?? 0,
       pointsRequired: json['points_required'] is int
           ? json['points_required'] as int
-          : int.tryParse('${json['points_required'] ?? json['points_value']}') ?? 0,
+          : int.tryParse(
+                  '${json['points_required'] ?? json['points_value']}') ??
+              0,
       storeId: (json['store_id'] ?? json['store'] ?? '').toString(),
       storeName: json['store_name']?.toString(),
+      expiryDate: _parseDate(json['expiry_date'] ?? json['expires_at']),
+      isPublished: json['is_published'] as bool? ?? true,
+      isRedeemable: json['is_redeemable'] as bool? ?? true,
+      monetaryPrice: _toDouble(json['monetary_price'] ?? json['stripe_price']),
     );
+  }
+
+  static DateTime? _parseDate(dynamic v) {
+    if (v == null) return null;
+    return DateTime.tryParse(v.toString());
   }
 
   Map<String, dynamic> toJson() => {
@@ -90,6 +122,10 @@ class ProductModel {
         'review_count': reviewCount,
         'store_id': storeId,
         'store_name': storeName,
+        'is_published': isPublished,
+        'is_redeemable': isRedeemable,
+        'monetary_price': monetaryPrice,
+        if (expiryDate != null) 'expiry_date': expiryDate!.toIso8601String(),
       };
 
   static double _toDouble(dynamic value) {

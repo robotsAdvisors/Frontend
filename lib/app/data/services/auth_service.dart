@@ -19,6 +19,11 @@ class AuthService {
   static const String storeViewerRole = 'store_viewer';
   static const String generalAdminRole = 'general_admin';
 
+  // Roles del modelo StoreUser (backend v2)
+  static const String storeRoleOwner = 'OWNER';
+  static const String storeRoleAdmin = 'ADMIN';
+  static const String storeRoleMember = 'MEMBER';
+
   static String? get currentUserEmail => MySharedPref.getLoggedInUserEmail();
 
   static String get currentUserRole =>

@@ -34,8 +34,19 @@ import '../modules/admin/views/add_product_view.dart';
 import '../modules/admin/views/analytics_view.dart';
 import '../modules/admin/views/admin_view.dart';
 import '../modules/admin/views/voucher_history_view.dart';
+import '../modules/admin/views/admin_settings_view.dart';
+import '../modules/admin/views/inventario_view.dart';
+import '../modules/admin/views/premios_view.dart';
 import '../modules/general_admin/bindings/general_admin_binding.dart';
 import '../modules/general_admin/views/general_admin_view.dart';
+import '../modules/update_parking/bindings/update_parking_binding.dart';
+import '../modules/update_parking/views/update_parking_view.dart';
+import '../modules/withdrawals/bindings/withdrawals_binding.dart';
+import '../modules/withdrawals/views/withdrawals_view.dart';
+import '../modules/bookings/bindings/bookings_binding.dart';
+import '../modules/bookings/views/bookings_view.dart';
+import '../modules/virtual_card/bindings/virtual_card_binding.dart';
+import '../modules/virtual_card/views/virtual_card_view.dart';
 
 part 'app_routes.dart';
 
@@ -80,6 +91,27 @@ class AppPages {
     GetPage(
       name: _Paths.ANALYTICS,
       page: () => const AnalyticsView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.ADMIN_SETTINGS,
+      page: () => const AdminSettingsView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.INVENTARIO,
+      page: () => const InventarioView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.PREMIOS,
+      page: () => const PremiosView(),
       binding: AdminBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
@@ -156,6 +188,34 @@ class AppPages {
     GetPage(
       name: _Paths.FORGOT_PASSWORD,
       page: () => const ForgotPasswordView(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.UPDATE_PARKING,
+      page: () => const UpdateParkingView(),
+      binding: UpdateParkingBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.WITHDRAWALS,
+      page: () => const WithdrawalsView(),
+      binding: WithdrawalsBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.BOOKINGS,
+      page: () => const BookingsView(),
+      binding: BookingsBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.VIRTUAL_CARD,
+      page: () => const VirtualCardView(),
+      binding: VirtualCardBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

@@ -206,8 +206,7 @@ class GeneralAdminController extends GetxController {
 
     try {
       final payload = <String, dynamic>{
-        'name': store.name,
-        'description': store.description,
+        'name': store.name,        'description': store.description,
         'address': store.address,
         'logo':
             store.logoUrl.startsWith('http') ? store.logoUrl : null,

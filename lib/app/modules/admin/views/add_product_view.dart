@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/product_model.dart';
 import '../../../routes/app_pages.dart';
@@ -35,6 +38,8 @@ class _AddProductViewState extends State<AddProductView> {
   bool _isFeatured = false;
   bool _isSaving = false;
   int _stock = 100;
+  XFile? _selectedImage;
+  Uint8List? _selectedImageBytes;
 
   @override
   void initState() {
@@ -50,6 +55,7 @@ class _AddProductViewState extends State<AddProductView> {
       _pointValueCtrl.text = args.discountPrice.toStringAsFixed(0);
       _discountCtrl.text = args.discountPercent.toStringAsFixed(0);
       _stock = args.quantity > 0 ? args.quantity : (args.stock > 0 ? args.stock : 100);
+      _expirationDate = args.expiryDate;
     }
   }
 
@@ -99,6 +105,14 @@ class _AddProductViewState extends State<AddProductView> {
 
     setState(() => _isSaving = true);
 
+    // Upload image if a new one was picked.
+    if (_selectedImage != null) {
+      final uploaded = await _ctrl.uploadProductImage(_selectedImage!);
+      if (uploaded != null) {
+        _imageUrlCtrl.text = uploaded;
+      }
+    }
+
     if (_editingProduct != null) {
       final payload = <String, dynamic>{
         'name': name,
@@ -110,6 +124,11 @@ class _AddProductViewState extends State<AddProductView> {
           'category': _selectedCategory,
         if (_imageUrlCtrl.text.trim().isNotEmpty)
           'image_url': _imageUrlCtrl.text.trim(),
+        if (_expirationDate != null)
+          'expiry_date':
+              '${_expirationDate!.year.toString().padLeft(4, '0')}-'
+              '${_expirationDate!.month.toString().padLeft(2, '0')}-'
+              '${_expirationDate!.day.toString().padLeft(2, '0')}',
       };
       await _ctrl.updateProduct(_editingProduct!.id, payload);
     } else {
@@ -126,6 +145,7 @@ class _AddProductViewState extends State<AddProductView> {
         discountPercent: discount,
         stock: _stock,
         storeId: _ctrl.storeId.value.isNotEmpty ? _ctrl.storeId.value : 'store_1',
+        expiryDate: _expirationDate,
       );
       await _ctrl.addProduct(product);
     }
@@ -598,8 +618,9 @@ class _AddProductViewState extends State<AddProductView> {
       title: 'Media',
       child: Column(
         children: [
+          // Image preview — priority: local picked > remote URL
           GestureDetector(
-            onTap: _showImageUrlDialog,
+            onTap: _pickImage,
             child: Container(
               height: 140,
               decoration: BoxDecoration(
@@ -607,20 +628,69 @@ class _AddProductViewState extends State<AddProductView> {
                 borderRadius: BorderRadius.circular(10),
                 color: const Color(0xFFFBF9FF),
               ),
-              child: _imageUrlCtrl.text.trim().isNotEmpty
+              child: _selectedImageBytes != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(9),
-                      child: Image.network(
-                        _imageUrlCtrl.text.trim(),
+                      child: Image.memory(
+                        _selectedImageBytes!,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorBuilder: (_, __, ___) => _uploadPlaceholder(),
                       ),
                     )
-                  : _uploadPlaceholder(),
+                  : _imageUrlCtrl.text.trim().isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(9),
+                          child: Image.network(
+                            _imageUrlCtrl.text.trim(),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) =>
+                                _uploadPlaceholder(),
+                          ),
+                        )
+                      : _uploadPlaceholder(),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.photo_library_outlined,
+                      size: 16),
+                  label: const Text('Galería',
+                      style: TextStyle(fontSize: 13)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _purple,
+                    side: const BorderSide(color: _purple),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _showImageUrlDialog,
+                  icon: const Icon(Icons.link, size: 16),
+                  label: const Text('URL',
+                      style: TextStyle(fontSize: 13)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade600,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               ...List.generate(2, (i) => Expanded(
@@ -850,6 +920,20 @@ class _AddProductViewState extends State<AddProductView> {
     );
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        maxWidth: 1200);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    setState(() {
+      _selectedImage = file;
+      _selectedImageBytes = bytes;
+    });
+  }
+
   void _showImageUrlDialog() {
     final ctrl = TextEditingController(text: _imageUrlCtrl.text);
     showDialog<void>(
@@ -868,7 +952,11 @@ class _AddProductViewState extends State<AddProductView> {
             style: ElevatedButton.styleFrom(backgroundColor: _purple, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
             onPressed: () {
-              setState(() => _imageUrlCtrl.text = ctrl.text.trim());
+              setState(() {
+                _imageUrlCtrl.text = ctrl.text.trim();
+                _selectedImage = null;
+                _selectedImageBytes = null;
+              });
               Navigator.of(ctx).pop();
             },
             child: const Text('Apply'),

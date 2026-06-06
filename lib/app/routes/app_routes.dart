@@ -24,6 +24,13 @@ abstract class Routes {
   static const PREFERENCES = _Paths.PREFERENCES;
   static const CHANGE_PASSWORD = _Paths.CHANGE_PASSWORD;
   static const FORGOT_PASSWORD = _Paths.FORGOT_PASSWORD;
+  static const UPDATE_PARKING = _Paths.UPDATE_PARKING;
+  static const WITHDRAWALS = _Paths.WITHDRAWALS;
+  static const BOOKINGS = _Paths.BOOKINGS;
+  static const VIRTUAL_CARD = _Paths.VIRTUAL_CARD;
+  static const ADMIN_SETTINGS = _Paths.ADMIN_SETTINGS;
+  static const INVENTARIO = _Paths.INVENTARIO;
+  static const PREMIOS = _Paths.PREMIOS;
 }
 
 abstract class _Paths {
@@ -49,4 +56,11 @@ abstract class _Paths {
   static const PREFERENCES = '/preferences';
   static const CHANGE_PASSWORD = '/change-password';
   static const FORGOT_PASSWORD = '/forgot-password';
+  static const UPDATE_PARKING = '/update-parking';
+  static const WITHDRAWALS = '/withdrawals';
+  static const BOOKINGS = '/bookings';
+  static const VIRTUAL_CARD = '/virtual-card';
+  static const ADMIN_SETTINGS = '/admin-settings';
+  static const INVENTARIO = '/inventario';
+  static const PREMIOS = '/premios';
 }

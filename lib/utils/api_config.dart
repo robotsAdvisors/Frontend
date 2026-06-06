@@ -57,4 +57,37 @@ class ApiConfig {
   // Marketplace - analytics
   static const String analyticsVouchersDaily = '/marketplace/analytics/vouchers/daily/';
   static const String analyticsSummary = '/marketplace/analytics/summary/';
+
+  // Marketplace - store detail, activity & management
+  static String storeDetail(String id) => '/marketplace/stores/$id/';
+  static String storeActivity(String id) => '/marketplace/stores/$id/activity/';
+  // Product image upload
+  static const String adminProductUploadImage =
+      '/marketplace/admin/products/upload-image/';
+  static const String adminProductExport =
+      '/marketplace/admin/products/export/';
+
+  // Users: GET list + POST invite share the same URL
+  static String storeUsers(String id) => '/marketplace/stores/$id/users/';
+  static String storeUserDetail(String storeId, String userId) =>
+      '/marketplace/stores/$storeId/users/$userId/';
+  static String storeChangePIN(String id) => '/marketplace/stores/$id/change-pin/';
+  static String storeSecurity(String id) => '/marketplace/stores/$id/security/';
+
+  // Parking
+  static const String parkingSpots = '/parking/spots/';
+  static String parkingSpotDetail(String id) => '/parking/spots/$id/';
+  static String parkingSpotReport(String id) => '/parking/spots/$id/report/';
+
+  // Withdrawals
+  static const String withdrawals = '/wallet/withdrawals/';
+  static const String withdrawalsConfig = '/wallet/withdrawals/config/';
+
+  // Bookings
+  static const String bookings = '/parking/bookings/';
+  static String bookingDetail(String id) => '/parking/bookings/$id/';
+  static String bookingCancel(String id) => '/parking/bookings/$id/cancel/';
+
+  // Virtual Card
+  static const String virtualCard = '/wallet/virtual-card/';
 }

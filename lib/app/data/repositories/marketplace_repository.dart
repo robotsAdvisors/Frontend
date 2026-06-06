@@ -1,9 +1,14 @@
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../utils/api_config.dart';
 import '../models/category_model.dart';
 import '../models/order_model.dart';
 import '../models/paginated.dart';
+import '../models/parking_spot_model.dart';
 import '../models/product_model.dart';
 import '../models/store_model.dart';
+import '../models/store_user_model.dart';
 import '../models/voucher_model.dart';
 import '../services/http/api_client.dart';
 
@@ -400,6 +405,221 @@ class MarketplaceRepository {
         return Map<String, dynamic>.from(response.data as Map);
       }
       return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- PARKING ----------
+
+  /// GET /parking/spots/{id}/
+  Future<ParkingSpotModel?> fetchParkingSpot(String spotId) async {
+    try {
+      final response = await _dio.get(ApiConfig.parkingSpotDetail(spotId));
+      if (response.statusCode == 200 && response.data is Map) {
+        return ParkingSpotModel.fromJson(
+          Map<String, dynamic>.from(response.data as Map),
+        );
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// PATCH /parking/spots/{uuid}/report/
+  /// Crea o actualiza el reporte del usuario.
+  /// [waitTime] en minutos (null = sin cambio).
+  /// [photo] es un archivo multipart; pasar null si no hay foto nueva.
+  /// Devuelve el spot actualizado con el wait_time y photo del reporte.
+  Future<ParkingSpotModel?> updateParkingReport(
+    String spotId, {
+    int? waitTime,
+    // ignore: unused_element
+    dynamic photoFile, // MultipartFile cuando se integre image_picker
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        if (waitTime != null) 'wait_time': waitTime,
+      };
+      final response = await _dio.patch(
+        ApiConfig.parkingSpotReport(spotId),
+        data: data,
+      );
+      if (response.data is Map) {
+        return ParkingSpotModel.fromJson(
+          Map<String, dynamic>.from(response.data as Map),
+        );
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// DELETE /parking/spots/{uuid}/report/ → 204 No Content
+  Future<void> deleteParkingReport(String spotId) async {
+    try {
+      await _dio.delete(ApiConfig.parkingSpotReport(spotId));
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- PRODUCT IMAGE UPLOAD ----------
+
+  /// GET /marketplace/admin/products/export/?store=<id>&format=csv
+  /// Returns raw UTF-8+BOM bytes ready to write as a .csv file.
+  Future<List<int>> exportProductsCsv(String storeId) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        ApiConfig.adminProductExport,
+        queryParameters: {
+          if (storeId.isNotEmpty) 'store': storeId,
+          'format': 'csv',
+        },
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? const [];
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /marketplace/admin/products/upload-image/ (multipart/form-data)
+  /// Campo: image (JPEG / PNG / WEBP / GIF)
+  /// Respuesta: { "image_url": "https://..." }
+  Future<String> uploadProductImage(XFile file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final formData = FormData.fromMap({
+        // Dio infers MIME type from filename; no need for http_parser.
+        'image': MultipartFile.fromBytes(bytes, filename: file.name),
+      });
+      final response = await _dio.post(
+        ApiConfig.adminProductUploadImage,
+        data: formData,
+      );
+      if (response.data is Map) {
+        final url = response.data['image_url']?.toString() ?? '';
+        if (url.isNotEmpty) return url;
+      }
+      throw ApiException('El servidor no devolvió una URL de imagen.');
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- STORE SETTINGS ----------
+
+  /// PATCH /marketplace/stores/<id>/ — actualiza info de la tienda.
+  Future<StoreModel?> updateStore(
+      String storeId, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.patch(
+        ApiConfig.storeDetail(storeId),
+        data: payload,
+      );
+      if (response.data is Map) {
+        return StoreModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// GET /marketplace/stores/<id>/users/ — lista usuarios con roles.
+  Future<List<StoreUserModel>> fetchStoreUsers(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storeUsers(storeId));
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => StoreUserModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /marketplace/stores/<id>/users/ — invita a un usuario por email y rol.
+  /// El mismo endpoint que GET /users/ — el backend distingue por método HTTP.
+  Future<void> inviteStoreUser(
+      String storeId, String email, String role) async {
+    try {
+      await _dio.post(
+        ApiConfig.storeUsers(storeId),
+        data: {'email': email, 'role': role},
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// PATCH /marketplace/stores/<storeId>/users/<userId>/ — cambia rol de un usuario.
+  Future<void> updateStoreUserRole(
+      String storeId, String userId, String role) async {
+    try {
+      await _dio.patch(
+        ApiConfig.storeUserDetail(storeId, userId),
+        data: {'role': role},
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// DELETE /marketplace/stores/<storeId>/users/<userId>/ — elimina usuario de la tienda.
+  Future<void> removeStoreUser(String storeId, String userId) async {
+    try {
+      await _dio.delete(ApiConfig.storeUserDetail(storeId, userId));
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /marketplace/stores/<id>/change-pin/ — cambia el PIN de la tienda.
+  Future<void> changeStorePin(
+      String storeId, String currentPin, String newPin) async {
+    try {
+      await _dio.post(
+        ApiConfig.storeChangePIN(storeId),
+        data: {'current_pin': currentPin, 'new_pin': newPin},
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// PATCH /marketplace/stores/<id>/security/ — activa o desactiva 2FA.
+  Future<void> updateStoreSecurity(
+      String storeId, {required bool twoFactorEnabled}) async {
+    try {
+      await _dio.patch(
+        ApiConfig.storeSecurity(storeId),
+        data: {'two_factor_enabled': twoFactorEnabled},
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Feed de actividad de una tienda específica.
+  /// GET /marketplace/stores/<id>/activity/?limit=N
+  /// Devuelve eventos mezclados: redemption, voucher_created, product_added.
+  Future<List<Map<String, dynamic>>> fetchStoreActivity(
+    String storeId, {
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.storeActivity(storeId),
+        queryParameters: {'limit': limit},
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     } catch (e) {
       throw toApiException(e);
     }
