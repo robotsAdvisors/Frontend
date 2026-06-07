@@ -230,6 +230,69 @@ class AuthRepository {
     }
   }
 
+  /// Inicia configuración TOTP para Google Authenticator.
+  /// POST /auth/2fa/setup/
+  /// Retorna: {totp_uri, secret}
+  Future<Map<String, dynamic>> setup2FA() async {
+    try {
+      final response = await _dio.post(ApiConfig.twoFactorSetup);
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Verifica el código TOTP y activa 2FA.
+  /// POST /auth/2fa/verify/  body: {code}
+  Future<bool> verify2FA(String code) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.twoFactorVerify,
+        data: {'code': code},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Configura método de respaldo (email o SMS).
+  /// POST /auth/2fa/backup-method/  body: {method, value}
+  Future<void> configureBackupMethod(String method, String value) async {
+    try {
+      await _dio.post(
+        ApiConfig.twoFactorBackupMethod,
+        data: {'method': method, 'value': value},
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Lista de roles disponibles desde Django groups.
+  /// GET /auth/roles/
+  Future<List<Map<String, dynamic>>> fetchRoles() async {
+    try {
+      final response = await _dio.get(ApiConfig.authRoles);
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      if (raw is Map && raw['results'] is List) {
+        return (raw['results'] as List)
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return const [];
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// Cierra sesion local (limpia tokens y flags).
   Future<void> logout() async {
     await MySharedPref.clearTokens();

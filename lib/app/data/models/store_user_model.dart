@@ -11,6 +11,8 @@ class StoreUserModel {
   final String storeId;
   final String? avatarUrl;
   final bool isActive;
+  final bool isOnline;
+  final DateTime? lastActiveAt;
   final DateTime createdAt;
 
   StoreUserModel({
@@ -21,6 +23,8 @@ class StoreUserModel {
     required this.storeId,
     this.avatarUrl,
     this.isActive = true,
+    this.isOnline = false,
+    this.lastActiveAt,
     required this.createdAt,
   });
 
@@ -46,7 +50,11 @@ class StoreUserModel {
         return 'Administrador';
       case roleMember:
         return 'Miembro';
-      // Legacy fallbacks
+      case 'MANAGER':
+        return 'Manager';
+      case 'VALIDATOR':
+      case 'VALIDADOR':
+        return 'Validador';
       case 'STORE_ADMIN':
         return 'Administrador';
       case 'STORE_VIEWER':
@@ -54,6 +62,16 @@ class StoreUserModel {
       default:
         return role;
     }
+  }
+
+  String get presenceLabel {
+    if (isOnline) return 'En línea';
+    if (lastActiveAt != null) {
+      final diff = DateTime.now().difference(lastActiveAt!);
+      if (diff.inMinutes < 60) return 'Hace ${diff.inMinutes} min';
+      if (diff.inHours < 24) return 'Hace ${diff.inHours} h';
+    }
+    return 'Desconectado';
   }
 
   bool get isOwner => role.toUpperCase() == roleOwner;
@@ -96,6 +114,9 @@ class StoreUserModel {
       storeId: storeId,
       avatarUrl: avatarUrl,
       isActive: json['is_active'] as bool? ?? json['isActive'] as bool? ?? true,
+      isOnline: json['is_online'] as bool? ?? false,
+      lastActiveAt: DateTime.tryParse(
+          (json['last_active_at'] ?? json['lastActiveAt'] ?? '').toString()),
       createdAt: DateTime.tryParse(
               (json['created_at'] ?? json['createdAt'] ?? '').toString()) ??
           DateTime.now(),

@@ -61,6 +61,16 @@ class ApiConfig {
   // Marketplace - store detail, activity & management
   static String storeDetail(String id) => '/marketplace/stores/$id/';
   static String storeActivity(String id) => '/marketplace/stores/$id/activity/';
+  static String storeMonthlyGoal(String id) => '/marketplace/stores/$id/monthly-goal/';
+  static String storePIN(String id) => '/marketplace/stores/$id/pin/';
+  static String storePINRegenerate(String id) => '/marketplace/stores/$id/pin/regenerate/';
+  static String storeSecurityLog(String id) => '/marketplace/stores/$id/security-log/';
+
+  // Auth — 2FA & Roles
+  static const String twoFactorSetup = '/auth/2fa/setup/';
+  static const String twoFactorVerify = '/auth/2fa/verify/';
+  static const String twoFactorBackupMethod = '/auth/2fa/backup-method/';
+  static const String authRoles = '/auth/roles/';
   // Product image upload
   static const String adminProductUploadImage =
       '/marketplace/admin/products/upload-image/';

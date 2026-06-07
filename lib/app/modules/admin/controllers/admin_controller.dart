@@ -36,6 +36,11 @@ class AdminController extends GetxController {
   final RxList<Map<String, dynamic>> dailyVouchers = <Map<String, dynamic>>[].obs;
   final Rx<Map<String, dynamic>> analyticsSummary = Rx<Map<String, dynamic>>({});
   final RxList<Map<String, dynamic>> remoteActivity = <Map<String, dynamic>>[].obs;
+  final Rx<Map<String, dynamic>> monthlyGoal = Rx<Map<String, dynamic>>({});
+  final Rx<Map<String, dynamic>> storePinData = Rx<Map<String, dynamic>>({});
+  final RxString regeneratedPin = ''.obs;
+  final RxBool isRegeneratingPin = false.obs;
+  final RxList<Map<String, dynamic>> securityLog = <Map<String, dynamic>>[].obs;
 
   // Inventory (paginated, separate from the preloaded product list)
   final RxList<ProductModel> inventoryProducts = <ProductModel>[].obs;
@@ -96,7 +101,7 @@ class AdminController extends GetxController {
         storeReviewCount.value = picked.reviewCount;
       }
 
-      // 2. Cargar productos, vouchers, categorias, analytics y actividad en paralelo.
+      // 2. Cargar productos, vouchers, categorias, analytics, actividad y meta mensual en paralelo.
       final results = await Future.wait<dynamic>([
         _repo.fetchProducts(storeId: storeId.value),
         _repo.fetchVouchersPage(page: 1, pageSize: _vouchersPageSize),
@@ -107,6 +112,12 @@ class AdminController extends GetxController {
             .catchError((_) => <String, dynamic>{}),
         _repo.fetchStoreActivity(storeId.value)
             .catchError((_) => <Map<String, dynamic>>[]),
+        _repo.fetchMonthlyGoal(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
+        _repo.fetchStorePIN(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
+        _repo.fetchSecurityLog(storeId.value)
+            .catchError((_) => <Map<String, dynamic>>[]),
       ]);
 
       final remoteProducts = results[0] as List<ProductModel>;
@@ -115,6 +126,9 @@ class AdminController extends GetxController {
       final remoteDailyVouchers = results[3] as List<Map<String, dynamic>>;
       final remoteSummary = results[4] as Map<String, dynamic>;
       final remoteActivityList = results[5] as List<Map<String, dynamic>>;
+      final remoteMonthlyGoal = results[6] as Map<String, dynamic>;
+      final remotePinData = results[7] as Map<String, dynamic>;
+      final remoteSecurityLog = results[8] as List<Map<String, dynamic>>;
 
       products.assignAll(remoteProducts);
 
@@ -129,6 +143,9 @@ class AdminController extends GetxController {
       if (remoteDailyVouchers.isNotEmpty) dailyVouchers.assignAll(remoteDailyVouchers);
       if (remoteSummary.isNotEmpty) analyticsSummary.value = remoteSummary;
       if (remoteActivityList.isNotEmpty) remoteActivity.assignAll(remoteActivityList);
+      if (remoteMonthlyGoal.isNotEmpty) monthlyGoal.value = remoteMonthlyGoal;
+      if (remotePinData.isNotEmpty) storePinData.value = remotePinData;
+      if (remoteSecurityLog.isNotEmpty) securityLog.assignAll(remoteSecurityLog);
 
       _calculateStoreMetrics();
     } catch (_) {
@@ -305,10 +322,27 @@ class AdminController extends GetxController {
 
   // ── Dashboard stats ──────────────────────────────────────────────────────
 
-  int get pendingCount => vouchers
-      .where((v) =>
-          v.status == VoucherStatus.pending || v.status == VoucherStatus.paid)
-      .length;
+  // Prefer backend analytics; fall back to local voucher list.
+  int get pendingCount {
+    final summary = analyticsSummary.value;
+    if (summary['pending_vouchers'] != null) {
+      return (summary['pending_vouchers'] as num).toInt();
+    }
+    return vouchers
+        .where((v) =>
+            v.status == VoucherStatus.pending || v.status == VoucherStatus.paid)
+        .length;
+  }
+
+  int get completedTodayCount {
+    final summary = analyticsSummary.value;
+    if (summary['completed_today'] != null) {
+      return (summary['completed_today'] as num).toInt();
+    }
+    final now = DateTime.now();
+    final dayStart = DateTime(now.year, now.month, now.day);
+    return vouchers.where((v) => v.isRedeemed && v.issuedAt.isAfter(dayStart)).length;
+  }
 
   int get completedMonthCount {
     final summary = analyticsSummary.value;
@@ -327,6 +361,14 @@ class AdminController extends GetxController {
       return (summary['active_products'] as num).toInt();
     }
     return products.where((p) => p.quantity > 0).length;
+  }
+
+  int get availablePoints {
+    final summary = analyticsSummary.value;
+    if (summary['available_points'] != null) {
+      return (summary['available_points'] as num).toInt();
+    }
+    return 0;
   }
 
   String get storeCardId {
@@ -370,14 +412,19 @@ class AdminController extends GetxController {
 
     String color;
     switch (type) {
+      case 'voucher_redeemed':
       case 'redemption':
         color = 'green';
         break;
       case 'voucher_created':
-        color = 'purple';
-        break;
       case 'product_added':
         color = 'orange';
+        break;
+      case 'low_stock':
+        color = 'red';
+        break;
+      case 'system_update':
+        color = 'grey';
         break;
       default:
         color = 'purple';
@@ -388,6 +435,8 @@ class AdminController extends GetxController {
       'body': description,
       'time': timeLabel,
       'color': color,
+      'action_label': (event['action_label'] ?? '').toString(),
+      'action_route': (event['action_route'] ?? '').toString(),
     };
   }
 
@@ -529,6 +578,51 @@ class AdminController extends GetxController {
     return 'Bronze';
   }
 
+  // ── Monthly loyalty goal ──────────────────────────────────────────────────
+  // Backend: GET /marketplace/stores/<id>/monthly-goal/
+  // Expected fields: monthly_goal_current, monthly_goal_target,
+  //                  monthly_goal_days_remaining, monthly_goal_prize
+
+  int get monthlyGoalCurrentPts {
+    final g = monthlyGoal.value;
+    if (g['monthly_goal_current'] != null) {
+      return (g['monthly_goal_current'] as num).toInt();
+    }
+    final monthStart = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    return vouchers
+        .where((v) => v.isRedeemed && v.issuedAt.isAfter(monthStart))
+        .fold<int>(0, (sum, v) => sum + v.pointsUsed);
+  }
+
+  int get monthlyGoalTargetPts {
+    final g = monthlyGoal.value;
+    if (g['monthly_goal_target'] != null) {
+      return (g['monthly_goal_target'] as num).toInt();
+    }
+    return 500000;
+  }
+
+  int get monthlyGoalDaysRemaining {
+    final g = monthlyGoal.value;
+    if (g['monthly_goal_days_remaining'] != null) {
+      return (g['monthly_goal_days_remaining'] as num).toInt();
+    }
+    final now = DateTime.now();
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+    return lastDay.day - now.day;
+  }
+
+  String get monthlyGoalPrizeName {
+    final g = monthlyGoal.value;
+    return g['monthly_goal_prize']?.toString() ?? '';
+  }
+
+  double get monthlyGoalPercent {
+    final target = monthlyGoalTargetPts;
+    if (target == 0) return 0;
+    return (monthlyGoalCurrentPts / target).clamp(0.0, 1.0);
+  }
+
   int get maxProductQuantity {
     if (products.isEmpty) return 1;
     return products.map((p) => p.quantity).reduce((a, b) => a > b ? a : b);
@@ -660,6 +754,36 @@ class AdminController extends GetxController {
     }
     return false;
   }
+
+  // ── PIN ───────────────────────────────────────────────────────────────────
+
+  String get pinMasked =>
+      storePinData.value['pin_masked']?.toString() ?? '●●●●●●';
+
+  bool get pinConfigured =>
+      storePinData.value['pin_configured'] as bool? ?? false;
+
+  Future<void> regeneratePin() async {
+    if (isRegeneratingPin.value) return;
+    isRegeneratingPin.value = true;
+    try {
+      final result = await _repo.regenerateStorePIN(storeId.value);
+      if (result.isNotEmpty) {
+        storePinData.value = result;
+        regeneratedPin.value = result['pin']?.toString() ?? '';
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: 'No se pudo regenerar el PIN.');
+    } finally {
+      isRegeneratingPin.value = false;
+    }
+  }
+
+  void clearRegeneratedPin() => regeneratedPin.value = '';
 
   // ── Settings ──────────────────────────────────────────────────────────────
 

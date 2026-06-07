@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/store_user_model.dart';
+import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/auth_service.dart';
+import '../../../data/services/http/api_client.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/admin_controller.dart';
 
@@ -19,42 +22,13 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   static const Color _bg = Color(0xFFF5F3FF);
 
   late final AdminController _ctrl;
-
-  // Form controllers
-  final _nameCtrl = TextEditingController();
-  final _addressCtrl = TextEditingController();
-  final _billingAddressCtrl = TextEditingController();
-  final _fiscalIdCtrl = TextEditingController();
-  String? _selectedCategory;
-  bool _sameAddressForBilling = false;
-  bool _twoFactorEnabled = false;
+  bool _pinVisible = false;
 
   @override
   void initState() {
     super.initState();
     _ctrl = Get.find<AdminController>();
-    _populateFromStore();
     _ctrl.reloadStoreUsers();
-  }
-
-  void _populateFromStore() {
-    final s = _ctrl.currentStore;
-    _nameCtrl.text = s.name;
-    _addressCtrl.text = s.address;
-    _billingAddressCtrl.text = s.billingAddress.isNotEmpty ? s.billingAddress : s.address;
-    _fiscalIdCtrl.text = s.fiscalId;
-    _selectedCategory = s.categories.isNotEmpty ? s.categories.first : null;
-    _twoFactorEnabled = s.twoFactorEnabled;
-    _sameAddressForBilling = s.billingAddress.isEmpty || s.billingAddress == s.address;
-  }
-
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _addressCtrl.dispose();
-    _billingAddressCtrl.dispose();
-    _fiscalIdCtrl.dispose();
-    super.dispose();
   }
 
   @override
@@ -81,16 +55,39 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                const Text('Admin LetDem',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: _purple)),
-                const Text('Gestión de Tienda',
-                    style: TextStyle(fontSize: 10, color: Colors.grey)),
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _purple,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.store, color: Colors.white, size: 22),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Obx(() {
+                        _ctrl.storeId.value;
+                        return Text(
+                          _ctrl.currentStore.name,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF111827)),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
+                      const Text('Gestión de Tienda',
+                          style: TextStyle(fontSize: 10, color: Colors.grey)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -102,16 +99,34 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
               onTap: () => Get.offNamed(Routes.VOUCHER_HISTORY)),
           _navItem(icon: Icons.card_giftcard_outlined, label: 'Premios',
               onTap: () => Get.toNamed(Routes.PREMIOS)),
-          _navItem(icon: Icons.history_outlined, label: 'Historial',
-              onTap: () => Get.offNamed(Routes.VOUCHER_HISTORY)),
           _navItem(icon: Icons.bar_chart_outlined, label: 'Estadísticas',
               onTap: () => Get.offNamed(Routes.ANALYTICS)),
-          _navItem(icon: Icons.lock_outline, label: 'PIN',
-              onTap: () => _showChangePinDialog(context)),
-          _navItem(icon: Icons.shield_outlined, label: 'Seguridad',
-              selected: true),
+          _navItem(icon: Icons.lock_outline, label: 'PIN', selected: true),
+          _navItem(icon: Icons.security_outlined, label: 'Seguridad'),
           const Spacer(),
           const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => Get.offNamed(Routes.ADMIN),
+                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                label: const Text('Nuevo Canje',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E1B4B),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ),
           ListTile(
             dense: true,
             leading: const Icon(Icons.logout, size: 18, color: Colors.grey),
@@ -166,30 +181,34 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         _topBar(),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(32, 24, 32, 0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _sectionHeader(Icons.store_outlined, 'Información de la Tienda'),
-                const SizedBox(height: 16),
-                _storeInfoSection(context),
-                const SizedBox(height: 32),
-                _rolesSection(context),
-                const SizedBox(height: 32),
+                // Row 1: PIN card + 2FA card
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _securitySection(context)),
-                    const SizedBox(width: 24),
-                    Expanded(child: _fiscalSection()),
+                    Expanded(child: _pinCard(context)),
+                    const SizedBox(width: 16),
+                    SizedBox(width: 280, child: _twoFactorCard(context)),
                   ],
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
+                // Row 2: Personal y Accesos + Registro de Actividad
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _personnelSection(context)),
+                    const SizedBox(width: 16),
+                    SizedBox(width: 280, child: _activityLogSection()),
+                  ],
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
         ),
-        _bottomBar(context),
       ],
     );
   }
@@ -199,45 +218,44 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   Widget _topBar() {
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(
         children: [
-          const Text('Configuración',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: _purple)),
-          const Spacer(),
-          SizedBox(
-            width: 220,
-            height: 36,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar ajuste...',
-                hintStyle:
-                    TextStyle(fontSize: 13, color: Colors.grey.shade400),
-                prefixIcon: Icon(Icons.search,
-                    size: 18, color: Colors.grey.shade400),
-                filled: true,
-                fillColor: const Color(0xFFF5F5F5),
-                isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 9),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50),
-                  borderSide: BorderSide.none,
+          const Text(
+            'Seguridad y PIN de Tienda',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF111827)),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: SizedBox(
+              height: 38,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Buscar en seguridad...',
+                  hintStyle:
+                      TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                  prefixIcon: Icon(Icons.search,
+                      size: 18, color: Colors.grey.shade400),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(50),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
-          const Icon(Icons.settings_outlined,
-              size: 22, color: Color(0xFF374151)),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -251,383 +269,409 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                         width: 8,
                         height: 8,
                         decoration: const BoxDecoration(
-                            color: Colors.orange,
-                            shape: BoxShape.circle),
+                            color: Colors.orange, shape: BoxShape.circle),
                       )
                     : const SizedBox.shrink()),
               ),
             ],
           ),
-          const SizedBox(width: 16),
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: _purpleLight,
-            child: _ctrl.currentStore.logoUrl.startsWith('http')
-                ? ClipOval(
-                    child: Image.network(
-                      _ctrl.currentStore.logoUrl,
-                      width: 32,
-                      height: 32,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          const Icon(Icons.person, size: 16, color: _purple),
-                    ),
-                  )
-                : const Icon(Icons.person, size: 16, color: _purple),
-          ),
+          const SizedBox(width: 20),
+          const Icon(Icons.settings_outlined,
+              size: 22, color: Color(0xFF374151)),
+          const SizedBox(width: 20),
+          const Icon(Icons.help_outline, size: 22, color: Color(0xFF374151)),
+          const SizedBox(width: 20),
+          Obx(() {
+            _ctrl.storeId.value;
+            return CircleAvatar(
+              radius: 16,
+              backgroundColor: _purpleLight,
+              child: _ctrl.currentStore.logoUrl.startsWith('http')
+                  ? ClipOval(
+                      child: Image.network(
+                        _ctrl.currentStore.logoUrl,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.person, size: 16, color: _purple),
+                      ),
+                    )
+                  : const Icon(Icons.person, size: 16, color: _purple),
+            );
+          }),
         ],
       ),
     );
   }
 
-  // ─── SECTION HEADER ───────────────────────────────────────────────────────────
+  // ─── PIN CARD ─────────────────────────────────────────────────────────────────
 
-  Widget _sectionHeader(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: _purple),
-        const SizedBox(width: 10),
-        Text(title,
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111827))),
-      ],
-    );
-  }
-
-  // ─── STORE INFO SECTION ───────────────────────────────────────────────────────
-
-  Widget _storeInfoSection(BuildContext context) {
+  Widget _pinCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left: banner + logo
-          SizedBox(width: 220, child: _bannerLogoColumn()),
-          const SizedBox(width: 32),
-          // Right: form fields
-          Expanded(child: _storeFormFields(context)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _purpleLight,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.lock_outline, color: _purple, size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('PIN de Tienda',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w700)),
+                    Text('Este código permite validar transacciones físicas',
+                        style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text('CÓDIGO ACTUAL',
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey,
+                  letterSpacing: 0.8)),
+          const SizedBox(height: 8),
+          Obx(() {
+            final pin = _ctrl.regeneratedPin.value.isNotEmpty
+                ? _ctrl.regeneratedPin.value
+                : _ctrl.pinMasked;
+            return Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _pinVisible ? pin : '●' * pin.length,
+                            style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 4),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () =>
+                              setState(() => _pinVisible = !_pinVisible),
+                          child: Icon(
+                            _pinVisible
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 18,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                OutlinedButton(
+                  onPressed: () => _copyPin(pin),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade700,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Copiar',
+                      style: TextStyle(fontSize: 13)),
+                ),
+                const SizedBox(width: 8),
+                Obx(() => ElevatedButton(
+                      onPressed: _ctrl.isRegeneratingPin.value
+                          ? null
+                          : () => _confirmRegenerate(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _purple,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: _ctrl.isRegeneratingPin.value
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white))
+                          : const Text('Regenerar',
+                              style: TextStyle(fontSize: 13)),
+                    )),
+              ],
+            );
+          }),
+          const SizedBox(height: 14),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFBEB),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFFDE68A)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.warning_amber_rounded,
+                    size: 16, color: Color(0xFFD97706)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Atención: El PIN es confidencial y solo debe compartirse con personal autorizado. LetDem renueva la estructura del código por fuera del sistema de validación.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Aviso si el PIN fue regenerado (se muestra una sola vez)
+          Obx(() {
+            if (_ctrl.regeneratedPin.value.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Column(
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFF6EE7B7)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline,
+                          size: 16, color: Color(0xFF059669)),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'PIN regenerado. Guárdalo ahora — solo se muestra una vez.',
+                          style: TextStyle(
+                              fontSize: 11, color: Color(0xFF065F46)),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _ctrl.clearRegeneratedPin,
+                        child: const Icon(Icons.close,
+                            size: 16, color: Color(0xFF059669)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _bannerLogoColumn() {
-    return Column(
-      children: [
-        // Banner
-        GestureDetector(
-          onTap: () => _showImagePickerPlaceholder('banner'),
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: _ctrl.currentStore.banner.startsWith('http')
-                    ? Image.network(
-                        _ctrl.currentStore.banner,
-                        width: 220,
-                        height: 140,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _bannerPlaceholder(),
-                      )
-                    : _bannerPlaceholder(),
-              ),
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _purple,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text('Portada',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Logo
-        GestureDetector(
-          onTap: () => _showImagePickerPlaceholder('logo'),
-          child: Column(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: _purpleLight,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2))
-                  ],
-                ),
-                child: _ctrl.currentStore.logoUrl.startsWith('http')
-                    ? ClipOval(
-                        child: Image.network(
-                          _ctrl.currentStore.logoUrl,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _logoFallback(),
-                        ),
-                      )
-                    : _logoFallback(),
-              ),
-              const SizedBox(height: 10),
-              const Text('Logo de Tienda',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _purple)),
-              const Text('Formato PNG o SVG\n(200×200px)',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 11, color: Colors.grey)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  // ─── 2FA CARD ─────────────────────────────────────────────────────────────────
 
-  Widget _bannerPlaceholder() {
+  Widget _twoFactorCard(BuildContext context) {
     return Container(
-      width: 220,
-      height: 140,
-      color: const Color(0xFFE8D5FF),
-      child: const Center(
-          child: Icon(Icons.store, size: 48, color: _purple)),
-    );
-  }
-
-  Widget _logoFallback() {
-    final initials = _ctrl.currentStore.name.isNotEmpty
-        ? _ctrl.currentStore.name
-            .split(' ')
-            .take(2)
-            .map((w) => w.isNotEmpty ? w[0] : '')
-            .join()
-            .toUpperCase()
-        : 'LD';
-    return Center(
-      child: Text(initials,
-          style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: _purple)),
-    );
-  }
-
-  Widget _storeFormFields(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _labeledField(
-                label: 'Nombre Comercial',
-                child: _textField(_nameCtrl),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('Autenticación 2FA',
+                  style: TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1FAE5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text('NUEVA',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF065F46))),
               ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Protección adicional requerida para acciones administrativas críticas.',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          // Google Authenticator option
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _labeledField(
-                label: 'Categoría',
-                child: Obx(() {
-                  final cats = [
-                    ..._ctrl.categories.map((c) => c.title).where((t) => t.isNotEmpty)
-                  ];
-                  if (_selectedCategory != null &&
-                      !cats.contains(_selectedCategory)) {
-                    cats.insert(0, _selectedCategory!);
-                  }
-                  return _dropdownField(
-                    value: _selectedCategory ?? (cats.isNotEmpty ? cats.first : null),
-                    items: cats,
-                    onChanged: (v) => setState(() => _selectedCategory = v),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border:
+                        Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: const Icon(Icons.qr_code,
+                      size: 18, color: Color(0xFF374151)),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Google Authenticator',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600)),
+                      Text('App TOTP compatible',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.grey)),
+                    ],
+                  ),
+                ),
+                Obx(() {
+                  final enabled =
+                      _ctrl.currentStore.twoFactorEnabled;
+                  return Switch(
+                    value: enabled,
+                    onChanged: (v) {
+                      if (v) {
+                        _showSetup2FADialog(context);
+                      } else {
+                        _ctrl.toggleTwoFactor(false);
+                      }
+                    },
+                    activeColor: _purple,
+                    materialTapTargetSize:
+                        MaterialTapTargetSize.shrinkWrap,
                   );
                 }),
-              ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _labeledField(
-          label: 'Dirección Física',
-          child: _textField(_addressCtrl),
-        ),
-        const SizedBox(height: 16),
-        _labeledField(
-          label: 'Ubicación GPS',
-          trailing: TextButton(
-            onPressed: () => _showMapPlaceholder(context),
-            style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-            child: const Text('Abrir Selector en Mapa',
-                style: TextStyle(
-                    fontSize: 12,
-                    color: _purple,
-                    fontWeight: FontWeight.w600)),
           ),
-          child: _gpsMapWidget(),
-        ),
-      ],
-    );
-  }
-
-  Widget _gpsMapWidget() {
-    return Obx(() {
-      _ctrl.storeId.value; // observe
-      final lat = _ctrl.currentStore.latitude;
-      final lng = _ctrl.currentStore.longitude;
-      return Container(
-        height: 160,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8F4FD),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-        ),
-        child: Stack(
-          children: [
-            // Map background pattern
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CustomPaint(
-                size: const Size(double.infinity, 160),
-                painter: _MapGridPainter(),
-              ),
-            ),
-            // Pin icon
-            const Center(
-              child: Icon(Icons.location_on,
-                  size: 40, color: _purple),
-            ),
-            // Coordinates overlay
-            Positioned(
-              bottom: 10,
-              left: 10,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4)
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: _purple),
-                    const SizedBox(width: 4),
-                    Text(
-                      lat != null && lng != null
-                          ? 'Coord: ${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}'
-                          : 'Sin coordenadas',
-                      style: const TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (lat != null && lng != null)
-              const Positioned(
-                bottom: 30,
-                left: 10,
-                child: SizedBox(),
-              ),
-          ],
-        ),
-      );
-    });
-  }
-
-  // ─── ROLES SECTION ────────────────────────────────────────────────────────────
-
-  Widget _rolesSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            _sectionHeader(Icons.people_outline, 'Gestión de Roles'),
-            const Spacer(),
-            ElevatedButton.icon(
-              onPressed: () => _showInviteUserDialog(context),
-              icon: const Icon(Icons.person_add_outlined,
-                  size: 16, color: Colors.white),
-              label: const Text('Invitar Usuario',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _purple,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 20, vertical: 12),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _showBackupMethodDialog(context),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _purple,
+                side: const BorderSide(color: _purple),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
+              child: const Text('Configurar Método de Respaldo',
+                  style:
+                      TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
-          child: Column(
-            children: [
-              _usersTableHeader(),
-              const Divider(height: 1),
-              Obx(() {
-                if (_ctrl.storeUsers.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
-                    child: Center(
-                      child: Text('Sin usuarios registrados.',
-                          style: TextStyle(color: Colors.grey)),
-                    ),
-                  );
-                }
-                return Column(
-                  children: _ctrl.storeUsers
-                      .map((u) => _userRow(context, u))
-                      .toList(),
-                );
-              }),
-            ],
+        ],
+      ),
+    );
+  }
+
+  // ─── PERSONAL Y ACCESOS ───────────────────────────────────────────────────────
+
+  Widget _personnelSection(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                const Text('Personal y Accesos',
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => _showInviteUserDialog(context),
+                  child: const Text('+ Gestionar Staff',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: _purple,
+                          fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          const Divider(height: 1),
+          _usersTableHeader(),
+          const Divider(height: 1),
+          Obx(() {
+            if (_ctrl.storeUsers.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text('Sin usuarios registrados.',
+                      style: TextStyle(color: Colors.grey)),
+                ),
+              );
+            }
+            return Column(
+              children: _ctrl.storeUsers
+                  .map((u) => _userRow(context, u))
+                  .toList(),
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -638,13 +682,13 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         color: Colors.grey,
         letterSpacing: 0.3);
     return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          Expanded(flex: 3, child: Text('Usuario', style: style)),
-          Expanded(flex: 2, child: Text('Rol', style: style)),
-          Expanded(child: Text('Estado', style: style)),
-          SizedBox(width: 60, child: Text('Acciones', style: style)),
+          Expanded(flex: 3, child: Text('USUARIO', style: style)),
+          Expanded(flex: 2, child: Text('ROL', style: style)),
+          Expanded(child: Text('ESTADO', style: style)),
+          SizedBox(width: 40),
         ],
       ),
     );
@@ -660,23 +704,22 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
       children: [
         Padding(
           padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Row(
             children: [
-              // Avatar + name + email
               Expanded(
                 flex: 3,
                 child: Row(
                   children: [
                     CircleAvatar(
-                      radius: 20,
+                      radius: 18,
                       backgroundColor: _purpleLight,
                       child: user.avatarUrl != null
                           ? ClipOval(
                               child: Image.network(
                                 user.avatarUrl!,
-                                width: 40,
-                                height: 40,
+                                width: 36,
+                                height: 36,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     _userInitials(user),
@@ -684,7 +727,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                             )
                           : _userInitials(user),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -692,7 +735,8 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                           Text(user.displayName,
                               style: const TextStyle(
                                   fontSize: 13,
-                                  fontWeight: FontWeight.w600)),
+                                  fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis),
                           Text(user.email,
                               style: const TextStyle(
                                   fontSize: 11, color: Colors.grey),
@@ -703,25 +747,23 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   ],
                 ),
               ),
-              // Role badge
               Expanded(
                 flex: 2,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 5),
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: roleBg,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(roleLabel,
                       style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: roleColor),
                       textAlign: TextAlign.center),
                 ),
               ),
-              // Estado
               Expanded(
                 child: Row(
                   children: [
@@ -729,21 +771,21 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                       width: 8,
                       height: 8,
                       decoration: BoxDecoration(
-                        color: user.isActive
-                            ? Colors.green
-                            : Colors.grey,
+                        color: user.isOnline ? Colors.green : Colors.grey,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Text(user.isActive ? 'Activo' : 'Inactivo',
-                        style: const TextStyle(fontSize: 13)),
+                    Expanded(
+                      child: Text(user.presenceLabel,
+                          style: const TextStyle(fontSize: 12),
+                          overflow: TextOverflow.ellipsis),
+                    ),
                   ],
                 ),
               ),
-              // Acciones
               SizedBox(
-                width: 60,
+                width: 40,
                 child: user.isOwner
                     ? const SizedBox.shrink()
                     : PopupMenuButton<String>(
@@ -779,371 +821,386 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   Widget _userInitials(StoreUserModel user) {
     return Text(user.initials,
         style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: _purple));
+            fontSize: 12, fontWeight: FontWeight.w700, color: _purple));
   }
 
-  // ─── SECURITY SECTION ─────────────────────────────────────────────────────────
+  // ─── REGISTRO DE ACTIVIDAD ────────────────────────────────────────────────────
 
-  Widget _securitySection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(Icons.shield_outlined, 'Seguridad'),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: Column(
-            children: [
-              // PIN
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('PIN de la Tienda',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF111827))),
-                        const SizedBox(height: 2),
-                        const Text(
-                            'Requerido para autorizar canjes manuales',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => _showChangePinDialog(context),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _purple,
-                      side: const BorderSide(color: _purple),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Cambiar\nPIN',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const Divider(height: 1),
-              const SizedBox(height: 20),
-              // 2FA
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Doble Factor (2FA)',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF111827))),
-                        const SizedBox(height: 2),
-                        const Text(
-                            'Confirmación vía App móvil para cambios críticos',
-                            style: TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _twoFactorEnabled,
-                    onChanged: (v) {
-                      setState(() => _twoFactorEnabled = v);
-                      _ctrl.toggleTwoFactor(v);
-                    },
-                    activeColor: _purple,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─── FISCAL SECTION ───────────────────────────────────────────────────────────
-
-  Widget _fiscalSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(Icons.receipt_long_outlined, 'Datos Fiscales'),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _labeledField(
-                label: 'CIF / NIF',
-                child: _textField(_fiscalIdCtrl),
-              ),
-              const SizedBox(height: 16),
-              _labeledField(
-                label: 'Dirección de Facturación',
-                child: _textField(
-                  _billingAddressCtrl,
-                  enabled: !_sameAddressForBilling,
-                  maxLines: 2,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _sameAddressForBilling = !_sameAddressForBilling;
-                    if (_sameAddressForBilling) {
-                      _billingAddressCtrl.text = _addressCtrl.text;
-                    }
-                  });
-                },
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Checkbox(
-                        value: _sameAddressForBilling,
-                        onChanged: (v) {
-                          setState(() {
-                            _sameAddressForBilling = v ?? false;
-                            if (_sameAddressForBilling) {
-                              _billingAddressCtrl.text = _addressCtrl.text;
-                            }
-                          });
-                        },
-                        activeColor: _purple,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                        'Usar la misma dirección que la tienda física',
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ─── BOTTOM BAR ───────────────────────────────────────────────────────────────
-
-  Widget _bottomBar(BuildContext context) {
+  Widget _activityLogSection() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton(
-            onPressed: () {
-              setState(() => _populateFromStore());
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey.shade700,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          const Text('Registro de Actividad',
+              style:
+                  TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16),
+          Obx(() {
+            final log = _ctrl.securityLog;
+            if (log.isEmpty) {
+              return const Text('Sin actividad registrada.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey));
+            }
+            return Column(
+              children: log.take(5).map(_logItem).toList(),
+            );
+          }),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => Get.toNamed(Routes.VOUCHER_HISTORY),
+            child: const Center(
+              child: Text('Ver Historial Completo',
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _purple)),
             ),
-            child: const Text('Descartar',
-                style:
-                    TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           ),
-          const SizedBox(width: 12),
-          Obx(() => ElevatedButton(
-                onPressed: _ctrl.isSavingSettings.value
-                    ? null
-                    : () => _saveChanges(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 28, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _ctrl.isSavingSettings.value
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Text('Guardar Cambios',
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600)),
-              )),
         ],
       ),
     );
   }
 
-  // ─── HELPERS ──────────────────────────────────────────────────────────────────
+  Widget _logItem(Map<String, dynamic> event) {
+    final type = (event['event_type'] ?? event['type'] ?? '').toString();
+    final description =
+        (event['description'] ?? event['body'] ?? '').toString();
+    final ts = event['timestamp'] ?? event['created_at'];
+    final dateTime = DateTime.tryParse(ts?.toString() ?? '');
+    final timeLabel = _fmtLogDate(dateTime);
+    final icon = _logIcon(type);
+    final iconColor = _logColor(type);
 
-  Widget _labeledField({
-    required String label,
-    required Widget child,
-    Widget? trailing,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: iconColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(timeLabel,
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey.shade500)),
+                const SizedBox(height: 2),
+                Text(description,
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF374151))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _logIcon(String type) {
+    switch (type) {
+      case 'pin_changed':
+        return Icons.lock_outline;
+      case 'password_changed':
+        return Icons.key_outlined;
+      case 'role_added':
+        return Icons.person_add_outlined;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  Color _logColor(String type) {
+    switch (type) {
+      case 'pin_changed':
+        return _purple;
+      case 'password_changed':
+        return const Color(0xFF2563EB);
+      case 'role_added':
+        return const Color(0xFF059669);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _fmtLogDate(DateTime? dt) {
+    if (dt == null) return '';
+    final now = DateTime.now();
+    final local = dt.toLocal();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final date = DateTime(local.year, local.month, local.day);
+    final timeStr =
+        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+    if (date == today) return 'HOY $timeStr';
+    if (date == yesterday) return 'AYER, $timeStr';
+    return '${local.day} ${_month(local.month)}, $timeStr';
+  }
+
+  String _month(int m) {
+    const months = [
+      '', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
+      'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'
+    ];
+    return months[m];
+  }
+
+  // ─── DIALOGS & ACTIONS ───────────────────────────────────────────────────────
+
+  void _copyPin(String pin) {
+    final actual = pin.contains('●') ? '' : pin;
+    if (actual.isEmpty) {
+      Get.snackbar('Sin PIN', 'Regenera el PIN para copiarlo.',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    Clipboard.setData(ClipboardData(text: actual));
+    Get.snackbar('Copiado', 'PIN copiado al portapapeles.',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2));
+  }
+
+  void _confirmRegenerate(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Regenerar PIN'),
+        content: const Text(
+            'Se generará un nuevo PIN aleatorio. El PIN anterior quedará inválido. ¿Continuar?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              setState(() => _pinVisible = true);
+              await _ctrl.regeneratePin();
+            },
+            child: const Text('Regenerar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSetup2FADialog(BuildContext context) {
+    final codeCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Configurar Google Authenticator'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF374151))),
-            if (trailing != null) ...[
-              const Spacer(),
-              trailing,
-            ],
+            const Text(
+                '1. Abre Google Authenticator en tu móvil.\n'
+                '2. Escanea el código QR o ingresa la clave manualmente.\n'
+                '3. Ingresa el código de 6 dígitos para confirmar.',
+                style: TextStyle(fontSize: 13)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: codeCtrl,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              decoration: InputDecoration(
+                labelText: 'Código de verificación',
+                counterText: '',
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+              ),
+              autofocus: true,
+            ),
           ],
         ),
-        const SizedBox(height: 6),
-        child,
-      ],
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _purple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              final code = codeCtrl.text.trim();
+              if (code.length < 6) return;
+              Navigator.of(ctx).pop();
+              try {
+                final ok =
+                    await AuthRepository.instance.verify2FA(code);
+                if (ok) {
+                  _ctrl.toggleTwoFactor(true);
+                  Get.snackbar('2FA activado',
+                      'Autenticación de dos factores habilitada.',
+                      snackPosition: SnackPosition.BOTTOM);
+                } else {
+                  Get.snackbar('Código inválido',
+                      'El código no coincide. Intenta de nuevo.',
+                      snackPosition: SnackPosition.BOTTOM);
+                }
+              } on ApiException catch (e) {
+                Get.snackbar('Error', e.message,
+                    snackPosition: SnackPosition.BOTTOM);
+              }
+            },
+            child: const Text('Verificar'),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _textField(TextEditingController ctrl,
-      {bool enabled = true, int maxLines = 1}) {
-    return TextField(
-      controller: ctrl,
-      enabled: enabled,
-      maxLines: maxLines,
-      style: const TextStyle(fontSize: 13),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: enabled ? Colors.white : const Color(0xFFF9F9F9),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: _purple, width: 1.5),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFEEEEEE)),
+  void _showBackupMethodDialog(BuildContext context) {
+    String selectedMethod = 'email';
+    final valueCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlg) => AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          title: const Text('Método de Respaldo'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Selecciona cómo recibirás el código de respaldo:',
+                  style: TextStyle(fontSize: 13)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _methodChip(
+                      'Email', 'email', selectedMethod,
+                      () => setDlg(() => selectedMethod = 'email')),
+                  const SizedBox(width: 8),
+                  _methodChip(
+                      'SMS', 'sms', selectedMethod,
+                      () => setDlg(() => selectedMethod = 'sms')),
+                ],
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: valueCtrl,
+                keyboardType: selectedMethod == 'sms'
+                    ? TextInputType.phone
+                    : TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: selectedMethod == 'sms'
+                      ? 'Número de teléfono'
+                      : 'Email de respaldo',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancelar')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: () async {
+                final value = valueCtrl.text.trim();
+                if (value.isEmpty) return;
+                Navigator.of(ctx).pop();
+                try {
+                  await AuthRepository.instance
+                      .configureBackupMethod(selectedMethod, value);
+                  Get.snackbar('Método configurado',
+                      'Método de respaldo guardado correctamente.',
+                      snackPosition: SnackPosition.BOTTOM);
+                } on ApiException catch (e) {
+                  Get.snackbar('Error', e.message,
+                      snackPosition: SnackPosition.BOTTOM);
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _dropdownField({
-    required String? value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      height: 46,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: (value != null && items.contains(value)) ? value : null,
-          isExpanded: true,
-          hint: const Text('Seleccionar',
-              style: TextStyle(fontSize: 13, color: Colors.grey)),
-          items: items
-              .map((e) => DropdownMenuItem(
-                    value: e,
-                    child: Text(e,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF374151))),
-                  ))
-              .toList(),
-          onChanged: onChanged,
-          icon: const Icon(Icons.keyboard_arrow_down,
-              size: 18, color: Colors.grey),
-          style: const TextStyle(
-              fontSize: 13, color: Color(0xFF374151)),
+  Widget _methodChip(String label, String value, String selected,
+      VoidCallback onTap) {
+    final isSelected = value == selected;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? _purpleLight : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: isSelected ? _purple : const Color(0xFFE5E7EB)),
         ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? _purple : Colors.grey.shade700)),
       ),
     );
-  }
-
-  // ─── ACTIONS ─────────────────────────────────────────────────────────────────
-
-  Future<void> _saveChanges() async {
-    final payload = <String, dynamic>{
-      'name': _nameCtrl.text.trim(),
-      'address': _addressCtrl.text.trim(),
-      'cif': _fiscalIdCtrl.text.trim(),
-      'billing_address': _sameAddressForBilling
-          ? _addressCtrl.text.trim()
-          : _billingAddressCtrl.text.trim(),
-      if (_selectedCategory != null) 'category': _selectedCategory,
-    };
-    await _ctrl.saveStoreSettings(payload);
   }
 
   void _showInviteUserDialog(BuildContext context) {
     final emailCtrl = TextEditingController();
     String selectedRole = StoreUserModel.roleAdmin;
-    // Map role values to display labels for the dropdown
     const roleOptions = {
       StoreUserModel.roleAdmin: 'Administrador',
       StoreUserModel.roleMember: 'Miembro',
+      'MANAGER': 'Manager',
+      'VALIDATOR': 'Validador',
     };
     showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlgState) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        builder: (ctx, setDlg) => AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
           title: const Text('Invitar Usuario'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('Email:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               TextField(
                 controller: emailCtrl,
@@ -1159,11 +1216,13 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
               ),
               const SizedBox(height: 16),
               const Text('Rol:',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Container(
                 height: 46,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
@@ -1177,11 +1236,14 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                         .map((e) => DropdownMenuItem(
                               value: e.key,
                               child: Text(e.value,
-                                  style: const TextStyle(fontSize: 13)),
+                                  style:
+                                      const TextStyle(fontSize: 13)),
                             ))
                         .toList(),
                     onChanged: (v) {
-                      if (v != null) setDlgState(() => selectedRole = v);
+                      if (v != null) {
+                        setDlg(() => selectedRole = v);
+                      }
                     },
                     icon: const Icon(Icons.keyboard_arrow_down,
                         size: 18, color: Colors.grey),
@@ -1254,88 +1316,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     }
   }
 
-  void _showChangePinDialog(BuildContext context) {
-    final currentCtrl = TextEditingController();
-    final newCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
-        title: const Text('Cambiar PIN'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _pinField(currentCtrl, 'PIN actual'),
-            const SizedBox(height: 12),
-            _pinField(newCtrl, 'Nuevo PIN'),
-            const SizedBox(height: 12),
-            _pinField(confirmCtrl, 'Confirmar nuevo PIN'),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _purple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () async {
-              if (newCtrl.text != confirmCtrl.text) {
-                Get.snackbar('Error', 'Los PINs no coinciden',
-                    snackPosition: SnackPosition.BOTTOM);
-                return;
-              }
-              Navigator.of(ctx).pop();
-              await _ctrl.changePin(currentCtrl.text, newCtrl.text);
-            },
-            child: const Text('Cambiar PIN'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _pinField(TextEditingController ctrl, String label) {
-    return TextField(
-      controller: ctrl,
-      obscureText: true,
-      keyboardType: TextInputType.number,
-      maxLength: 6,
-      decoration: InputDecoration(
-        labelText: label,
-        counterText: '',
-        border:
-            OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 10),
-      ),
-    );
-  }
-
-  void _showImagePickerPlaceholder(String type) {
-    Get.snackbar(
-      'Subir ${type == 'banner' ? 'Portada' : 'Logo'}',
-      'La subida de imágenes requiere permisos de galería.',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-  }
-
-  void _showMapPlaceholder(BuildContext context) {
-    Get.snackbar(
-      'Selector de Mapa',
-      'Integración con Google Maps próximamente.',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 2),
-    );
-  }
-
   void _confirmLogout(BuildContext context) {
     showDialog<void>(
       context: context,
@@ -1366,35 +1346,4 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
       ),
     );
   }
-}
-
-// ─── MAP GRID PAINTER ─────────────────────────────────────────────────────────
-
-class _MapGridPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final roadPaint = Paint()
-      ..color = const Color(0xFFCBE0F5)
-      ..strokeWidth = 2;
-    final blockPaint = Paint()..color = const Color(0xFFD4EAF7);
-
-    // Draw grid blocks
-    for (double x = 0; x < size.width; x += 40) {
-      for (double y = 0; y < size.height; y += 35) {
-        canvas.drawRect(
-            Rect.fromLTWH(x + 2, y + 2, 32, 28), blockPaint);
-      }
-    }
-    // Horizontal roads
-    for (double y = 0; y < size.height; y += 35) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), roadPaint);
-    }
-    // Vertical roads
-    for (double x = 0; x < size.width; x += 40) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), roadPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_) => false;
 }

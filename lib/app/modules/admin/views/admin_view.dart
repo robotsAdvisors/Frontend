@@ -98,11 +98,6 @@ class _AdminViewState extends State<AdminView> {
           const SizedBox(height: 8),
           _navItem(icon: Icons.home_outlined, label: 'Inicio', selected: true),
           _navItem(
-            icon: Icons.grid_view_rounded,
-            label: 'Inventario',
-            onTap: () => Get.toNamed(Routes.INVENTARIO),
-          ),
-          _navItem(
             icon: Icons.swap_horiz_rounded,
             label: 'Canjes',
             onTap: () => Get.toNamed(Routes.VOUCHER_HISTORY),
@@ -113,9 +108,9 @@ class _AdminViewState extends State<AdminView> {
             onTap: () => Get.toNamed(Routes.PREMIOS),
           ),
           _navItem(
-            icon: Icons.history_outlined,
-            label: 'Historial',
-            onTap: () => Get.toNamed(Routes.VOUCHER_HISTORY),
+            icon: Icons.grid_view_rounded,
+            label: 'Material',
+            onTap: () => Get.toNamed(Routes.INVENTARIO),
           ),
           _navItem(
             icon: Icons.bar_chart_outlined,
@@ -125,8 +120,13 @@ class _AdminViewState extends State<AdminView> {
           const Spacer(),
           const Divider(height: 1),
           _navItem(
-            icon: Icons.settings_outlined,
-            label: 'Configuración',
+            icon: Icons.lock_outline,
+            label: 'PIN',
+            onTap: () => Get.toNamed(Routes.ADMIN_SETTINGS),
+          ),
+          _navItem(
+            icon: Icons.security_outlined,
+            label: 'Seguridad',
             onTap: () => Get.toNamed(Routes.ADMIN_SETTINGS),
           ),
           Padding(
@@ -223,6 +223,8 @@ class _AdminViewState extends State<AdminView> {
                         _statsRow(),
                         const SizedBox(height: 20),
                         _recentCanjesPanel(context),
+                        const SizedBox(height: 16),
+                        _monthlyGoalBanner(),
                       ],
                     ),
                   ),
@@ -258,6 +260,15 @@ class _AdminViewState extends State<AdminView> {
       ),
       child: Row(
         children: [
+          const Text(
+            'Resumen Operativo',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(width: 20),
           Expanded(
             child: SizedBox(
               height: 38,
@@ -377,17 +388,17 @@ class _AdminViewState extends State<AdminView> {
                 icon: Icons.access_time_outlined,
                 label: 'Pendientes',
                 value: '${_ctrl.pendingCount}',
-                sublabel: 'Esperando validación',
+                sublabel: 'Canjes sin validar',
               )),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Obx(() => _statCard(
                 bgColor: const Color(0xFF14532D),
-                icon: Icons.settings_outlined,
+                icon: Icons.check_circle_outline,
                 label: 'Completados',
-                value: _fmtNum(_ctrl.completedMonthCount),
-                sublabel: 'Este mes',
+                value: _fmtNum(_ctrl.completedTodayCount),
+                sublabel: 'Órdenes finalizadas hoy',
               )),
         ),
         const SizedBox(width: 12),
@@ -397,7 +408,7 @@ class _AdminViewState extends State<AdminView> {
                 icon: Icons.timer_off_outlined,
                 label: 'Expirados',
                 value: '${_ctrl.expiredCount}',
-                sublabel: 'Sin canjear',
+                sublabel: 'Canjes no retirados',
               )),
         ),
         const SizedBox(width: 12),
@@ -407,7 +418,7 @@ class _AdminViewState extends State<AdminView> {
                 icon: Icons.view_list_outlined,
                 label: 'Premios activos',
                 value: '${_ctrl.activePrizesCount}',
-                sublabel: 'Disponibles en catálogo',
+                sublabel: 'Catálogo total activo',
                 darkText: false,
               )),
         ),
@@ -480,6 +491,7 @@ class _AdminViewState extends State<AdminView> {
     return Obx(() {
       final cardId = _ctrl.storeCardId;
       final pts = _ctrl.accumulatedPoints;
+      final available = _ctrl.availablePoints;
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -511,8 +523,17 @@ class _AdminViewState extends State<AdminView> {
               ],
             ),
             const SizedBox(height: 8),
-            const Text('Tarjeta virtual de puntos',
-                style: TextStyle(fontSize: 11, color: Colors.white60)),
+            Row(
+              children: [
+                const Text('Tarjeta actual de puntos: ',
+                    style: TextStyle(fontSize: 11, color: Colors.white60)),
+                Text('${_fmtNumLong(available)} Pts',
+                    style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white)),
+              ],
+            ),
             const SizedBox(height: 6),
             Text('ID: $cardId',
                 style: const TextStyle(
@@ -656,7 +677,7 @@ class _AdminViewState extends State<AdminView> {
     final productName = _ctrl.productNameFor(v);
     final timeStr = _fmtTime(v.issuedAt.toLocal());
     final dateStr = _fmtRelativeDate(v.issuedAt.toLocal());
-    final pts = v.pointsUsed > 0 ? v.pointsUsed : 500;
+    final pts = v.pointsUsed;
     final statusLabel = _statusLabel(v);
     final statusColor = _statusColor(v);
     final statusBg = _statusBg(v);
@@ -776,7 +797,7 @@ class _AdminViewState extends State<AdminView> {
         children: [
           Row(
             children: [
-              const Text('Actividad',
+              const Text('Actividad de Tienda',
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -804,6 +825,20 @@ class _AdminViewState extends State<AdminView> {
               children: feed.map(_activityItem).toList(),
             );
           }),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () => Get.toNamed(Routes.VOUCHER_HISTORY),
+            child: const Center(
+              child: Text(
+                'Ver todo el historial',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: _purple,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -811,6 +846,7 @@ class _AdminViewState extends State<AdminView> {
 
   Widget _activityItem(Map<String, dynamic> item) {
     final color = _dotColor(item['color'] as String? ?? 'purple');
+    final actionLabel = (item['action_label'] as String? ?? '').trim();
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -837,6 +873,19 @@ class _AdminViewState extends State<AdminView> {
                 Text(item['body'] as String? ?? '',
                     style: const TextStyle(
                         fontSize: 12, color: Colors.grey)),
+                if (actionLabel.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () => Get.toNamed(Routes.INVENTARIO),
+                    child: Text(
+                      actionLabel,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _purple),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(item['time'] as String? ?? '',
                     style: const TextStyle(
@@ -859,6 +908,10 @@ class _AdminViewState extends State<AdminView> {
         return const Color(0xFFDC2626);
       case 'orange':
         return Colors.orange;
+      case 'grey':
+        return Colors.grey;
+      case 'red':
+        return const Color(0xFFDC2626);
       default:
         return _purple;
     }
@@ -1056,5 +1109,70 @@ class _AdminViewState extends State<AdminView> {
     if (date == today) return 'Hoy';
     if (date == yesterday) return 'Ayer';
     return '${d.day}/${d.month}/${d.year}';
+  }
+
+  // ─── MONTHLY GOAL BANNER ──────────────────────────────────────────────────
+
+  Widget _monthlyGoalBanner() {
+    return Obx(() {
+      final current = _ctrl.monthlyGoalCurrentPts;
+      final target = _ctrl.monthlyGoalTargetPts;
+      final days = _ctrl.monthlyGoalDaysRemaining;
+      final prize = _ctrl.monthlyGoalPrizeName;
+      final percent = _ctrl.monthlyGoalPercent;
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.emoji_events_outlined, color: _purple, size: 20),
+            const SizedBox(width: 10),
+            const Text(
+              'Meta Mensual de Fidelización',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percent,
+                  backgroundColor: const Color(0xFFE5E7EB),
+                  valueColor:
+                      const AlwaysStoppedAnimation<Color>(_purple),
+                  minHeight: 8,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${(percent * 100).toStringAsFixed(0)}%  •  ${_fmtNumLong(current)} / ${_fmtNumLong(target)} Pts',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              'Días restantes: $days días',
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            if (prize.isNotEmpty) ...[
+              const SizedBox(width: 16),
+              Text(
+                'Premio meta: $prize',
+                style: const TextStyle(
+                    fontSize: 12,
+                    color: _purple,
+                    fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        ),
+      );
+    });
   }
 }

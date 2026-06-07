@@ -606,7 +606,7 @@ class MarketplaceRepository {
 
   /// Feed de actividad de una tienda específica.
   /// GET /marketplace/stores/<id>/activity/?limit=N
-  /// Devuelve eventos mezclados: redemption, voucher_created, product_added.
+  /// Devuelve {activities: [...], ...} — tipos: voucher_redeemed, product_added, system_update
   Future<List<Map<String, dynamic>>> fetchStoreActivity(
     String storeId, {
     int limit = 20,
@@ -616,10 +616,85 @@ class MarketplaceRepository {
         ApiConfig.storeActivity(storeId),
         queryParameters: {'limit': limit},
       );
+      final data = response.data;
+      // Backend retorna envelope {activities: [...], ...}
+      if (data is Map && data['activities'] is List) {
+        return (data['activities'] as List)
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      return _toList(data)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// PIN actual de la tienda (masked).
+  /// GET /marketplace/stores/<id>/pin/
+  /// Retorna: {pin_masked, pin_configured}
+  Future<Map<String, dynamic>> fetchStorePIN(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storePIN(storeId));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Regenera el PIN de la tienda (lo muestra UNA sola vez).
+  /// POST /marketplace/stores/<id>/pin/regenerate/
+  /// Retorna: {pin, pin_masked}
+  Future<Map<String, dynamic>> regenerateStorePIN(String storeId) async {
+    try {
+      final response = await _dio.post(ApiConfig.storePINRegenerate(storeId));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Log de seguridad de la tienda.
+  /// GET /marketplace/stores/<id>/security-log/?limit=N
+  /// Tipos de evento: pin_changed, password_changed, role_added
+  Future<List<Map<String, dynamic>>> fetchSecurityLog(
+    String storeId, {
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.storeSecurityLog(storeId),
+        queryParameters: {'limit': limit},
+      );
       return _toList(response.data)
           .whereType<Map>()
           .map((e) => Map<String, dynamic>.from(e))
           .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Meta mensual de fidelización de una tienda.
+  /// GET /marketplace/stores/<id>/monthly-goal/
+  /// Retorna: {monthly_goal_current, monthly_goal_target,
+  ///           monthly_goal_days_remaining, monthly_goal_prize}
+  Future<Map<String, dynamic>> fetchMonthlyGoal(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storeMonthlyGoal(storeId));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
     } catch (e) {
       throw toApiException(e);
     }
