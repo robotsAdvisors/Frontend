@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 import '../../../../utils/dummy_helper.dart';
 import '../../../components/custom_snackbar.dart';
+import '../../../data/models/admin_user_model.dart';
+import '../../../data/models/audit_log_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/models/store_model.dart';
@@ -43,6 +45,14 @@ class GeneralAdminController extends GetxController {
   // Usuario logueado
   final RxString currentUserName = ''.obs;
   final RxString currentUserInitials = ''.obs;
+
+  // Backoffice — gestión de usuarios
+  final RxList<AdminUserModel> adminUsers = <AdminUserModel>[].obs;
+  final Rx<AdminUserModel?> selectedUser = Rx<AdminUserModel?>(null);
+  final RxList<AuditLogModel> auditLog = <AuditLogModel>[].obs;
+  final RxBool isLoadingUser = false.obs;
+  final RxBool isSuspending = false.obs;
+  final RxString revealedDocument = ''.obs;
 
   final RxBool isLoading = false.obs;
 
@@ -287,5 +297,104 @@ class GeneralAdminController extends GetxController {
   void removeStoreUser(String userId) {
     storeUsers.removeWhere((user) => user.id == userId);
     _calculateMetrics();
+  }
+
+  // ── Backoffice user management ────────────────────────────────────────────
+
+  Future<void> loadAdminUsers({String? search}) async {
+    try {
+      final users = await _repo.fetchAdminUsers(search: search);
+      adminUsers.assignAll(users);
+    } catch (_) {}
+  }
+
+  Future<void> selectUser(String userId) async {
+    isLoadingUser.value = true;
+    revealedDocument.value = '';
+    try {
+      final results = await Future.wait([
+        _repo.fetchAdminUserDetail(userId),
+        _repo.fetchAuditLog(userId),
+      ]);
+      final user = results[0] as AdminUserModel?;
+      final log  = results[1] as List<AuditLogModel>;
+      if (user != null) selectedUser.value = user;
+      auditLog.assignAll(log);
+    } catch (_) {} finally {
+      isLoadingUser.value = false;
+    }
+  }
+
+  Future<void> suspendSelectedUser(String reason) async {
+    final user = selectedUser.value;
+    if (user == null || isSuspending.value) return;
+    isSuspending.value = true;
+    try {
+      final ok = await _repo.suspendUser(user.id, reason: reason);
+      if (ok) {
+        await selectUser(user.id);
+        CustomSnackBar.showCustomSnackBar(
+          title: 'Cuenta suspendida',
+          message: 'La cuenta fue suspendida correctamente.',
+        );
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: 'No se pudo suspender la cuenta.');
+    } finally {
+      isSuspending.value = false;
+    }
+  }
+
+  Future<void> revealDocument(String reason) async {
+    final user = selectedUser.value;
+    if (user == null) return;
+    try {
+      final result = await _repo.revealUserDocument(user.id, reason: reason);
+      final doc = result['document_number']?.toString() ?? '';
+      if (doc.isNotEmpty) {
+        revealedDocument.value = doc;
+        await selectUser(user.id);
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {}
+  }
+
+  Future<void> editSelectedUser(Map<String, dynamic> payload) async {
+    final user = selectedUser.value;
+    if (user == null) return;
+    try {
+      final updated = await _repo.editAdminUser(user.id, payload);
+      if (updated != null) {
+        selectedUser.value = updated;
+        CustomSnackBar.showCustomSnackBar(
+          title: 'Perfil actualizado',
+          message: 'Los cambios se guardaron correctamente.',
+        );
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: 'No se pudo actualizar el perfil.');
+    }
+  }
+
+  Future<void> markAsAudited(String userId, String notes) async {
+    try {
+      final ok = await _repo.auditUser(userId, notes: notes);
+      if (ok) {
+        await selectUser(userId); // refresca audit log
+        CustomSnackBar.showCustomSnackBar(
+          title: 'Auditado',
+          message: 'El usuario fue marcado como revisado.',
+        );
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {}
   }
 }

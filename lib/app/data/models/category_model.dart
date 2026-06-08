@@ -3,12 +3,14 @@ class CategoryModel {
   String title;
   String image;
   String? displayName;
+  String color; // hex sin # ej. "7B61FF" — retornado por backend
 
   CategoryModel({
     required this.id,
     required this.title,
     required this.image,
     this.displayName,
+    this.color = '',
   });
 
   /// Map de iconos locales por slug de categoria del backend.
@@ -32,6 +34,7 @@ class CategoryModel {
       title: (json['display_name'] ?? json['name'] ?? '').toString(),
       image: iconRemote.isNotEmpty ? iconRemote : iconLocal,
       displayName: json['display_name']?.toString(),
+      color: (json['color'] ?? '').toString().replaceAll('#', ''),
     );
   }
 

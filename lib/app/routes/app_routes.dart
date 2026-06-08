@@ -31,6 +31,10 @@ abstract class Routes {
   static const ADMIN_SETTINGS = _Paths.ADMIN_SETTINGS;
   static const INVENTARIO = _Paths.INVENTARIO;
   static const PREMIOS = _Paths.PREMIOS;
+  static const ADMIN_USER_DETAIL = _Paths.ADMIN_USER_DETAIL;
+  static const GDPR_REQUESTS    = _Paths.GDPR_REQUESTS;
+  static const REVIEWS          = _Paths.REVIEWS;
+  static const SUPPORT_TICKETS  = _Paths.SUPPORT_TICKETS;
 }
 
 abstract class _Paths {
@@ -63,4 +67,8 @@ abstract class _Paths {
   static const ADMIN_SETTINGS = '/admin-settings';
   static const INVENTARIO = '/inventario';
   static const PREMIOS = '/premios';
+  static const ADMIN_USER_DETAIL = '/admin/users/detail';
+  static const GDPR_REQUESTS    = '/backoffice/gdpr';
+  static const REVIEWS          = '/reviews';
+  static const SUPPORT_TICKETS  = '/backoffice/support';
 }

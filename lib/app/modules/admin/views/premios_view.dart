@@ -242,10 +242,13 @@ class _PremiosViewState extends State<PremiosView> {
           const SizedBox(width: 24),
           _headerTab('Usuarios', 2),
           const Spacer(),
-          const Icon(Icons.help_outline,
+          const Icon(Icons.notifications_outlined,
               size: 20, color: Color(0xFF6B7280)),
           const SizedBox(width: 16),
           const Icon(Icons.settings_outlined,
+              size: 20, color: Color(0xFF6B7280)),
+          const SizedBox(width: 16),
+          const Icon(Icons.help_outline,
               size: 20, color: Color(0xFF6B7280)),
           const SizedBox(width: 16),
           Obx(() {
@@ -273,7 +276,14 @@ class _PremiosViewState extends State<PremiosView> {
   Widget _headerTab(String label, int index) {
     final selected = _tab == index;
     return GestureDetector(
-      onTap: () => setState(() => _tab = index),
+      onTap: () {
+        setState(() => _tab = index);
+        if (index == 1 && _ctrl.storeOrders.isEmpty) {
+          _ctrl.loadStoreOrders();
+        } else if (index == 2 && _ctrl.storeUsers.isEmpty) {
+          _ctrl.reloadStoreUsers();
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 4),
         decoration: BoxDecoration(
@@ -304,34 +314,46 @@ class _PremiosViewState extends State<PremiosView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-            child: Obx(() {
-              _ctrl.storeId.value;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_ctrl.currentStore.name,
-                      style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF111827))),
-                  const Text('Gestión de Tienda',
-                      style:
-                          TextStyle(fontSize: 10, color: Colors.grey)),
-                ],
-              );
-            }),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+            child: Row(children: [
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  color: _purple, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.store, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Obx(() {
+                  _ctrl.storeId.value;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_ctrl.currentStore.name,
+                          style: const TextStyle(fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF111827)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Obx(() {
+                        final sub = _ctrl.currentStore.subtitle;
+                        return Text(sub.isNotEmpty ? sub : 'Gestión de Tienda',
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            maxLines: 1, overflow: TextOverflow.ellipsis);
+                      }),
+                    ],
+                  );
+                }),
+              ),
+            ]),
           ),
           const Divider(height: 1),
           const SizedBox(height: 8),
           _navItem(icon: Icons.home_outlined, label: 'Inicio',
               onTap: () => Get.offNamed(Routes.ADMIN)),
-          _navItem(icon: Icons.grid_view_rounded, label: 'Inventario',
-              onTap: () => Get.offNamed(Routes.INVENTARIO)),
           _navItem(icon: Icons.swap_horiz_rounded, label: 'Canjes',
               onTap: () => Get.offNamed(Routes.VOUCHER_HISTORY)),
-          _navItem(icon: Icons.card_giftcard_outlined, label: 'Premios',
-              selected: true),
+          _navItem(icon: Icons.card_giftcard_outlined,
+              label: 'Canjes y Beneficios', selected: true),
           _navItem(icon: Icons.history_outlined, label: 'Historial',
               onTap: () => Get.offNamed(Routes.VOUCHER_HISTORY)),
           _navItem(icon: Icons.bar_chart_outlined, label: 'Estadísticas',
@@ -339,21 +361,31 @@ class _PremiosViewState extends State<PremiosView> {
           const Spacer(),
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Obx(() {
+              _ctrl.storeId.value;
+              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Admin LetDem',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                        color: Color(0xFF111827))),
+                Text(_ctrl.currentStore.subtitle.isNotEmpty
+                    ? _ctrl.currentStore.subtitle : 'Gestión de Tienda',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey)),
+              ]);
+            }),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _openCreatePanel,
-                icon: const Icon(Icons.add,
-                    size: 16, color: Colors.white),
-                label: const Text('Nuevo Premio',
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                label: const Text('+ Nuevo Canje',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
                         color: Colors.white)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E1B4B),
-                  elevation: 0,
+                  backgroundColor: _purple, elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -363,8 +395,7 @@ class _PremiosViewState extends State<PremiosView> {
           ),
           ListTile(
             dense: true,
-            leading: const Icon(Icons.logout,
-                size: 18, color: Colors.grey),
+            leading: const Icon(Icons.logout, size: 18, color: Colors.grey),
             title: const Text('Cerrar Sesión',
                 style: TextStyle(fontSize: 13, color: Colors.grey)),
             onTap: () => _confirmLogout(context),
@@ -417,13 +448,14 @@ class _PremiosViewState extends State<PremiosView> {
   Widget _mainContent(BuildContext context) {
     return Container(
       color: _bg,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _titleBar(),
-          Expanded(child: _tableSection(context)),
-        ],
-      ),
+      child: _tab == 0
+          ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _titleBar(),
+              Expanded(child: _tableSection(context)),
+            ])
+          : _tab == 1
+              ? _ventasContent()
+              : _usuariosContent(),
     );
   }
 
@@ -435,7 +467,7 @@ class _PremiosViewState extends State<PremiosView> {
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Gestión de Premios',
+              Text('Gestión de Canjes y beneficios',
                   style: TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
@@ -826,8 +858,8 @@ class _PremiosViewState extends State<PremiosView> {
               children: [
                 Text(
                   _editingProduct == null
-                      ? 'Crear Nuevo Premio'
-                      : 'Editar Premio',
+                      ? 'Crear Nuevo Canje'
+                      : 'Editar Canje',
                   style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
@@ -854,7 +886,7 @@ class _PremiosViewState extends State<PremiosView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _panelLabel('Nombre del Premio'),
+                    _panelLabel('Nombre del Canje'),
                     const SizedBox(height: 6),
                     _panelTextField(
                       _nameCtrl,
@@ -865,8 +897,7 @@ class _PremiosViewState extends State<PremiosView> {
                     const SizedBox(height: 6),
                     _panelTextField(
                       _descCtrl,
-                      hint:
-                          'Detalla las características del premio...',
+                      hint: 'Cuéntanos las características del canje o beneficio...',
                       maxLines: 4,
                     ),
                     const SizedBox(height: 16),
@@ -980,7 +1011,7 @@ class _PremiosViewState extends State<PremiosView> {
                                 color: Colors.white))
                         : Text(
                             _editingProduct == null
-                                ? 'Crear Premio'
+                                ? 'Crear Canje'
                                 : 'Guardar',
                             style: const TextStyle(
                                 fontSize: 14,
@@ -1107,7 +1138,7 @@ class _PremiosViewState extends State<PremiosView> {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF374151))),
-        const Text('Formatos: PNG, JPG (Max 5MB)',
+        const Text('Formatos: PNG, JPG, Max 5MB',
             style: TextStyle(fontSize: 11, color: Colors.grey)),
       ],
     );
@@ -1133,7 +1164,7 @@ class _PremiosViewState extends State<PremiosView> {
                       fontWeight: FontWeight.w700,
                       color: _purple)),
               const Spacer(),
-              const Text('¿Canjeable?',
+              const Text('Compatible',
                   style: TextStyle(
                       fontSize: 12, color: Color(0xFF374151))),
               const SizedBox(width: 8),
@@ -1464,20 +1495,398 @@ class _PremiosViewState extends State<PremiosView> {
     }
   }
 
-  Color _catColor(String cat) {
-    final lower = cat.toLowerCase();
-    if (lower.contains('deporte') || lower.contains('sport')) {
-      return const Color(0xFF7C3AED);
+  /// Devuelve el color de la categoría desde el backend (campo `color`).
+  /// Fallback: colores semánticos por keyword.
+  Color _catColor(String categoryTitle) {
+    try {
+      final cat = _ctrl.categories.firstWhere(
+        (c) => c.title == categoryTitle,
+        orElse: () => CategoryModel(id: 0, title: '', image: ''),
+      );
+      final hex = cat.color.replaceAll('#', '');
+      if (hex.length == 6) {
+        return Color(int.parse('0xFF$hex'));
+      }
+    } catch (_) {}
+    // Fallback semántico
+    final lower = categoryTitle.toLowerCase();
+    if (lower.contains('deporte') || lower.contains('sport'))  return const Color(0xFF059669);
+    if (lower.contains('tecn') || lower.contains('electr'))    return const Color(0xFF2563EB);
+    if (lower.contains('audio') || lower.contains('music'))    return const Color(0xFF7C3AED);
+    if (lower.contains('moda') || lower.contains('ropa'))      return const Color(0xFF9333EA);
+    return _purple;
+  }
+
+  // ─── TAB: VENTAS ─────────────────────────────────────────────────────────────
+
+  Widget _ventasContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 16),
+          child: Row(
+            children: [
+              const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Ventas de la Tienda',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
+                        color: Color(0xFF111827))),
+                SizedBox(height: 2),
+                Text('Órdenes de compra registradas en tu tienda.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey)),
+              ]),
+              const Spacer(),
+              _ventasFilterBtn('Todos', ''),
+              const SizedBox(width: 6),
+              _ventasFilterBtn('Pagados', 'PAID'),
+              const SizedBox(width: 6),
+              _ventasFilterBtn('Pendientes', 'PENDING'),
+              const SizedBox(width: 6),
+              _ventasFilterBtn('Cancelados', 'CANCELLED'),
+            ],
+          ),
+        ),
+        // Stats row
+        Obx(() {
+          final meta = _ctrl.storeOrdersMeta.value;
+          final revenue = (meta['total_revenue'] as num?)?.toDouble() ?? 0;
+          final pts     = (meta['total_points_used'] as num?)?.toInt() ?? 0;
+          final total   = (meta['total'] as num?)?.toInt() ?? 0;
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(28, 0, 28, 16),
+            child: Row(children: [
+              _ventasStat('Total Ventas', '$total', Icons.shopping_bag_outlined),
+              const SizedBox(width: 12),
+              _ventasStat('Ingresos', '${revenue.toStringAsFixed(2)} €',
+                  Icons.euro_outlined),
+              const SizedBox(width: 12),
+              _ventasStat('Puntos usados', '$pts pts', Icons.stars_outlined),
+            ]),
+          );
+        }),
+        // Table
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 0, 28, 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB))),
+              child: Column(children: [
+                _ventasTableHeader(),
+                Expanded(child: Obx(() {
+                  if (_ctrl.isLoadingOrders.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final orders = _ctrl.storeOrders;
+                  if (orders.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Text('No hay ventas registradas.',
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: orders.length,
+                    itemBuilder: (_, i) => _ventasRow(orders[i]),
+                  );
+                })),
+                _ventasPagination(),
+              ]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _ventasFilterBtn(String label, String status) {
+    return Obx(() {
+      final active = _ctrl.storeOrdersStatusFilter.value == status;
+      return GestureDetector(
+        onTap: () => _ctrl.loadStoreOrders(status: status.isNotEmpty ? status : null),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: active ? _purple : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: active ? _purple : const Color(0xFFE5E7EB))),
+          child: Text(label,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                  color: active ? Colors.white : Colors.grey.shade700)),
+        ),
+      );
+    });
+  }
+
+  Widget _ventasStat(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white, borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB))),
+      child: Row(children: [
+        Icon(icon, size: 18, color: _purple),
+        const SizedBox(width: 8),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        ]),
+      ]),
+    );
+  }
+
+  Widget _ventasTableHeader() {
+    const style = TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+        color: Color(0xFF9CA3AF), letterSpacing: 0.5);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      color: const Color(0xFFF9FAFB),
+      child: const Row(children: [
+        SizedBox(width: 120, child: Text('ORDEN ID', style: style)),
+        Expanded(flex: 2, child: Text('CLIENTE', style: style)),
+        Expanded(flex: 2, child: Text('PRODUCTO', style: style)),
+        SizedBox(width: 90, child: Text('IMPORTE', style: style)),
+        SizedBox(width: 90, child: Text('PUNTOS', style: style)),
+        SizedBox(width: 100, child: Text('ESTADO', style: style)),
+        SizedBox(width: 100, child: Text('FECHA', style: style)),
+      ]),
+    );
+  }
+
+  Widget _ventasRow(Map<String, dynamic> order) {
+    final id       = (order['id'] ?? '').toString();
+    final shortId  = '#${id.length > 6 ? id.substring(0, 6).toUpperCase() : id.toUpperCase()}';
+    final status   = (order['status'] ?? '').toString();
+    final total    = (order['total'] as num?)?.toDouble() ?? 0;
+    final ptsUsed  = (order['points_used'] as num?)?.toInt() ?? 0;
+    final userRaw  = order['user'] ?? order['customer'];
+    final userName = userRaw is Map
+        ? (userRaw['name'] ?? userRaw['email'] ?? '').toString()
+        : (order['customer_name'] ?? '').toString();
+    final items    = order['items'] as List? ?? const [];
+    final firstItem = items.isNotEmpty && items.first is Map
+        ? (items.first as Map)['product_name']?.toString() ?? '—'
+        : '—';
+    final createdAt = DateTime.tryParse(
+        (order['created_at'] ?? '').toString())?.toLocal();
+
+    Color statusBg, statusFg;
+    String statusLabel;
+    switch (status.toUpperCase()) {
+      case 'PAID':
+        statusBg = const Color(0xFFD1FAE5); statusFg = const Color(0xFF059669);
+        statusLabel = 'Pagado'; break;
+      case 'PENDING':
+        statusBg = const Color(0xFFFFF7ED); statusFg = const Color(0xFFD97706);
+        statusLabel = 'Pendiente'; break;
+      case 'CANCELLED':
+        statusBg = const Color(0xFFFEE2E2); statusFg = const Color(0xFFDC2626);
+        statusLabel = 'Cancelado'; break;
+      default:
+        statusBg = const Color(0xFFF3F4F6); statusFg = Colors.grey;
+        statusLabel = status;
     }
-    if (lower.contains('tecn') || lower.contains('electr')) {
-      return const Color(0xFF7C3AED);
-    }
-    if (lower.contains('audio') || lower.contains('music')) {
-      return const Color(0xFF7C3AED);
-    }
-    if (lower.contains('moda') || lower.contains('ropa')) {
-      return const Color(0xFF9333EA);
-    }
-    return const Color(0xFF7C3AED);
+
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(children: [
+          SizedBox(width: 120,
+              child: Text(shortId, style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600, color: _purple))),
+          Expanded(flex: 2, child: Text(userName,
+              style: const TextStyle(fontSize: 13),
+              overflow: TextOverflow.ellipsis)),
+          Expanded(flex: 2, child: Text(firstItem,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF374151)),
+              overflow: TextOverflow.ellipsis)),
+          SizedBox(width: 90, child: Text(
+              '${total.toStringAsFixed(2)} €',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+          SizedBox(width: 90, child: Text('$ptsUsed pts',
+              style: const TextStyle(fontSize: 12, color: Color(0xFFF59E0B),
+                  fontWeight: FontWeight.w600))),
+          SizedBox(width: 100, child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+                color: statusBg, borderRadius: BorderRadius.circular(20)),
+            child: Text(statusLabel, style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w700, color: statusFg),
+                textAlign: TextAlign.center))),
+          SizedBox(width: 100, child: Text(
+            createdAt != null ? _fmtDate(createdAt) : '—',
+            style: const TextStyle(fontSize: 12, color: Colors.grey))),
+        ]),
+      ),
+      const Divider(height: 1),
+    ]);
+  }
+
+  Widget _ventasPagination() {
+    return Obx(() {
+      final meta     = _ctrl.storeOrdersMeta.value;
+      final page     = _ctrl.storeOrdersPage.value;
+      final lastPage = (meta['last_page'] as num?)?.toInt() ?? 1;
+      final statusF  = _ctrl.storeOrdersStatusFilter.value;
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color(0xFFF3F4F6)))),
+        child: Row(children: [
+          Text('Página $page de $lastPage',
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const Spacer(),
+          _pgBtn(icon: Icons.chevron_left, enabled: page > 1,
+              onTap: () => _ctrl.loadStoreOrders(
+                  page: page - 1,
+                  status: statusF.isNotEmpty ? statusF : null)),
+          const SizedBox(width: 4),
+          _pgBtn(icon: Icons.chevron_right, enabled: page < lastPage,
+              onTap: () => _ctrl.loadStoreOrders(
+                  page: page + 1,
+                  status: statusF.isNotEmpty ? statusF : null)),
+        ]),
+      );
+    });
+  }
+
+  static String _fmtDate(DateTime d) {
+    const m = ['', 'Ene','Feb','Mar','Abr','May','Jun',
+                'Jul','Ago','Sep','Oct','Nov','Dic'];
+    return '${d.day} ${m[d.month]} ${d.year}';
+  }
+
+  // ─── TAB: USUARIOS ───────────────────────────────────────────────────────────
+
+  Widget _usuariosContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(28, 24, 28, 16),
+          child: Row(children: [
+            const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Personal de la Tienda',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800,
+                      color: Color(0xFF111827))),
+              SizedBox(height: 2),
+              Text('Usuarios con acceso al panel de administración.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+            ]),
+            const Spacer(),
+            ElevatedButton.icon(
+              onPressed: () => Get.toNamed(Routes.ADMIN_SETTINGS),
+              icon: const Icon(Icons.person_add_outlined,
+                  size: 16, color: Colors.white),
+              label: const Text('Gestionar Staff',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple, elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ]),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 0, 28, 24),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5E7EB))),
+              child: Column(children: [
+                _usuariosTableHeader(),
+                Expanded(child: Obx(() {
+                  final users = _ctrl.storeUsers;
+                  if (users.isEmpty) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32),
+                        child: Text('Sin usuarios registrados.',
+                            style: TextStyle(color: Colors.grey)),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (_, i) => _usuarioRow(users[i]),
+                  );
+                })),
+              ]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _usuariosTableHeader() {
+    const style = TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+        color: Color(0xFF9CA3AF), letterSpacing: 0.5);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      color: const Color(0xFFF9FAFB),
+      child: const Row(children: [
+        Expanded(flex: 3, child: Text('USUARIO', style: style)),
+        Expanded(flex: 2, child: Text('ROL', style: style)),
+        Expanded(child: Text('ESTADO', style: style)),
+      ]),
+    );
+  }
+
+  Widget _usuarioRow(dynamic user) {
+    final name    = user.displayName as String? ?? '';
+    final email   = user.email as String? ?? '';
+    final role    = user.roleLabel as String? ?? '';
+    final online  = user.isOnline as bool? ?? false;
+    final presence= user.presenceLabel as String? ?? (online ? 'En línea' : 'Desconectado');
+    final initials = name.split(' ').where((w) => w.isNotEmpty)
+        .take(2).map((w) => w[0].toUpperCase()).join();
+
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(children: [
+          Expanded(flex: 3, child: Row(children: [
+            CircleAvatar(radius: 18, backgroundColor: _purpleLight,
+                child: Text(initials.isEmpty ? '?' : initials,
+                    style: const TextStyle(fontSize: 12,
+                        fontWeight: FontWeight.w700, color: _purple))),
+            const SizedBox(width: 10),
+            Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(name, style: const TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis),
+              Text(email, style: const TextStyle(
+                  fontSize: 11, color: Colors.grey),
+                  overflow: TextOverflow.ellipsis),
+            ])),
+          ])),
+          Expanded(flex: 2, child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _purpleLight, borderRadius: BorderRadius.circular(20)),
+            child: Text(role, style: const TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w600, color: _purple),
+                overflow: TextOverflow.ellipsis))),
+          Expanded(child: Row(children: [
+            Container(width: 8, height: 8,
+                decoration: BoxDecoration(
+                    color: online ? Colors.green : Colors.grey,
+                    shape: BoxShape.circle)),
+            const SizedBox(width: 6),
+            Text(presence, style: const TextStyle(fontSize: 12)),
+          ])),
+        ]),
+      ),
+      const Divider(height: 1),
+    ]);
   }
 }

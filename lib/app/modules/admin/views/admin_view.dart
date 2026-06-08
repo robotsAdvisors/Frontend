@@ -86,8 +86,17 @@ class _AdminViewState extends State<AdminView> {
                           overflow: TextOverflow.ellipsis,
                         );
                       }),
-                      const Text('Gestión de Tienda',
-                          style: TextStyle(fontSize: 10, color: Colors.grey)),
+                      Obx(() {
+                        _ctrl.storeId.value;
+                        final sub = _ctrl.currentStore.subtitle;
+                        return Text(
+                          sub.isNotEmpty ? sub : 'Gestión de Tienda',
+                          style: const TextStyle(
+                              fontSize: 10, color: Colors.grey),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -97,6 +106,11 @@ class _AdminViewState extends State<AdminView> {
           const Divider(height: 1),
           const SizedBox(height: 8),
           _navItem(icon: Icons.home_outlined, label: 'Inicio', selected: true),
+          _navItem(
+            icon: Icons.star_outline,
+            label: 'Reseñas',
+            onTap: () => Get.toNamed(Routes.REVIEWS),
+          ),
           _navItem(
             icon: Icons.swap_horiz_rounded,
             label: 'Canjes',
@@ -125,7 +139,7 @@ class _AdminViewState extends State<AdminView> {
             onTap: () => Get.toNamed(Routes.ADMIN_SETTINGS),
           ),
           _navItem(
-            icon: Icons.security_outlined,
+            icon: Icons.shield_outlined,
             label: 'Seguridad',
             onTap: () => Get.toNamed(Routes.ADMIN_SETTINGS),
           ),

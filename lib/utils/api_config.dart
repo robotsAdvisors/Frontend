@@ -43,8 +43,12 @@ class ApiConfig {
   static const String vouchers = '/marketplace/vouchers/';
   static const String vouchersPending = '/marketplace/vouchers/pending/';
   static const String vouchersCreateOnline = '/marketplace/vouchers/create-online/';
-  static const String vouchersValidate = '/marketplace/vouchers/validate/';
-  static const String orders = '/marketplace/orders/';
+  static const String vouchersValidate  = '/marketplace/vouchers/validate/';
+  static const String vouchersPreview   = '/marketplace/vouchers/preview/';
+  static String voucherIncident(String id)        => '/marketplace/vouchers/$id/incident/';
+  static String voucherInitiatePayment(String code) => '/marketplace/vouchers/$code/initiate-payment/';
+  static const String orders      = '/marketplace/orders/';
+  static const String storeOrders = '/marketplace/store/orders/';
   static const String purchaseWithRedeem = '/marketplace/purchase/with-redeem/';
   static const String purchaseWithoutRedeem = '/marketplace/purchase/without-redeem/';
 
@@ -53,15 +57,31 @@ class ApiConfig {
   static const String adminStores = '/marketplace/admin/stores/';
   static const String adminProducts = '/marketplace/admin/products/';
   static const String adminStats = '/marketplace/admin/stats/';
+  static const String adminInventoryStats = '/marketplace/admin/inventory/stats/';
 
   // Marketplace - analytics
-  static const String analyticsVouchersDaily = '/marketplace/analytics/vouchers/daily/';
-  static const String analyticsSummary = '/marketplace/analytics/summary/';
+  static const String analyticsVouchersDaily    = '/marketplace/analytics/vouchers/daily/';
+  static const String analyticsSummary          = '/marketplace/analytics/summary/';
+  static const String analyticsVouchersByStatus = '/marketplace/analytics/vouchers/by-status/';
+  static const String analyticsTopRedeemed      = '/marketplace/analytics/products/top-redeemed/';
 
   // Marketplace - store detail, activity & management
   static String storeDetail(String id) => '/marketplace/stores/$id/';
+  static String storeSettings(String id) => '/marketplace/stores/$id/settings/';
   static String storeActivity(String id) => '/marketplace/stores/$id/activity/';
-  static String storeMonthlyGoal(String id) => '/marketplace/stores/$id/monthly-goal/';
+  static String storeMonthlyGoal(String id)  => '/marketplace/stores/$id/monthly-goal/';
+  static String storeBannerUpload(String id) => '/marketplace/stores/$id/upload-banner/';
+  static String storeLogoUpload(String id)   => '/marketplace/stores/$id/upload-logo/';
+
+  // Location / Geocoding
+  static const String locationReverseGeocode = '/location/reverse-geocode/';
+  static const String locationGeocode        = '/location/geocode/';
+  static String storeReviews(String id)     => '/marketplace/stores/$id/reviews/';
+  static String storeReviewStats(String id) => '/marketplace/stores/$id/reviews/stats/';
+  static String reviewDetail(String id)     => '/marketplace/reviews/$id/';
+  static String reviewReply(String id)      => '/marketplace/reviews/$id/reply/';
+  static String reviewReport(String id)     => '/marketplace/reviews/$id/report/';
+  static String reviewHide(String id)       => '/marketplace/reviews/$id/hide/';
   static String storePIN(String id) => '/marketplace/stores/$id/pin/';
   static String storePINRegenerate(String id) => '/marketplace/stores/$id/pin/regenerate/';
   static String storeSecurityLog(String id) => '/marketplace/stores/$id/security-log/';
@@ -71,6 +91,32 @@ class ApiConfig {
   static const String twoFactorVerify = '/auth/2fa/verify/';
   static const String twoFactorBackupMethod = '/auth/2fa/backup-method/';
   static const String authRoles = '/auth/roles/';
+
+  // Backoffice — GDPR / RGPD  (/v1/admin/gdpr/...)
+  static const String gdprRequests = '/admin/gdpr/requests/';
+  static const String gdprStats    = '/admin/gdpr/requests/stats/';
+  static const String gdprExport   = '/admin/gdpr/requests/export/';
+  static const String gdprFormats  = '/admin/gdpr/formats/';
+  static String gdprRequestDetail(String id) => '/admin/gdpr/requests/$id/';
+
+  // Backoffice — Support Tickets
+  static const String adminTickets          = '/admin/tickets/';
+  static const String adminTicketsCreate    = '/admin/tickets/create/';
+  static const String adminTicketCategories = '/admin/ticket-categories/';
+  static const String adminAgents           = '/admin/agents/';
+  static String adminTicketDetail(String id)   => '/admin/tickets/$id/';
+  static String adminTicketMessages(String id) => '/admin/tickets/$id/messages/';
+  static String adminTicketEscalate(String id) => '/admin/tickets/$id/escalate/';
+  static String adminTicketClose(String id)    => '/admin/tickets/$id/close/';
+  static String adminTicketReassign(String id) => '/admin/tickets/$id/reassign/';
+
+  // Backoffice — Admin User Management
+  static const String adminUsers = '/admin/users/';
+  static String adminUserDetail(String id) => '/admin/users/$id/';
+  static String adminUserAuditLog(String id) => '/admin/users/$id/audit-log/';
+  static String adminUserSuspend(String id) => '/admin/users/$id/suspend/';
+  static String adminUserRevealDoc(String id) => '/admin/users/$id/reveal-document/';
+  static String adminUserAudit(String id) => '/admin/users/$id/audit/';
   // Product image upload
   static const String adminProductUploadImage =
       '/marketplace/admin/products/upload-image/';

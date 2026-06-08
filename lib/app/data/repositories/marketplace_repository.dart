@@ -2,6 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../utils/api_config.dart';
+import '../models/admin_user_model.dart';
+import '../models/audit_log_model.dart';
+import '../models/gdpr_request_model.dart';
+import '../models/review_model.dart';
 import '../models/category_model.dart';
 import '../models/order_model.dart';
 import '../models/paginated.dart';
@@ -72,6 +76,9 @@ class MarketplaceRepository {
     String? categoryName,
     int? page,
     int? pageSize,
+    // MISSING ENDPOINT: ordering param — backend must support ?ordering= on
+    // GET /marketplace/admin/products/ (e.g. name, -name, price, -price, stock, -stock)
+    String? ordering,
   }) async {
     return _fetchPage(
       url: ApiConfig.products,
@@ -81,6 +88,7 @@ class MarketplaceRepository {
         if (storeId != null && storeId.isNotEmpty) 'store': storeId,
         if (search != null && search.isNotEmpty) 'search': search,
         if (categoryName != null && categoryName.isNotEmpty) 'category': categoryName,
+        if (ordering != null && ordering.isNotEmpty && ordering != 'name') 'ordering': ordering,
       },
       fromJson: ProductModel.fromJson,
     );
@@ -182,6 +190,8 @@ class MarketplaceRepository {
     String? redeemType,
     int? page,
     int? pageSize,
+    // ISO date string YYYY-MM-DD — filters by created__date on backend
+    String? date,
   }) async {
     return _fetchPage(
       url: ApiConfig.vouchers,
@@ -190,6 +200,7 @@ class MarketplaceRepository {
       query: {
         if (status != null && status.isNotEmpty) 'status': status,
         if (redeemType != null && redeemType.isNotEmpty) 'redeem_type': redeemType,
+        if (date != null && date.isNotEmpty) 'date': date,
       },
       fromJson: VoucherModel.fromJson,
     );
@@ -219,6 +230,67 @@ class MarketplaceRepository {
     return null;
   }
 
+  /// Reporta una incidencia sobre un voucher.
+  /// POST /marketplace/vouchers/<id>/incident/  body: {reason, notes}
+  /// Response 201: {ticket_id, voucher_code, reason, notes, status, created_at}
+  Future<Map<String, dynamic>> reportVoucherIncident(String voucherId,
+      {required String reason, String notes = ''}) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.voucherIncident(voucherId),
+        data: {'reason': reason, if (notes.isNotEmpty) 'notes': notes},
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Preview de un voucher por código (sin canjearlo).
+  /// GET /marketplace/vouchers/preview/?code=X
+  /// Retorna el VoucherModel con datos del producto, cliente y pago.
+  Future<VoucherModel?> previewVoucher(String code) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.vouchersPreview,
+        queryParameters: {'code': code},
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return VoucherModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Inicia un pago Stripe para un voucher con precio monetario.
+  /// POST /marketplace/vouchers/{code}/initiate-payment/
+  /// Body opcional: { "payment_method_id": "pm_xxx" }
+  /// Respuesta: { client_secret, payment_intent_id, amount_eur, status }
+  Future<Map<String, dynamic>> initiateVoucherPayment(String code,
+      {String? paymentMethodId}) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.voucherInitiatePayment(code),
+        data: {
+          if (paymentMethodId != null && paymentMethodId.isNotEmpty)
+            'payment_method_id': paymentMethodId,
+        },
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   Future<Map<String, dynamic>?> validateVoucher(String code) async {
     try {
       final response = await _dio.post(
@@ -235,6 +307,34 @@ class MarketplaceRepository {
   }
 
   // ---------- ORDERS ----------
+
+  /// Ventas de la tienda.
+  /// GET /marketplace/store/orders/?store_id=X&status=X&page=N
+  /// meta: {total, page, last_page, total_revenue, total_points_used}
+  Future<Map<String, dynamic>> fetchStoreOrders({
+    required String storeId,
+    String? status,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.storeOrders,
+        queryParameters: {
+          if (storeId.isNotEmpty) 'store_id': storeId,
+          if (status != null && status.isNotEmpty) 'status': status,
+          'page': page,
+          'page_size': pageSize,
+        },
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
 
   /// Devuelve el envelope tipado `{data, meta:{total, page, lastPage, stats}}`
   /// del endpoint `GET /marketplace/orders/`.
@@ -391,6 +491,48 @@ class MarketplaceRepository {
     }
   }
 
+  /// Desglose de canjes por estado para la tienda.
+  /// GET /marketplace/analytics/vouchers/by-status/?store={id}
+  /// Retorna: { entregados, pendientes, expirados }
+  Future<Map<String, dynamic>> fetchVouchersByStatus(String storeId) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.analyticsVouchersByStatus,
+        queryParameters: {if (storeId.isNotEmpty) 'store': storeId},
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Productos más canjeados de la tienda.
+  /// GET /marketplace/analytics/products/top-redeemed/?store={id}&limit=5
+  /// Retorna: [{ id, name, redeemed_count, stock }]
+  Future<List<Map<String, dynamic>>> fetchTopRedeemedProducts(
+    String storeId, {
+    int limit = 5,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.analyticsTopRedeemed,
+        queryParameters: {
+          if (storeId.isNotEmpty) 'store': storeId,
+          'limit': limit.clamp(1, 50),
+        },
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// Resumen mensual con growth % para la tienda.
   /// GET /marketplace/analytics/summary/?store_id=X
   Future<Map<String, dynamic>> fetchAnalyticsSummary(String storeId) async {
@@ -511,6 +653,80 @@ class MarketplaceRepository {
   }
 
   // ---------- STORE SETTINGS ----------
+
+  /// POST /marketplace/stores/<id>/upload-banner/  field: "banner"
+  /// Retorna: {banner_url}  — el endpoint ya actualiza store.banner
+  Future<String?> uploadStoreBanner(String storeId, XFile file) async {
+    try {
+      final bytes    = await file.readAsBytes();
+      final formData = FormData.fromMap({
+        'banner': MultipartFile.fromBytes(bytes, filename: file.name),
+      });
+      final response = await _dio.post(
+        ApiConfig.storeBannerUpload(storeId), data: formData);
+      if (response.data is Map) {
+        return response.data['banner_url']?.toString();
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// POST /marketplace/stores/<id>/upload-logo/  field: "logo"
+  /// Retorna: {logo_url}  — el endpoint ya actualiza store.image_url
+  Future<String?> uploadStoreLogo(String storeId, XFile file) async {
+    try {
+      final bytes    = await file.readAsBytes();
+      final formData = FormData.fromMap({
+        'logo': MultipartFile.fromBytes(bytes, filename: file.name),
+      });
+      final response = await _dio.post(
+        ApiConfig.storeLogoUpload(storeId), data: formData);
+      if (response.data is Map) {
+        return response.data['logo_url']?.toString();
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// GET /location/reverse-geocode/?lat=X&lng=Y → {address: "..."}
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.locationReverseGeocode,
+        queryParameters: {'lat': lat, 'lng': lng},
+      );
+      if (response.data is Map) {
+        return response.data['address']?.toString();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// GET /location/geocode/?address=X → {lat: X, lng: Y}
+  Future<Map<String, double>?> geocode(String address) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.locationGeocode,
+        queryParameters: {'address': address},
+      );
+      if (response.data is Map) {
+        final lat = _parseCoord(response.data['lat']);
+        final lng = _parseCoord(response.data['lng']);
+        if (lat != null && lng != null) return {'lat': lat, 'lng': lng};
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static double? _parseCoord(dynamic v) {
+    if (v is double) return v;
+    if (v is int)    return v.toDouble();
+    return double.tryParse('${v ?? ''}');
+  }
 
   /// PATCH /marketplace/stores/<id>/ — actualiza info de la tienda.
   Future<StoreModel?> updateStore(
@@ -633,6 +849,39 @@ class MarketplaceRepository {
     }
   }
 
+  /// Configuración de umbrales de la tienda.
+  /// GET /marketplace/stores/<id>/settings/
+  /// Retorna: {low_stock_threshold, expiry_warning_days}
+  Future<Map<String, dynamic>> fetchStoreSettings(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storeSettings(storeId));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Estadísticas de inventario de la tienda.
+  /// GET /marketplace/admin/inventory/stats/?store=<id>
+  /// Retorna: {total_products, total_stock, out_of_stock, low_stock, low_stock_items}
+  Future<Map<String, dynamic>> fetchInventoryStats(String storeId) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminInventoryStats,
+        queryParameters: {'store': storeId},
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// PIN actual de la tienda (masked).
   /// GET /marketplace/stores/<id>/pin/
   /// Retorna: {pin_masked, pin_configured}
@@ -691,6 +940,285 @@ class MarketplaceRepository {
   Future<Map<String, dynamic>> fetchMonthlyGoal(String storeId) async {
     try {
       final response = await _dio.get(ApiConfig.storeMonthlyGoal(storeId));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- REVIEWS ----------
+
+  /// GET /marketplace/stores/<id>/reviews/?filter=X&sort=X&page=N
+  /// filter: unanswered | hidden | in_review | all
+  /// sort:   recent | oldest | highest | lowest
+  Future<Paginated<ReviewModel>> fetchStoreReviews(
+    String storeId, {
+    String? filter,
+    String sort = 'recent',
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.storeReviews(storeId),
+      page: page,
+      pageSize: pageSize,
+      query: {
+        if (filter != null && filter.isNotEmpty) 'filter': filter,
+        'sort': sort,
+      },
+      fromJson: ReviewModel.fromJson,
+    );
+  }
+
+  /// GET /marketplace/stores/<id>/reviews/stats/
+  Future<ReviewsStats> fetchReviewStats(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storeReviewStats(storeId));
+      if (response.data is Map) {
+        return ReviewsStats.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return const ReviewsStats();
+  }
+
+  /// POST /marketplace/reviews/<id>/reply/  body: {message}
+  Future<bool> replyToReview(String reviewId, String message) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.reviewReply(reviewId),
+        data: {'message': message},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /marketplace/reviews/<id>/report/  body: {reason}
+  Future<bool> reportReview(String reviewId, String reason) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.reviewReport(reviewId),
+        data: {'reason': reason},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// PATCH /marketplace/reviews/<id>/hide/
+  Future<bool> hideReview(String reviewId, {bool hide = true}) async {
+    try {
+      final response = await _dio.patch(
+        ApiConfig.reviewHide(reviewId),
+        data: {'is_hidden': hide},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- GDPR ----------
+
+  /// Lista paginada de solicitudes GDPR.
+  /// GET /gdpr/requests/?status=X&type=X&filter=X&page=N
+  Future<Paginated<GdprRequestModel>> fetchGdprRequests({
+    String? status,
+    String? type,
+    String? filter, // 'overdue' | 'due_1day' | 'due_3days' | 'resolved'
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.gdprRequests,
+      page: page,
+      pageSize: pageSize,
+      query: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (type   != null && type.isNotEmpty)   'type':   type,
+        if (filter != null && filter.isNotEmpty) 'filter': filter,
+      },
+      fromJson: GdprRequestModel.fromJson,
+    );
+  }
+
+  /// Stats del panel GDPR.
+  /// GET /gdpr/requests/stats/
+  Future<GdprStats> fetchGdprStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.gdprStats);
+      if (response.data is Map) {
+        return GdprStats.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return const GdprStats();
+  }
+
+  /// Actualiza el estado de una solicitud GDPR.
+  /// PATCH /admin/gdpr/requests/<id>/  body: {status, assigned_to (email), notes}
+  Future<GdprRequestModel?> updateGdprRequest(
+      String id, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.patch(
+        ApiConfig.gdprRequestDetail(id), data: payload);
+      if (response.data is Map) {
+        return GdprRequestModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// 6 formatos RGPD con artículo, descripción y plazo.
+  /// GET /admin/gdpr/formats/
+  Future<List<GdprFormat>> fetchGdprFormats() async {
+    try {
+      final response = await _dio.get(ApiConfig.gdprFormats);
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => GdprFormat.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Exporta solicitudes GDPR como CSV.
+  /// GET /admin/gdpr/requests/export/?status=&type=
+  Future<List<int>> exportGdprReport({String? status, String? type}) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        ApiConfig.gdprExport,
+        queryParameters: {
+          if (status != null && status.isNotEmpty) 'status': status,
+          if (type   != null && type.isNotEmpty)   'type':   type,
+        },
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? const [];
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- BACKOFFICE USERS ----------
+
+  /// Lista de usuarios (vista admin).
+  /// GET /admin/users/?page=N&search=X
+  Future<List<AdminUserModel>> fetchAdminUsers({String? search, int? page}) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminUsers,
+        queryParameters: {
+          if (search != null && search.isNotEmpty) 'search': search,
+          if (page != null) 'page': page,
+        },
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => AdminUserModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Ficha completa de un usuario (perfil + compliance + actividad).
+  /// GET /admin/users/<id>/
+  Future<AdminUserModel?> fetchAdminUserDetail(String userId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminUserDetail(userId));
+      if (response.statusCode == 200 && response.data is Map) {
+        return AdminUserModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Registro de auditoría de un usuario.
+  /// GET /admin/users/<id>/audit-log/?limit=N
+  Future<List<AuditLogModel>> fetchAuditLog(String userId, {int limit = 20}) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminUserAuditLog(userId),
+        queryParameters: {'limit': limit},
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => AuditLogModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Suspende la cuenta de un usuario.
+  /// POST /admin/users/<id>/suspend/  body: {reason}
+  Future<bool> suspendUser(String userId, {String reason = ''}) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.adminUserSuspend(userId),
+        data: reason.isNotEmpty ? {'reason': reason} : null,
+      );
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Edita el perfil de un usuario (admin).
+  /// PUT /admin/users/<id>/  body: {first_name, last_name, email, language, is_staff}
+  Future<AdminUserModel?> editAdminUser(
+      String userId, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.put(ApiConfig.adminUserDetail(userId), data: payload);
+      if (response.data is Map) {
+        return AdminUserModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Marca a un usuario como auditado.
+  /// POST /admin/users/<id>/audit/  body: {notes}
+  Future<bool> auditUser(String userId, {String notes = ''}) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.adminUserAudit(userId),
+        data: {'notes': notes},
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// Revela el documento de identidad con trazabilidad.
+  /// POST /admin/users/<id>/reveal-document/  body: {reason}
+  /// Retorna: {document_number, document_type}
+  Future<Map<String, dynamic>> revealUserDocument(
+      String userId, {required String reason}) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.adminUserRevealDoc(userId),
+        data: {'reason': reason},
+      );
       if (response.data is Map) {
         return Map<String, dynamic>.from(response.data as Map);
       }

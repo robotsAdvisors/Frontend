@@ -33,12 +33,18 @@ import '../modules/admin/bindings/admin_binding.dart';
 import '../modules/admin/views/add_product_view.dart';
 import '../modules/admin/views/analytics_view.dart';
 import '../modules/admin/views/admin_view.dart';
+import '../modules/admin/views/reviews_view.dart';
 import '../modules/admin/views/voucher_history_view.dart';
 import '../modules/admin/views/admin_settings_view.dart';
 import '../modules/admin/views/inventario_view.dart';
 import '../modules/admin/views/premios_view.dart';
 import '../modules/general_admin/bindings/general_admin_binding.dart';
+import '../modules/general_admin/bindings/gdpr_binding.dart';
+import '../modules/general_admin/bindings/support_binding.dart';
 import '../modules/general_admin/views/general_admin_view.dart';
+import '../modules/general_admin/views/gdpr_requests_view.dart';
+import '../modules/general_admin/views/support_tickets_view.dart';
+import '../modules/general_admin/views/user_detail_view.dart';
 import '../modules/update_parking/bindings/update_parking_binding.dart';
 import '../modules/update_parking/views/update_parking_view.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
@@ -75,6 +81,13 @@ class AppPages {
       name: _Paths.ADMIN,
       page: () => const AdminView(),
       binding: AdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.REVIEWS,
+      page: () => const ReviewsView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
     ),
     GetPage(
       name: _Paths.VOUCHER_HISTORY,
@@ -120,6 +133,27 @@ class AppPages {
       name: _Paths.GENERAL_ADMIN,
       page: () => const GeneralAdminView(),
       binding: GeneralAdminBinding(),
+    ),
+    GetPage(
+      name: _Paths.ADMIN_USER_DETAIL,
+      page: () => const UserDetailView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.GDPR_REQUESTS,
+      page: () => const GdprRequestsView(),
+      binding: GdprBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.SUPPORT_TICKETS,
+      page: () => const SupportTicketsView(),
+      binding: SupportBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
     ),
     GetPage(
       name: _Paths.BASE,

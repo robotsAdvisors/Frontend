@@ -27,6 +27,9 @@ class StoreModel {
   final double? longitude;   // GPS longitude
   final String billingAddress;
   final bool twoFactorEnabled;
+  final String subtitle;          // alias de description — retornado por StoreSerializer
+  final int monthlyGoalTarget;    // de monthly_goal_target en StoreSerializer
+  final String monthlyGoalPrize;  // de monthly_goal_prize en StoreSerializer
 
   StoreModel({
     required this.id,
@@ -56,6 +59,9 @@ class StoreModel {
     this.longitude,
     this.billingAddress = '',
     this.twoFactorEnabled = false,
+    this.subtitle = '',
+    this.monthlyGoalTarget = 500000,
+    this.monthlyGoalPrize = '',
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -125,6 +131,11 @@ class StoreModel {
       longitude: _toDouble(json['longitude'] ?? json['lng']),
       billingAddress: (json['billing_address'] ?? json['billingAddress'] ?? '').toString(),
       twoFactorEnabled: json['two_factor_enabled'] as bool? ?? json['twoFactorEnabled'] as bool? ?? false,
+      subtitle: (json['subtitle'] ?? json['description'] ?? '').toString(),
+      monthlyGoalTarget: json['monthly_goal_target'] is num
+          ? (json['monthly_goal_target'] as num).toInt()
+          : int.tryParse('${json['monthly_goal_target'] ?? 500000}') ?? 500000,
+      monthlyGoalPrize: (json['monthly_goal_prize'] ?? '').toString(),
     );
   }
 

@@ -37,6 +37,11 @@ class AdminController extends GetxController {
   final Rx<Map<String, dynamic>> analyticsSummary = Rx<Map<String, dynamic>>({});
   final RxList<Map<String, dynamic>> remoteActivity = <Map<String, dynamic>>[].obs;
   final Rx<Map<String, dynamic>> monthlyGoal = Rx<Map<String, dynamic>>({});
+
+  // Validación de canjes
+  final Rx<VoucherModel?> previewedVoucher = Rx<VoucherModel?>(null);
+  final RxBool isPreviewingVoucher = false.obs;
+  final RxString previewError = ''.obs;
   final Rx<Map<String, dynamic>> storePinData = Rx<Map<String, dynamic>>({});
   final RxString regeneratedPin = ''.obs;
   final RxBool isRegeneratingPin = false.obs;
@@ -47,6 +52,30 @@ class AdminController extends GetxController {
   final Rx<PageMeta> inventoryMeta = const PageMeta().obs;
   final RxInt inventoryCurrentPage = 1.obs;
   final RxBool isLoadingInventory = false.obs;
+
+  // Store settings (thresholds)
+  final RxInt lowStockThreshold = 10.obs;
+  final RxInt expiryWarningDays = 30.obs;
+
+  // Inventory stats from backend
+  final Rx<Map<String, dynamic>> inventoryStats = Rx<Map<String, dynamic>>({});
+
+  // Analytics — historial panel
+  final Rx<Map<String, dynamic>> vouchersByStatus =
+      Rx<Map<String, dynamic>>({});
+  final RxList<Map<String, dynamic>> topRedeemedProducts =
+      <Map<String, dynamic>>[].obs;
+
+  // Date-filtered vouchers for the historial panel
+  final RxList<VoucherModel> dateFilteredVouchers = <VoucherModel>[].obs;
+  final RxBool isLoadingDateFilter = false.obs;
+
+  // Store orders (tab Ventas)
+  final RxList<Map<String, dynamic>> storeOrders = <Map<String, dynamic>>[].obs;
+  final Rx<Map<String, dynamic>> storeOrdersMeta = Rx<Map<String, dynamic>>({});
+  final RxInt storeOrdersPage = 1.obs;
+  final RxBool isLoadingOrders = false.obs;
+  final RxString storeOrdersStatusFilter = ''.obs;
 
   final _repo = MarketplaceRepository.instance;
 
@@ -118,17 +147,29 @@ class AdminController extends GetxController {
             .catchError((_) => <String, dynamic>{}),
         _repo.fetchSecurityLog(storeId.value)
             .catchError((_) => <Map<String, dynamic>>[]),
+        _repo.fetchStoreSettings(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
+        _repo.fetchInventoryStats(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
+        _repo.fetchVouchersByStatus(storeId.value)
+            .catchError((_) => <String, dynamic>{}),
+        _repo.fetchTopRedeemedProducts(storeId.value)
+            .catchError((_) => <Map<String, dynamic>>[]),
       ]);
 
-      final remoteProducts = results[0] as List<ProductModel>;
-      final vouchersPage = results[1] as Paginated<VoucherModel>;
-      final remoteCategories = results[2] as List<CategoryModel>;
-      final remoteDailyVouchers = results[3] as List<Map<String, dynamic>>;
-      final remoteSummary = results[4] as Map<String, dynamic>;
-      final remoteActivityList = results[5] as List<Map<String, dynamic>>;
-      final remoteMonthlyGoal = results[6] as Map<String, dynamic>;
-      final remotePinData = results[7] as Map<String, dynamic>;
-      final remoteSecurityLog = results[8] as List<Map<String, dynamic>>;
+      final remoteProducts      = results[0]  as List<ProductModel>;
+      final vouchersPage        = results[1]  as Paginated<VoucherModel>;
+      final remoteCategories    = results[2]  as List<CategoryModel>;
+      final remoteDailyVouchers = results[3]  as List<Map<String, dynamic>>;
+      final remoteSummary       = results[4]  as Map<String, dynamic>;
+      final remoteActivityList  = results[5]  as List<Map<String, dynamic>>;
+      final remoteMonthlyGoal   = results[6]  as Map<String, dynamic>;
+      final remotePinData       = results[7]  as Map<String, dynamic>;
+      final remoteSecurityLog   = results[8]  as List<Map<String, dynamic>>;
+      final remoteSettings      = results[9]  as Map<String, dynamic>;
+      final remoteInvStats      = results[10] as Map<String, dynamic>;
+      final remoteVoucherStatus = results[11] as Map<String, dynamic>;
+      final remoteTopRedeemed   = results[12] as List<Map<String, dynamic>>;
 
       products.assignAll(remoteProducts);
 
@@ -147,11 +188,44 @@ class AdminController extends GetxController {
       if (remotePinData.isNotEmpty) storePinData.value = remotePinData;
       if (remoteSecurityLog.isNotEmpty) securityLog.assignAll(remoteSecurityLog);
 
+      if (remoteSettings.isNotEmpty) {
+        final threshold = remoteSettings['low_stock_threshold'];
+        final days      = remoteSettings['expiry_warning_days'];
+        if (threshold is int) lowStockThreshold.value = threshold;
+        if (days      is int) expiryWarningDays.value = days;
+      }
+      if (remoteInvStats.isNotEmpty)      inventoryStats.value  = remoteInvStats;
+      if (remoteVoucherStatus.isNotEmpty) vouchersByStatus.value = remoteVoucherStatus;
+      if (remoteTopRedeemed.isNotEmpty)   topRedeemedProducts.assignAll(remoteTopRedeemed);
+
       _calculateStoreMetrics();
     } catch (_) {
       // Silencio: se mantienen los datos dummy.
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Carga vouchers filtrados por fecha ISO (YYYY-MM-DD) usando el backend.
+  /// Limpia los resultados si [date] está vacío.
+  Future<void> loadVouchersForDate(String date) async {
+    if (date.isEmpty) {
+      dateFilteredVouchers.clear();
+      return;
+    }
+    if (isLoadingDateFilter.value) return;
+    isLoadingDateFilter.value = true;
+    try {
+      final page = await _repo.fetchVouchersPage(
+        page: 1,
+        pageSize: 200,
+        date: date,
+      );
+      dateFilteredVouchers.assignAll(page.data);
+    } catch (_) {
+      dateFilteredVouchers.clear();
+    } finally {
+      isLoadingDateFilter.value = false;
     }
   }
 
@@ -186,10 +260,19 @@ class AdminController extends GetxController {
 
   // ── Inventory stats ───────────────────────────────────────────────────────
 
-  int get lowStockCount =>
-      products.where((p) => p.quantity > 0 && p.quantity < 10).length;
+  int get lowStockCount => products
+      .where((p) => p.quantity > 0 && p.quantity < lowStockThreshold.value)
+      .length;
 
-  int get expiringSoonCount => products.where((p) => p.isExpiringSoon).length;
+  int get expiringSoonCount {
+    final cutoff = DateTime.now().add(Duration(days: expiryWarningDays.value));
+    return products
+        .where((p) =>
+            p.expiryDate != null &&
+            !p.isExpired &&
+            p.expiryDate!.isBefore(cutoff))
+        .length;
+  }
 
   int get activeCategoriesCount => categories.length;
 
@@ -198,6 +281,7 @@ class AdminController extends GetxController {
     int page = 1,
     String search = '',
     String? category,
+    String ordering = 'name',
   }) async {
     if (isLoadingInventory.value) return;
     isLoadingInventory.value = true;
@@ -208,6 +292,7 @@ class AdminController extends GetxController {
         pageSize: 10,
         search: search.isNotEmpty ? search : null,
         categoryName: category,
+        ordering: ordering,
       );
       inventoryProducts.assignAll(result.data);
       inventoryMeta.value = result.meta;
@@ -252,6 +337,9 @@ class AdminController extends GetxController {
         'price': product.originalPrice,
         'discount': product.discountPercent,
         'stock': product.stock > 0 ? product.stock : product.quantity,
+        'points_required': product.pointsRequired,
+        'is_redeemable': product.isRedeemable,
+        if (product.monetaryPrice > 0) 'monetary_price': product.monetaryPrice,
         if (product.category.isNotEmpty) 'category': product.category,
       }..removeWhere((_, v) => v == null);
 
@@ -457,8 +545,10 @@ class AdminController extends GetxController {
       items.add({
         'title': 'Nueva meta alcanzada',
         'body': 'Tienda superó los $milestone canjes totales.',
-        'time': 'Reciente',
+        'time': _relativeTime(redeemedVouchers.last.issuedAt),
         'color': 'purple',
+        'action_label': '',
+        'action_route': '',
       });
     }
 
@@ -477,8 +567,10 @@ class AdminController extends GetxController {
       items.add({
         'title': 'Premio destacado',
         'body': "'$name' es el más canjeado esta semana.",
-        'time': 'Hace 2 horas',
+        'time': _relativeTime(topVoucher.issuedAt),
         'color': 'orange',
+        'action_label': '',
+        'action_route': '',
       });
     }
 
@@ -489,8 +581,10 @@ class AdminController extends GetxController {
       items.add({
         'title': 'Alerta de stock',
         'body': '${prod.name} (${prod.quantity} unidades restantes).',
-        'time': 'Hace 4 horas',
+        'time': 'Reciente',
         'color': 'red',
+        'action_label': 'Gestionar stock',
+        'action_route': '',
       });
     }
 
@@ -599,6 +693,7 @@ class AdminController extends GetxController {
     if (g['monthly_goal_target'] != null) {
       return (g['monthly_goal_target'] as num).toInt();
     }
+    if (currentStore.monthlyGoalTarget > 0) return currentStore.monthlyGoalTarget;
     return 500000;
   }
 
@@ -614,7 +709,10 @@ class AdminController extends GetxController {
 
   String get monthlyGoalPrizeName {
     final g = monthlyGoal.value;
-    return g['monthly_goal_prize']?.toString() ?? '';
+    if ((g['monthly_goal_prize'] ?? '').toString().isNotEmpty) {
+      return g['monthly_goal_prize'].toString();
+    }
+    return currentStore.monthlyGoalPrize;
   }
 
   double get monthlyGoalPercent {
@@ -682,6 +780,65 @@ class AdminController extends GetxController {
     return File('${Directory.systemTemp.path}/$filename');
   }
 
+  /// Sube el banner de la tienda.
+  /// POST /marketplace/stores/<id>/upload-banner/
+  Future<bool> uploadStoreBanner(XFile file) async {
+    try {
+      final url = await _repo.uploadStoreBanner(storeId.value, file);
+      if (url != null) {
+        // Recarga la tienda para reflejar la nueva imagen
+        await _loadFromBackend();
+        CustomSnackBar.showCustomSnackBar(
+            title: 'Portada actualizada', message: 'El banner se subió correctamente.');
+        return true;
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo subir el banner.');
+    }
+    return false;
+  }
+
+  /// Sube el logo de la tienda.
+  /// POST /marketplace/stores/<id>/upload-logo/
+  Future<bool> uploadStoreLogo(XFile file) async {
+    try {
+      final url = await _repo.uploadStoreLogo(storeId.value, file);
+      if (url != null) {
+        await _loadFromBackend();
+        CustomSnackBar.showCustomSnackBar(
+            title: 'Logo actualizado', message: 'El logo se subió correctamente.');
+        return true;
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo subir el logo.');
+    }
+    return false;
+  }
+
+  /// Convierte coordenadas a dirección legible.
+  Future<String?> reverseGeocode(double lat, double lng) async {
+    try {
+      return await _repo.reverseGeocode(lat, lng);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Convierte una dirección a coordenadas GPS.
+  Future<Map<String, double>?> geocode(String address) async {
+    try {
+      return await _repo.geocode(address);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Sube una imagen al backend y devuelve la URL resultante.
   /// POST /marketplace/admin/products/upload-image/
   Future<String?> uploadProductImage(XFile file) async {
@@ -730,10 +887,37 @@ class AdminController extends GetxController {
     }
   }
 
+  Future<void> previewVoucherCode(String code) async {
+    if (code.trim().isEmpty) return;
+    isPreviewingVoucher.value = true;
+    previewError.value = '';
+    previewedVoucher.value = null;
+    try {
+      final voucher = await _repo.previewVoucher(code.trim());
+      if (voucher != null) {
+        previewedVoucher.value = voucher;
+      } else {
+        previewError.value = 'Código no encontrado.';
+      }
+    } on ApiException catch (e) {
+      previewError.value = e.message;
+    } catch (_) {
+      previewError.value = 'No se pudo buscar el código.';
+    } finally {
+      isPreviewingVoucher.value = false;
+    }
+  }
+
+  void clearVoucherPreview() {
+    previewedVoucher.value = null;
+    previewError.value = '';
+  }
+
   Future<bool> validateVoucherCode(String code) async {
     try {
       final result = await _repo.validateVoucher(code);
       if (result != null) {
+        clearVoucherPreview();
         await _loadFromBackend();
         CustomSnackBar.showCustomSnackBar(
           title: 'Voucher válido',
@@ -753,6 +937,34 @@ class AdminController extends GetxController {
       );
     }
     return false;
+  }
+
+  // ── Store Orders ─────────────────────────────────────────────────────────
+
+  Future<void> loadStoreOrders({int page = 1, String? status}) async {
+    if (isLoadingOrders.value) return;
+    isLoadingOrders.value = true;
+    storeOrdersStatusFilter.value = status ?? '';
+    try {
+      final result = await _repo.fetchStoreOrders(
+        storeId: storeId.value,
+        status: status,
+        page: page,
+      );
+      final rawList = result['results'] ?? result['data'] ?? const [];
+      storeOrders.assignAll(rawList is List
+          ? rawList.whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList()
+          : const []);
+      final rawMeta = result['meta'];
+      if (rawMeta is Map) {
+        storeOrdersMeta.value = Map<String, dynamic>.from(rawMeta);
+        storeOrdersPage.value = page;
+      }
+    } catch (_) {} finally {
+      isLoadingOrders.value = false;
+    }
   }
 
   // ── PIN ───────────────────────────────────────────────────────────────────
@@ -784,6 +996,50 @@ class AdminController extends GetxController {
   }
 
   void clearRegeneratedPin() => regeneratedPin.value = '';
+
+  final RxBool isInitiatingPayment = false.obs;
+
+  /// POST /marketplace/vouchers/{code}/initiate-payment/
+  /// Devuelve { client_secret, payment_intent_id, amount_eur, status } o lanza ApiException.
+  Future<Map<String, dynamic>?> initiateVoucherPayment(String code,
+      {String? paymentMethodId}) async {
+    if (isInitiatingPayment.value) return null;
+    isInitiatingPayment.value = true;
+    try {
+      return await _repo.initiateVoucherPayment(code,
+          paymentMethodId: paymentMethodId);
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error al iniciar pago', message: e.message);
+      return null;
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: 'No se pudo iniciar el pago.');
+      return null;
+    } finally {
+      isInitiatingPayment.value = false;
+    }
+  }
+
+  Future<void> reportVoucherIncident(String voucherId,
+      {required String reason, String notes = ''}) async {
+    try {
+      final result = await _repo.reportVoucherIncident(
+          voucherId, reason: reason, notes: notes);
+      final ticketId = result['ticket_id'];
+      CustomSnackBar.showCustomSnackBar(
+        title: 'Incidencia reportada',
+        message: ticketId != null
+            ? 'Ticket #$ticketId creado. El equipo ha sido notificado.'
+            : 'El equipo ha sido notificado.',
+      );
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error', message: 'No se pudo reportar la incidencia.');
+    }
+  }
 
   // ── Settings ──────────────────────────────────────────────────────────────
 

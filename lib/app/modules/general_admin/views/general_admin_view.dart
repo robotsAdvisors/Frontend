@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../../../utils/constants.dart';
@@ -78,75 +77,41 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-            child: Row(
-              children: [
-                SvgPicture.asset(Constants.logo, height: 28),
-              ],
-            ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
+            child: Text('Backoffice',
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1E1B4B))),
           ),
           const Divider(height: 1),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 6),
-            child: Text('SHOP MANAGEMENT',
-                style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
-                    letterSpacing: 0.8)),
-          ),
+          const SizedBox(height: 8),
           _sideNavItem(icon: Icons.dashboard_outlined, label: 'Dashboard', selected: true),
-          _sideNavItem(icon: Icons.store_outlined, label: 'Stores', onTap: () {}),
-          _sideNavItem(icon: Icons.security_outlined, label: 'Permissions', onTap: () {}),
-          _sideNavItem(icon: Icons.bar_chart_outlined, label: 'Global Metrics', onTap: () {}),
-          _sideNavItem(icon: Icons.settings_outlined, label: 'Settings', onTap: () {}),
+          _sideNavItem(icon: Icons.support_agent_outlined, label: 'Soporte',
+              onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
+          _sideNavItem(icon: Icons.people_outline, label: 'Usuarios',
+              onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+          _sideNavItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
+              onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
+          _sideNavItem(icon: Icons.gavel_outlined, label: 'Legal'),
+          _sideNavItem(icon: Icons.flag_outlined, label: 'Moderación'),
+          _sideNavItem(icon: Icons.payments_outlined, label: 'Pagos'),
+          _sideNavItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
+          _sideNavItem(icon: Icons.settings_outlined, label: 'Configuración'),
           const Spacer(),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Obx(() => CircleAvatar(
-                  radius: 18,
-                  backgroundColor: _purple,
-                  child: Text(
-                    controller.currentUserInitials.value.isEmpty
-                        ? '?'
-                        : controller.currentUserInitials.value,
-                    style: const TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
-                )),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Obx(() => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        controller.currentUserName.value.isEmpty
-                            ? 'Super Admin'
-                            : controller.currentUserName.value,
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B)),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Text('General Admin',
-                          style: TextStyle(fontSize: 11, color: Colors.grey)),
-                    ],
-                  )),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.logout, size: 18, color: Colors.grey),
-                  tooltip: 'Sign out',
-                  onPressed: () async {
-                    await AuthService.signOut();
-                    Get.offAllNamed(Routes.WELCOME);
-                  },
-                ),
-              ],
-            ),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.logout, size: 18, color: Colors.grey),
+            title: const Text('Logout',
+                style: TextStyle(fontSize: 13, color: Colors.grey)),
+            onTap: () async {
+              await AuthService.signOut();
+              Get.offAllNamed(Routes.LOGIN);
+            },
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );

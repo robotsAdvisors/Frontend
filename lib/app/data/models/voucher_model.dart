@@ -22,9 +22,17 @@ class VoucherModel {
   final String redeemType; // 'ONLINE' | 'IN_STORE'
   final String? qrCode;
   final String? productName;
+  final String? productSku;
+  final String? productImageUrl;
   final String? storeName;
   final String? customerName;
   final String? customerEmail;
+  final String? customerAlias;   // @JuanPuntos77
+  final String? customerBadge;   // tier label: 'Nivel de Calidad', 'Gold', etc.
+  final String? paymentMethod;   // 'stripe' | 'card' | null
+  final double? paymentAmountEur;
+  final bool paymentVerified;
+  final int? daysLeft;           // calculado por backend en preview
 
   VoucherModel({
     required this.id,
@@ -42,9 +50,17 @@ class VoucherModel {
     this.redeemType = 'ONLINE',
     this.qrCode,
     this.productName,
+    this.productSku,
+    this.productImageUrl,
     this.storeName,
     this.customerName,
     this.customerEmail,
+    this.customerAlias,
+    this.customerBadge,
+    this.paymentMethod,
+    this.paymentAmountEur,
+    this.paymentVerified = false,
+    this.daysLeft,
   });
 
   // Compatibility alias for old UI fields.
@@ -93,11 +109,27 @@ class VoucherModel {
       redeemType: (json['redeem_type'] ?? 'ONLINE').toString(),
       qrCode: json['qr_code']?.toString(),
       productName: product is Map ? product['name']?.toString() : null,
+      productSku: product is Map ? product['sku']?.toString() : null,
+      productImageUrl: product is Map
+          ? (product['image'] ?? product['image_url'] ?? product['thumbnail'])?.toString()
+          : null,
       storeName: store is Map ? store['name']?.toString() : null,
       customerName: user is Map
-          ? (user['name'] ?? user['username'] ?? user['email'] ?? '').toString()
+          ? (user['name'] ?? user['full_name'] ?? user['username'] ?? user['email'] ?? '').toString()
           : null,
       customerEmail: user is Map ? user['email']?.toString() : null,
+      customerAlias: user is Map
+          ? (user['alias'] ?? user['username'])?.toString()
+          : null,
+      customerBadge: user is Map
+          ? (user['badge'] ?? user['tier'] ?? user['loyalty_badge'] ?? user['loyalty_level'])?.toString()
+          : null,
+      paymentMethod: json['payment_method']?.toString(),
+      paymentAmountEur: _toDouble(json['payment_amount_eur'] ?? json['payment_amount']),
+      paymentVerified: json['payment_verified'] as bool? ?? false,
+      daysLeft: json['days_left'] is int
+          ? json['days_left'] as int
+          : int.tryParse('${json['days_left'] ?? ''}'),
     );
   }
 
