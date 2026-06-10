@@ -58,10 +58,10 @@ class UserDetailView extends GetView<GeneralAdminController> {
               onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
           _navItem(icon: Icons.people_outline, label: 'Usuarios', selected: true),
           _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
-              onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
+              onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
           _navItem(icon: Icons.gavel_outlined, label: 'Legal'),
           _navItem(icon: Icons.flag_outlined, label: 'Moderación'),
-          _navItem(icon: Icons.payments_outlined, label: 'Pagos'),
+          _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
           _navItem(icon: Icons.settings_outlined, label: 'Configuración'),
           const Spacer(),
@@ -155,6 +155,16 @@ class UserDetailView extends GetView<GeneralAdminController> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  _subscriptionCard(),
+                  const SizedBox(height: 20),
+                  _benefitsCard(),
+                  const SizedBox(height: 20),
+                  _transactionsCard(context),
+                  const SizedBox(height: 20),
+                  _kycControlCard(context),
+                  const SizedBox(height: 20),
+                  _deactivationCard(context),
                   const SizedBox(height: 20),
                   _activityRow(user),
                   const SizedBox(height: 20),
@@ -483,7 +493,492 @@ class UserDetailView extends GetView<GeneralAdminController> {
     );
   }
 
-  // ─── CUMPLIMIENTO ─────────────────────────────────────────────────────────────
+  // ─── SUBSCRIPTION CARD ───────────────────────────────────────────────────
+
+  Widget _subscriptionCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Obx(() {
+        final user = controller.selectedUser.value;
+        if (user == null) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Plan de Suscripción',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.subscriptionPlan,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700, color: _purple)),
+                    const SizedBox(height: 4),
+                    Text(user.subscriptionStatus.toUpperCase(),
+                        style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: user.subscriptionStatus == 'active'
+                        ? const Color(0xFFD1FAE5)
+                        : const Color(0xFFFEE2E2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    user.subscriptionStatus == 'active' ? 'Activo' : 'Inactivo',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: user.subscriptionStatus == 'active'
+                            ? const Color(0xFF065F46)
+                            : const Color(0xFF991B1B)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            if (user.subscriptionStartDate != null)
+              _dateRow('Fecha de Suscripción', _fmtDate(user.subscriptionStartDate)),
+            if (user.subscriptionRenewalDate != null)
+              _dateRow('Próxima Renovación', _fmtDate(user.subscriptionRenewalDate)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _purple,
+                      side: const BorderSide(color: _purple),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Cambiar Plan',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFDC2626),
+                      side: const BorderSide(color: const Color(0xFFDC2626)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('Cancelar',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  // ─── BENEFITS CARD ───────────────────────────────────────────────────────
+
+  Widget _benefitsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Obx(() {
+        final user = controller.selectedUser.value;
+        if (user == null) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Beneficios Pro Activos',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            if (user.benefits.isEmpty)
+              const Text('Sin beneficios activos',
+                  style: TextStyle(fontSize: 12, color: Colors.grey))
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: user.benefits
+                    .map((b) => Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _purpleLight,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(b,
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _purple)),
+                        ))
+                    .toList(),
+              ),
+          ],
+        );
+      }),
+    );
+  }
+
+  // ─── TRANSACTIONS CARD ───────────────────────────────────────────────────
+
+  Widget _transactionsCard(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                const Text('Historial de Transacciones',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {},
+                  child: const Text('↗ Exportar CSV',
+                      style: TextStyle(
+                          fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          _transactionTableHeader(),
+          const Divider(height: 1),
+          Obx(() {
+            final txns = controller.userTransactions;
+            if (txns.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(
+                  child: Text('Sin transacciones.',
+                      style: TextStyle(color: Colors.grey)),
+                ),
+              );
+            }
+            return Column(
+              children: txns.map((t) => _transactionRow(t)).toList(),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionTableHeader() {
+    const style = TextStyle(
+        fontSize: 10, fontWeight: FontWeight.w700,
+        color: Colors.grey, letterSpacing: 0.4);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      color: const Color(0xFFF9FAFB),
+      child: const Row(
+        children: [
+          SizedBox(width: 120, child: Text('FECHA', style: style)),
+          Expanded(flex: 2, child: Text('DESCRIPCIÓN', style: style)),
+          SizedBox(width: 100, child: Text('MONTO', style: style)),
+          Expanded(child: Text('MÉTODO', style: style)),
+          SizedBox(width: 90, child: Text('ESTADO', style: style)),
+        ],
+      ),
+    );
+  }
+
+  Widget _transactionRow(Map<String, dynamic> txn) {
+    final date = DateTime.tryParse((txn['date'] ?? txn['created_at'] ?? '').toString());
+    final desc = (txn['description'] ?? '').toString();
+    final amount = _toDouble(txn['amount']).toStringAsFixed(2);
+    final method = (txn['payment_method'] ?? txn['method'] ?? '').toString();
+    final status = (txn['status'] ?? 'completed').toString();
+
+    final statusDone = status == 'completed' || status == 'success';
+    final statusColor = statusDone ? const Color(0xFF059669) : const Color(0xFFDC2626);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 120,
+                child: Text(
+                  _fmtDate(date),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF374151)),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Text(desc,
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600)),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text('\$$amount',
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600,
+                        color: _purple)),
+              ),
+              Expanded(
+                child: Text(method,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ),
+              SizedBox(
+                width: 90,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(status.toUpperCase(),
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor)),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+
+  // ─── KYC CONTROL CARD ────────────────────────────────────────────────────
+
+  Widget _kycControlCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Obx(() {
+        final kyc = controller.userKyc;
+        if (kyc.isEmpty) return const SizedBox.shrink();
+
+        final status = (kyc['status'] ?? 'pending').toString();
+        final statusColor = _getKycStatusColor(status);
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('Control KYC',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    status.toUpperCase(),
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+            if (kyc['submitted_at'] != null)
+              _dateRow('Enviado', _fmtDate(DateTime.tryParse((kyc['submitted_at'] ?? '').toString()))),
+            if (kyc['approved_at'] != null)
+              _dateRow('Aprobado', _fmtDate(DateTime.tryParse((kyc['approved_at'] ?? '').toString()))),
+            if (kyc['rejection_reason'] != null && (kyc['rejection_reason'] as String).isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Motivo Rechazo',
+                        style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Spacer(),
+                    SizedBox(
+                      width: 200,
+                      child: Text(kyc['rejection_reason'] as String,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFFDC2626))),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                OutlinedButton(
+                  onPressed: () => _confirmKycAction(context, 'restart'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _purple,
+                    side: const BorderSide(color: _purple),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Reiniciar',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                ),
+                OutlinedButton(
+                  onPressed: () => _confirmKycAction(context, 'approve'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF059669),
+                    side: const BorderSide(color: const Color(0xFF059669)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Aprobar',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                ),
+                OutlinedButton(
+                  onPressed: () => _showKycRejectDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFDC2626),
+                    side: const BorderSide(color: const Color(0xFFDC2626)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('Rechazar',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Color _getKycStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return const Color(0xFF059669);
+      case 'rejected':
+        return const Color(0xFFDC2626);
+      case 'pending':
+        return const Color(0xFFF59E0B);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  // ─── DEACTIVATION CARD ──────────────────────────────────────────────────
+
+  Widget _deactivationCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Obx(() {
+        final user = controller.selectedUser.value;
+        if (user == null) return const SizedBox.shrink();
+
+        final isDeactivated = user.deactivationStatus == 'soft_deleted' || user.deactivationDate != null;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text('Control de Desactivación',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isDeactivated
+                        ? const Color(0xFFFEE2E2)
+                        : const Color(0xFFD1FAE5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isDeactivated ? 'Desactivada' : 'Activa',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: isDeactivated
+                            ? const Color(0xFF991B1B)
+                            : const Color(0xFF065F46)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (isDeactivated) ...[
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              if (user.deactivationDate != null)
+                _dateRow('Desactivada el', _fmtDate(user.deactivationDate)),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () => _confirmDeactivationAction(context, 'restore'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF059669),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('Restaurar Cuenta',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              ),
+            ] else ...[
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              const Text(
+                  'Desactivación temporal: Oculta la cuenta del usuario sin eliminar datos.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey)),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => _showDeactivationConfirmDialog(context),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFDC2626),
+                  side: const BorderSide(color: const Color(0xFFDC2626)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('Desactivar Cuenta',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ],
+        );
+      }),
+    );
+  }
+
+  // ─── CUMPLIMIENTO ─────────────────────────────────────────────────────────
 
   Widget _complianceCard(AdminUserModel user) {
     return Container(
@@ -728,7 +1223,170 @@ class UserDetailView extends GetView<GeneralAdminController> {
     );
   }
 
-  // ─── DIALOGS ─────────────────────────────────────────────────────────────────
+  // ─── DIALOGS ─────────────────────────────────────────────────────────────
+
+  void _confirmKycAction(BuildContext context, String action) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(action == 'restart' ? 'Reiniciar KYC' : 'Aprobar KYC'),
+        content: Text(
+            action == 'restart'
+                ? '¿Confirmas reiniciar el proceso de KYC?'
+                : '¿Confirmas aprobar el KYC?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: action == 'restart' ? _purple : const Color(0xFF059669),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              if (action == 'restart') {
+                await controller.restartUserKyc(controller.selectedUser.value?.id ?? '');
+              } else {
+                await controller.approveUserKyc(controller.selectedUser.value?.id ?? '');
+              }
+            },
+            child: Text(action == 'restart' ? 'Reiniciar' : 'Aprobar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showKycRejectDialog(BuildContext context) {
+    final reasonCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Rechazar KYC'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('¿Confirmas rechazar el KYC? Especifica el motivo:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Motivo del rechazo',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await controller.rejectUserKyc(
+                controller.selectedUser.value?.id ?? '',
+                reason: reasonCtrl.text.trim(),
+              );
+            },
+            child: const Text('Rechazar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeactivationConfirmDialog(BuildContext context) {
+    final reasonCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Desactivar Cuenta'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('¿Confirmas desactivar la cuenta? Especifica el motivo:'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonCtrl,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Motivo de desactivación',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await controller.deactivateUser(
+                controller.selectedUser.value?.id ?? '',
+                reason: reasonCtrl.text.trim(),
+              );
+            },
+            child: const Text('Desactivar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeactivationAction(BuildContext context, String action) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Restaurar Cuenta'),
+        content: const Text('¿Confirmas restaurar la cuenta del usuario?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF059669),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await controller.restoreUser(controller.selectedUser.value?.id ?? '');
+            },
+            child: const Text('Restaurar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── DIALOGS ─────────────────────────────────────────────────────────────
 
   void _confirmSuspend(BuildContext context, AdminUserModel user) {
     final reasonCtrl = TextEditingController();
@@ -1004,5 +1662,11 @@ class UserDetailView extends GetView<GeneralAdminController> {
   String _fmtCount(int n) {
     if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
     return n.toString();
+  }
+
+  double _toDouble(dynamic v) {
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    return double.tryParse('${v ?? 0}') ?? 0.0;
   }
 }

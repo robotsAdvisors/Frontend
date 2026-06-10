@@ -30,6 +30,7 @@ class StoreModel {
   final String subtitle;          // alias de description — retornado por StoreSerializer
   final int monthlyGoalTarget;    // de monthly_goal_target en StoreSerializer
   final String monthlyGoalPrize;  // de monthly_goal_prize en StoreSerializer
+  final String kycStatus;         // kyc_status from backend: pending|in_review|approved|rejected|suspended|''
 
   StoreModel({
     required this.id,
@@ -62,6 +63,7 @@ class StoreModel {
     this.subtitle = '',
     this.monthlyGoalTarget = 500000,
     this.monthlyGoalPrize = '',
+    this.kycStatus = '',
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -136,6 +138,7 @@ class StoreModel {
           ? (json['monthly_goal_target'] as num).toInt()
           : int.tryParse('${json['monthly_goal_target'] ?? 500000}') ?? 500000,
       monthlyGoalPrize: (json['monthly_goal_prize'] ?? '').toString(),
+      kycStatus: (json['kyc_status'] ?? json['kycStatus'] ?? '').toString(),
     );
   }
 

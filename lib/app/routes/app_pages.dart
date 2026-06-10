@@ -45,6 +45,15 @@ import '../modules/general_admin/views/general_admin_view.dart';
 import '../modules/general_admin/views/gdpr_requests_view.dart';
 import '../modules/general_admin/views/support_tickets_view.dart';
 import '../modules/general_admin/views/user_detail_view.dart';
+import '../modules/general_admin/views/store_config_view.dart';
+import '../modules/general_admin/views/kybc_view.dart';
+import '../modules/general_admin/views/sensitive_policies_view.dart';
+import '../modules/general_admin/views/legal_consents_view.dart';
+import '../modules/general_admin/views/stripe_disputes_view.dart';
+import '../modules/admin/views/empleados_view.dart';
+import '../modules/admin/views/seguridad_view.dart';
+import '../modules/admin/views/incidencias_view.dart';
+import '../modules/admin/views/confirmar_entrega_view.dart';
 import '../modules/update_parking/bindings/update_parking_binding.dart';
 import '../modules/update_parking/views/update_parking_view.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
@@ -152,6 +161,69 @@ class AppPages {
       name: _Paths.SUPPORT_TICKETS,
       page: () => const SupportTicketsView(),
       binding: SupportBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.STORE_CONFIG,
+      page: () => const StoreConfigView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.KYBC,
+      page: () => const KybcView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.SENSITIVE_POLICIES,
+      page: () => const SensitivePoliciesView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.LEGAL_CONSENTS,
+      page: () => const LegalConsentsView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.STRIPE_DISPUTES,
+      page: () => const StripeDisputesView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.EMPLEADOS,
+      page: () => const EmpleadosView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.SEGURIDAD,
+      page: () => const SeguridadView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.INCIDENCIAS,
+      page: () => const IncidenciasView(),
+      binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.CONFIRMAR_ENTREGA,
+      page: () => const ConfirmarEntregaView(),
+      binding: AdminBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

@@ -53,11 +53,18 @@ class ApiConfig {
   static const String purchaseWithoutRedeem = '/marketplace/purchase/without-redeem/';
 
   // Marketplace - admin
-  static const String adminCategories = '/marketplace/admin/categories/';
-  static const String adminStores = '/marketplace/admin/stores/';
-  static const String adminProducts = '/marketplace/admin/products/';
-  static const String adminStats = '/marketplace/admin/stats/';
+  static const String adminCategories    = '/marketplace/admin/categories/';
+  static const String adminStores        = '/marketplace/admin/stores/';
+  static const String adminProducts      = '/marketplace/admin/products/';
+  static const String adminStats         = '/marketplace/admin/stats/';
   static const String adminInventoryStats = '/marketplace/admin/inventory/stats/';
+
+  // Marketplace - backoffice dashboard (nuevos endpoints)
+  static const String adminDashboardStats = '/marketplace/admin/dashboard/stats/';
+  static const String adminAlerts         = '/marketplace/admin/alerts/';
+  static const String adminAuditLog       = '/marketplace/admin/audit-log/';
+  static const String adminSystemHealth   = '/marketplace/admin/system/health/';
+  static const String adminDomainStats    = '/marketplace/admin/domain-stats/';
 
   // Marketplace - analytics
   static const String analyticsVouchersDaily    = '/marketplace/analytics/vouchers/daily/';
@@ -117,6 +124,32 @@ class ApiConfig {
   static String adminUserSuspend(String id) => '/admin/users/$id/suspend/';
   static String adminUserRevealDoc(String id) => '/admin/users/$id/reveal-document/';
   static String adminUserAudit(String id) => '/admin/users/$id/audit/';
+  static String adminUserSubscription(String id) => '/admin/users/$id/subscription/';
+  static String adminUserBenefits(String id) => '/admin/users/$id/benefits/';
+  static String adminUserTransactions(String id) => '/admin/users/$id/transactions/';
+  static String adminUserKyc(String id) => '/admin/users/$id/kyc/';
+  static String adminUserDeactivation(String id) => '/admin/users/$id/deactivation/';
+
+  // Backoffice — Admin Store Management
+  static String adminStoreDetail(String id) => '/marketplace/admin/stores/$id/';
+
+  // Backoffice — KYBC Compliance
+  static const String adminKycStats   = '/admin/kyc/stats/';
+  static const String adminKycQueue   = '/admin/kyc/queue/';
+  static String adminUserComplianceAction(String id) => '/admin/users/$id/kyc/action/';
+  static String adminUserComplianceHistory(String id) => '/admin/users/$id/compliance/history/';
+
+  // Backoffice — Políticas Sensibles
+  static const String adminPolicies      = '/admin/policies/';
+  static const String adminPoliciesStats = '/admin/policies/stats/';
+  static String adminPolicyDetail(String id) => '/admin/policies/$id/';
+
+  // Backoffice — Legal & Consents
+  static const String adminLegalConsents = '/admin/legal/consents/';
+  static String adminLegalConsentDetail(String id) => '/admin/legal/consents/$id/';
+  static const String adminLegalDocuments = '/admin/legal/documents/';
+  static const String adminLegalStats = '/admin/legal/stats/';
+  static String adminLegalConsentAction(String id) => '/admin/legal/consents/$id/action/';
   // Product image upload
   static const String adminProductUploadImage =
       '/marketplace/admin/products/upload-image/';
@@ -127,6 +160,7 @@ class ApiConfig {
   static String storeUsers(String id) => '/marketplace/stores/$id/users/';
   static String storeUserDetail(String storeId, String userId) =>
       '/marketplace/stores/$storeId/users/$userId/';
+  static String storeRolesPermissions(String id) => '/marketplace/stores/$id/roles/permissions/';
   static String storeChangePIN(String id) => '/marketplace/stores/$id/change-pin/';
   static String storeSecurity(String id) => '/marketplace/stores/$id/security/';
 
@@ -146,4 +180,11 @@ class ApiConfig {
 
   // Virtual Card
   static const String virtualCard = '/wallet/virtual-card/';
+
+  // Backoffice — Stripe Disputes & Refunds
+  static const String adminStripeDisputes      = '/admin/stripe/disputes/';
+  static const String adminStripeDisputeStats  = '/admin/stripe/disputes/stats/';
+  static String adminStripeDisputeDetail(String id) => '/admin/stripe/disputes/$id/';
+  static String adminStripeDisputeAction(String id) => '/admin/stripe/disputes/$id/action/';
+  static const String adminStripeRefunds       = '/admin/stripe/refunds/';
 }

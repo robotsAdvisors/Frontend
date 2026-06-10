@@ -20,6 +20,8 @@ class ProductModel {
   bool isPublished;    // false → "Pausado"
   bool isRedeemable;   // toggle "¿Canjeable?"
   double monetaryPrice; // precio vía Stripe (€), 0 si no aplica
+  String type;         // "beneficio" | "descuento" | "carta"
+  int salesCount;      // ventas totales (anotado por el backend)
 
   ProductModel({
     required this.id,
@@ -42,6 +44,8 @@ class ProductModel {
     this.isPublished = true,
     this.isRedeemable = true,
     this.monetaryPrice = 0,
+    this.type = 'descuento',
+    this.salesCount = 0,
   });
 
   bool get isExpired =>
@@ -101,6 +105,10 @@ class ProductModel {
       isPublished: json['is_published'] as bool? ?? true,
       isRedeemable: json['is_redeemable'] as bool? ?? true,
       monetaryPrice: _toDouble(json['monetary_price'] ?? json['stripe_price']),
+      type: (json['type'] ?? 'descuento').toString(),
+      salesCount: json['sales_count'] is int
+          ? json['sales_count'] as int
+          : int.tryParse('${json['sales_count'] ?? 0}') ?? 0,
     );
   }
 
@@ -125,6 +133,7 @@ class ProductModel {
         'is_published': isPublished,
         'is_redeemable': isRedeemable,
         'monetary_price': monetaryPrice,
+        'type': type,
         if (expiryDate != null) 'expiry_date': expiryDate!.toIso8601String(),
       };
 

@@ -1,7 +1,8 @@
 class StoreUserModel {
-  // Backend v2 role values (uppercase)
-  static const String roleOwner = 'OWNER';
-  static const String roleAdmin = 'ADMIN';
+  // Backend role values (uppercase)
+  static const String roleOwner  = 'OWNER';
+  static const String roleAdmin  = 'ADMIN';
+  static const String roleViewer = 'VIEWER';
   static const String roleMember = 'MEMBER';
 
   final String id;
@@ -48,6 +49,8 @@ class StoreUserModel {
         return 'Propietario';
       case roleAdmin:
         return 'Administrador';
+      case roleViewer:
+        return 'Visualizador';
       case roleMember:
         return 'Miembro';
       case 'MANAGER':

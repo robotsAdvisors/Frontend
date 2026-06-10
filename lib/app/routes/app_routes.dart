@@ -35,6 +35,15 @@ abstract class Routes {
   static const GDPR_REQUESTS    = _Paths.GDPR_REQUESTS;
   static const REVIEWS          = _Paths.REVIEWS;
   static const SUPPORT_TICKETS  = _Paths.SUPPORT_TICKETS;
+  static const STORE_CONFIG     = _Paths.STORE_CONFIG;
+  static const KYBC               = _Paths.KYBC;
+  static const SENSITIVE_POLICIES = _Paths.SENSITIVE_POLICIES;
+  static const LEGAL_CONSENTS     = _Paths.LEGAL_CONSENTS;
+  static const STRIPE_DISPUTES    = _Paths.STRIPE_DISPUTES;
+  static const EMPLEADOS          = _Paths.EMPLEADOS;
+  static const SEGURIDAD          = _Paths.SEGURIDAD;
+  static const INCIDENCIAS        = _Paths.INCIDENCIAS;
+  static const CONFIRMAR_ENTREGA  = _Paths.CONFIRMAR_ENTREGA;
 }
 
 abstract class _Paths {
@@ -71,4 +80,13 @@ abstract class _Paths {
   static const GDPR_REQUESTS    = '/backoffice/gdpr';
   static const REVIEWS          = '/reviews';
   static const SUPPORT_TICKETS  = '/backoffice/support';
+  static const STORE_CONFIG     = '/backoffice/store-config';
+  static const KYBC             = '/backoffice/kybc';
+  static const SENSITIVE_POLICIES = '/backoffice/politicas';
+  static const LEGAL_CONSENTS     = '/backoffice/legal';
+  static const STRIPE_DISPUTES    = '/backoffice/pagos';
+  static const EMPLEADOS          = '/admin/empleados';
+  static const SEGURIDAD          = '/admin/seguridad';
+  static const INCIDENCIAS        = '/admin/incidencias';
+  static const CONFIRMAR_ENTREGA  = '/admin/confirmar-entrega';
 }

@@ -1,74 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../utils/constants.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
 
 class GeneralAdminView extends GetView<GeneralAdminController> {
-  const GeneralAdminView({Key? key}) : super(key: key);
+  const GeneralAdminView({super.key});
 
-  static const Color _purple = Color(0xFF7C3AED);
+  static const Color _purple      = Color(0xFF7C3AED);
   static const Color _purpleLight = Color(0xFFEDE9FE);
-  static const Color _bg = Color(0xFFF8F7FF);
-
-  static String _ownerName(String email) {
-    final local = email.split('@').first;
-    return local
-        .split(RegExp(r'[._\-]'))
-        .where((w) => w.isNotEmpty)
-        .map((w) => '${w[0].toUpperCase()}${w.substring(1)}')
-        .join(' ');
-  }
-
-  static String _formatGrowth(double pct, String suffix) {
-    if (pct == 0) return 'Sin cambios';
-    final sign = pct > 0 ? '↗' : '↘';
-    return '$sign ${pct.abs().toStringAsFixed(1)}% $suffix';
-  }
-
-  static Color _growthColor(double pct) {
-    if (pct > 0) return Colors.green;
-    if (pct < 0) return Colors.red;
-    return Colors.grey;
-  }
-
-  static String _formatPts(int pts) {
-    if (pts == 0) return '0 pts';
-    final formatted = pts.toString().replaceAllMapped(
-      RegExp(r'\B(?=(\d{3})+(?!\d))'),
-      (match) => ',',
-    );
-    return '$formatted pts';
-  }
-
-  static String _formatCount(int n) {
-    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
-    if (n >= 1000) return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}k';
-    return n.toString();
-  }
+  static const Color _bg          = Color(0xFFF8F7FF);
+  static const Color _dark        = Color(0xFF1E1B4B);
+  static const Color _border      = Color(0xFFEEEEEE);
+  static const Color _green       = Color(0xFF10B981);
+  static const Color _amber       = Color(0xFFF59E0B);
+  static const Color _red         = Color(0xFFEF4444);
+  static const Color _blue        = Color(0xFF3B82F6);
 
   @override
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
+    if (isDesktop) {
+      return Scaffold(
+        backgroundColor: _bg,
+        body: Row(children: [
+          _sidebar(context),
+          Expanded(child: _body(context, desktop: true)),
+          _alertasPanel(),
+        ]),
+      );
+    }
     return Scaffold(
       backgroundColor: _bg,
-      body: isDesktop ? _desktopLayout(context) : _mobileLayout(context),
+      drawer: Drawer(child: SafeArea(child: _sidebar(context))),
+      body: _body(context, desktop: false),
     );
   }
 
-  // ─── DESKTOP ────────────────────────────────────────────────────────────────
-
-  Widget _desktopLayout(BuildContext context) {
-    return Row(
-      children: [
-        _sidebar(context),
-        Expanded(child: _mainArea(context, desktop: true)),
-      ],
-    );
-  }
+  // ─── SIDEBAR ────────────────────────────────────────────────────────────────
 
   Widget _sidebar(BuildContext context) {
     return Container(
@@ -77,34 +48,54 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
-            child: Text('Backoffice',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1B4B))),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            child: Row(children: [
+              Container(
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: _purple,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.shield_outlined, size: 17, color: Colors.white),
+              ),
+              const SizedBox(width: 10),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Backoffice',
+                      style: TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w800, color: _dark)),
+                  Text('Franquicias Plus',
+                      style: TextStyle(fontSize: 10, color: Colors.grey)),
+                ],
+              ),
+            ]),
           ),
-          const Divider(height: 1),
+          Container(height: 1, color: _border),
           const SizedBox(height: 8),
-          _sideNavItem(icon: Icons.dashboard_outlined, label: 'Dashboard', selected: true),
-          _sideNavItem(icon: Icons.support_agent_outlined, label: 'Soporte',
-              onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-          _sideNavItem(icon: Icons.people_outline, label: 'Usuarios',
+          _navItem(icon: Icons.grid_view_outlined,       label: 'Dashboard',      selected: true),
+          _navItem(icon: Icons.store_outlined,            label: 'Tiendas'),
+          _navItem(icon: Icons.people_outline,            label: 'Comercios',
               onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
-          _sideNavItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
-              onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
-          _sideNavItem(icon: Icons.gavel_outlined, label: 'Legal'),
-          _sideNavItem(icon: Icons.flag_outlined, label: 'Moderación'),
-          _sideNavItem(icon: Icons.payments_outlined, label: 'Pagos'),
-          _sideNavItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
-          _sideNavItem(icon: Icons.settings_outlined, label: 'Configuración'),
+          _navItem(icon: Icons.gavel_outlined,            label: 'Legal',
+              onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
+          _navItem(icon: Icons.verified_user_outlined,    label: 'KYBC',
+              onTap: () => Get.toNamed(Routes.KYBC)),
+          _navItem(icon: Icons.policy_outlined,            label: 'Políticas',
+              onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
+          _navItem(icon: Icons.receipt_long_outlined,     label: 'Datos fiscales'),
+          _navItem(icon: Icons.payments_outlined,          label: 'Pagos',
+              onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
+          _navItem(icon: Icons.support_agent_outlined,    label: 'Soporte',
+              onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
+          _navItem(icon: Icons.settings_outlined,         label: 'Configuración'),
           const Spacer(),
-          const Divider(height: 1),
+          Container(height: 1, color: _border),
           ListTile(
             dense: true,
             leading: const Icon(Icons.logout, size: 18, color: Colors.grey),
-            title: const Text('Logout',
+            title: const Text('Cerrar Sesión',
                 style: TextStyle(fontSize: 13, color: Colors.grey)),
             onTap: () async {
               await AuthService.signOut();
@@ -117,7 +108,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     );
   }
 
-  Widget _sideNavItem({
+  Widget _navItem({
     required IconData icon,
     required String label,
     bool selected = false,
@@ -126,280 +117,261 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        margin: const EdgeInsets.fromLTRB(12, 2, 12, 2),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
         decoration: BoxDecoration(
           color: selected ? _purpleLight : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: selected ? _purple : Colors.grey.shade500),
-            const SizedBox(width: 10),
-            Text(label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? _purple : Colors.grey.shade700,
-                )),
-          ],
-        ),
+        child: Row(children: [
+          Icon(icon, size: 17, color: selected ? _purple : Colors.grey.shade500),
+          const SizedBox(width: 10),
+          Text(label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                color: selected ? _purple : Colors.grey.shade700,
+              )),
+        ]),
       ),
     );
   }
 
-  Widget _mainArea(BuildContext context, {required bool desktop}) {
-    return Column(
-      children: [
-        _topBar(context, desktop: desktop),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(desktop ? 24 : 16),
-            child: desktop ? _desktopContent(context) : _mobileContent(context),
+  // ─── BODY ───────────────────────────────────────────────────────────────────
+
+  Widget _body(BuildContext context, {required bool desktop}) {
+    return Column(children: [
+      _topBar(context, desktop: desktop),
+      Expanded(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(desktop ? 24 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _pageHeader(),
+              const SizedBox(height: 20),
+              _statCards(),
+              const SizedBox(height: 20),
+              _storesTable(),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
-      ],
-    );
+      ),
+    ]);
   }
+
+  // ─── TOP BAR ─────────────────────────────────────────────────────────────────
 
   Widget _topBar(BuildContext context, {required bool desktop}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (!desktop)
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Super Admin Dashboard',
-                  style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
-              Text("Welcome back, here's what's happening with Letdem today.",
-                  style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-          const Spacer(),
+      child: Row(children: [
+        if (!desktop)
           IconButton(
-            icon: const Icon(Icons.notifications_outlined, size: 20),
-            onPressed: () {},
+            icon: const Icon(Icons.menu, size: 20),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            padding: EdgeInsets.zero,
           ),
-          const SizedBox(width: 8),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.add, size: 16, color: Colors.white),
-            label: const Text('Add New Store',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-            onPressed: () => _showCreateStoreDialog(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _purple,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        Expanded(
+          child: Container(
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(10),
             ),
+            child: const Row(children: [
+              SizedBox(width: 12),
+              Icon(Icons.search, size: 17, color: Colors.grey),
+              SizedBox(width: 8),
+              Text('Buscar tiendas, comercios...',
+                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+            ]),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _desktopContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _statCards(),
-        const SizedBox(height: 24),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(flex: 3, child: _storesTable(context)),
-            const SizedBox(width: 20),
-            SizedBox(width: 280, child: _permissionsPanel(context)),
-          ],
         ),
-        const SizedBox(height: 20),
-        _networkGrowthCard(),
+        const SizedBox(width: 12),
+        Obx(() {
+          final initials = controller.currentUserInitials.value.isNotEmpty
+              ? controller.currentUserInitials.value
+              : 'SA';
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _purpleLight,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _purple.withValues(alpha: 0.3)),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: _purple,
+                child: Text(initials,
+                    style: const TextStyle(
+                        fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+              ),
+              const SizedBox(width: 8),
+              const Text('Super Admin',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _purple)),
+            ]),
+          );
+        }),
+      ]),
+    );
+  }
+
+  // ─── PAGE HEADER ─────────────────────────────────────────────────────────────
+
+  Widget _pageHeader() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Gestión global de tiendas',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: _dark)),
+        SizedBox(height: 4),
+        Text('Gestiona tu red: CRM, KYBC y estados',
+            style: TextStyle(fontSize: 13, color: Colors.grey)),
       ],
     );
   }
 
-  Widget _mobileContent(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _statCards(),
-        const SizedBox(height: 20),
-        _storesTable(context),
-        const SizedBox(height: 20),
-        _permissionsPanel(context),
-        const SizedBox(height: 20),
-        _networkGrowthCard(),
-      ],
-    );
-  }
+  // ─── STAT CARDS ──────────────────────────────────────────────────────────────
 
   Widget _statCards() {
     return Obx(() {
-      final totalStores = controller.totalStores.value;
-      final activeUsers = controller.totalStoreUsers.value;
-      final redemptions = controller.totalRedemptions.value;
-      final pointsPts = controller.totalPointsPts.value;
-      final sg = controller.storesGrowthPercent.value;
-      final ug = controller.usersGrowthPercent.value;
-      return LayoutBuilder(builder: (context, constraints) {
-        final isWide = constraints.maxWidth >= 600;
-        final cards = [
-          _statCard(
-            title: 'Total Stores',
-            value: _formatCount(totalStores),
-            sub: _formatGrowth(sg, 'from last month'),
-            subColor: _growthColor(sg),
-            icon: Icons.store_outlined,
-            iconBg: const Color(0xFFEDE9FE),
-            iconColor: _purple,
-          ),
-          _statCard(
-            title: 'Active Users',
-            value: _formatCount(activeUsers),
-            sub: _formatGrowth(ug, 'weekly growth'),
-            subColor: _growthColor(ug),
-            icon: Icons.people_outline,
-            iconBg: const Color(0xFFECFDF5),
-            iconColor: Colors.green,
-          ),
-          _statCard(
-            title: 'Total Redemptions',
-            value: _formatCount(redemptions),
-            sub: pointsPts > 0 ? 'Points value: ${_formatCount(pointsPts)}' : '—',
-            subColor: Colors.grey,
-            icon: Icons.redeem_outlined,
-            iconBg: const Color(0xFFFEF3C7),
-            iconColor: const Color(0xFFD97706),
-          ),
-        ];
-        if (isWide) {
+      final defs = [
+        _StatDef(
+          value: _fmt(controller.totalStores.value),
+          label: 'Tiendas',
+          icon: Icons.store_outlined,
+          color: _purple,
+        ),
+        _StatDef(
+          value: (controller.kybcStats.value?.pendingCount ?? 0).toString(),
+          label: 'KYBC pendientes',
+          icon: Icons.hourglass_empty_outlined,
+          color: _amber,
+        ),
+        _StatDef(
+          value: (controller.kybcStats.value?.inReviewCount ?? 0).toString(),
+          label: 'En revisión',
+          icon: Icons.rate_review_outlined,
+          color: _blue,
+        ),
+      ];
+      return LayoutBuilder(builder: (_, c) {
+        if (c.maxWidth >= 500) {
           return Row(
-            children: cards
-                .map((c) => Expanded(child: Padding(padding: const EdgeInsets.only(right: 12), child: c)))
-                .toList(),
+            children: defs.asMap().entries.map((e) => Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: e.key < defs.length - 1 ? 12 : 0),
+                child: _statCard(e.value),
+              ),
+            )).toList(),
           );
         }
-        return Column(
-          children: cards.map((c) => Padding(padding: const EdgeInsets.only(bottom: 12), child: c)).toList(),
+        return Wrap(
+          spacing: 12, runSpacing: 12,
+          children: defs.map((d) => SizedBox(
+            width: (c.maxWidth - 12) / 2,
+            child: _statCard(d),
+          )).toList(),
         );
       });
     });
   }
 
-  Widget _statCard({
-    required String title,
-    required String value,
-    required String sub,
-    required Color subColor,
-    required IconData icon,
-    required Color iconBg,
-    required Color iconColor,
-  }) {
+  Widget _statCard(_StatDef def) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, size: 18, color: iconColor),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: def.color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
-          const SizedBox(height: 12),
-          Text(value,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF1E1B4B))),
-          const SizedBox(height: 4),
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 4),
-          Text(sub, style: TextStyle(fontSize: 11, color: subColor, fontWeight: FontWeight.w500)),
-        ],
-      ),
+          child: Icon(def.icon, size: 20, color: def.color),
+        ),
+        const SizedBox(width: 14),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(def.value,
+                style: const TextStyle(
+                    fontSize: 28, fontWeight: FontWeight.w800, color: _dark, height: 1.1)),
+            const SizedBox(height: 2),
+            Text(def.label,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+      ]),
     );
   }
 
-  Widget _storesTable(BuildContext context) {
+  // ─── STORES TABLE ─────────────────────────────────────────────────────────────
+
+  static const _hdrStyle = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.w700,
+    color: Colors.grey,
+    letterSpacing: 0.5,
+  );
+
+  Widget _storesTable() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+        border: Border.all(color: _border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-            child: Row(
-              children: [
-                const Text('Active Stores',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {},
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('View All',
-                          style: TextStyle(
-                              fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
-                      SizedBox(width: 2),
-                      Icon(Icons.arrow_forward, size: 13, color: _purple),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+            child: Row(children: [
+              const Text('Tiendas registradas',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _dark)),
+              const Spacer(),
+              Obx(() => controller.isLoading.value
+                  ? const SizedBox(
+                      width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: _purple))
+                  : const SizedBox.shrink()),
+            ]),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF9F9F9),
-              border: Border(
-                top: BorderSide(color: Color(0xFFEEEEEE)),
-                bottom: BorderSide(color: Color(0xFFEEEEEE)),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Expanded(flex: 3, child: Text('STORE NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 2, child: Text('OWNER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 1, child: Text('STATUS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                Expanded(flex: 2, child: Text('REVENUE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.grey))),
-                SizedBox(width: 80),
-              ],
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            color: const Color(0xFFF9F9F9),
+            child: const Row(children: [
+              Expanded(flex: 4, child: Text('TIENDA',  style: _hdrStyle)),
+              Expanded(flex: 2, child: Text('KYBC',    style: _hdrStyle)),
+              Expanded(flex: 2, child: Text('ESTADO',  style: _hdrStyle)),
+              SizedBox(width: 110, child: Text('ACCIÓN', style: _hdrStyle, textAlign: TextAlign.center)),
+            ]),
           ),
           Obx(() {
-            if (controller.stores.isEmpty) {
+            final stores = controller.stores;
+            if (stores.isEmpty) {
               return const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: Text('No hay tiendas registradas.')),
+                padding: EdgeInsets.all(32),
+                child: Center(
+                  child: Text('Sin tiendas registradas',
+                      style: TextStyle(color: Colors.grey, fontSize: 13)),
+                ),
               );
             }
             return Column(
-              children: controller.stores.map((store) => _storeRow(context, store)).toList(),
+              children: stores.take(20).map((s) => _storeRow(s)).toList(),
             );
           }),
         ],
@@ -407,410 +379,279 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     );
   }
 
-  Widget _storeRow(BuildContext context, StoreModel store) {
-    final initials = store.name.isNotEmpty
-        ? store.name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join()
-        : '?';
-    return GestureDetector(
-      onLongPress: () => _confirmDeleteStore(store.id),
-      child: Container(
+  Widget _storeRow(StoreModel store) {
+    final (kycLabel, kycColor, kycBg) = _kycBadge(store.kycStatus);
+    return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: _purpleLight,
-                  child: Text(initials,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _purple)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(store.name,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(
-              store.ownerName.isNotEmpty ? store.ownerName : _ownerName(store.ownerEmail),
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
-              maxLines: 1, overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(children: [
+        // Tienda
+        Expanded(
+          flex: 4,
+          child: Row(children: [
+            Container(
+              width: 34, height: 34,
               decoration: BoxDecoration(
-                color: store.isPublished
-                    ? Colors.green.withValues(alpha: 0.12)
-                    : Colors.grey.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
+                color: _purpleLight,
+                borderRadius: BorderRadius.circular(8),
+                image: store.logoUrl.startsWith('http')
+                    ? DecorationImage(
+                        image: NetworkImage(store.logoUrl), fit: BoxFit.cover)
+                    : null,
               ),
-              child: Text(
-                store.isPublished ? 'Active' : 'Pending',
-                style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: store.isPublished ? Colors.green : Colors.grey.shade600),
-                textAlign: TextAlign.center,
+              child: store.logoUrl.startsWith('http')
+                  ? null
+                  : Center(
+                      child: Text(
+                        store.name.isNotEmpty ? store.name[0].toUpperCase() : '?',
+                        style: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w700, color: _purple),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(store.name,
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600, color: _dark),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  if (store.address.isNotEmpty)
+                    Text(store.address,
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                ],
               ),
             ),
+          ]),
+        ),
+        // KYBC
+        Expanded(flex: 2, child: _badge(kycLabel, kycColor, kycBg)),
+        // Estado
+        Expanded(
+          flex: 2,
+          child: _badge(
+            store.isPublished ? 'Activo' : 'Inactivo',
+            store.isPublished ? _green : Colors.grey,
+            store.isPublished ? const Color(0xFFECFDF5) : const Color(0xFFF5F5F5),
           ),
-          Expanded(
-            flex: 2,
-            child: Obx(() {
-              final pts = controller.storeRevenue[store.id] ?? 0;
-              return Text(
-                _formatPts(pts),
-                style: const TextStyle(
-                    fontSize: 12, color: Color(0xFF1E1B4B), fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              );
-            }),
-          ),
-          SizedBox(
-            width: 80,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _purpleLight,
-                foregroundColor: _purple,
-                elevation: 0,
+        ),
+        // Acción
+        SizedBox(
+          width: 110,
+          child: Center(
+            child: OutlinedButton(
+              onPressed: () => Get.toNamed(
+                Routes.STORE_CONFIG,
+                arguments: {'storeId': store.id},
+              ),
+              style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                side: BorderSide(color: _purple.withValues(alpha: 0.5)),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Edit',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+              child: const Text('Configurar',
+                  style: TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: _purple)),
             ),
           ),
-        ],
-      ),
-    ),
+        ),
+      ]),
     );
   }
 
-  Widget _permissionsPanel(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
+  Widget _badge(String label, Color color, Color bg) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w700,
+                color: color, letterSpacing: 0.3)),
       ),
+    );
+  }
+
+  (String, Color, Color) _kycBadge(String status) {
+    switch (status.toLowerCase()) {
+      case 'approved':   return ('Aprobado',    _green,  const Color(0xFFECFDF5));
+      case 'rejected':   return ('Rechazado',   _red,    const Color(0xFFFEF2F2));
+      case 'in_review':  return ('En Revisión', _amber,  const Color(0xFFFFFBEB));
+      case 'pending':    return ('Pendiente',   _purple, _purpleLight);
+      case 'suspended':  return ('Suspendido',  _red,    const Color(0xFFFEF2F2));
+      case 'notificado': return ('Notificado',  _blue,   const Color(0xFFEFF6FF));
+      default:           return ('Sin KYC',     Colors.grey, const Color(0xFFF5F5F5));
+    }
+  }
+
+  // ─── ALERTAS COMERCIO PANEL ──────────────────────────────────────────────────
+
+  Widget _alertasPanel() {
+    return Container(
+      width: 240,
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 12),
-            child: Text('System Permissions',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
+            padding: EdgeInsets.fromLTRB(16, 20, 16, 12),
+            child: Text('Alertas comercio',
+                style: TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700, color: _dark)),
           ),
-          const Divider(height: 1),
-          Obx(() => _permissionRow(
-            title: 'Super Admin',
-            sub: '${controller.superAdminCount.value} users',
-            icon: Icons.admin_panel_settings_outlined,
-            iconColor: _purple,
-            iconBg: _purpleLight,
-          )),
-          Obx(() => _permissionRow(
-            title: 'Store Managers',
-            sub: '${controller.totalStoreUsers.value} users',
-            icon: Icons.manage_accounts_outlined,
-            iconColor: Colors.blue,
-            iconBg: const Color(0xFFEFF6FF),
-          )),
-          Obx(() => _permissionRow(
-            title: 'Support Team',
-            sub: '${controller.supportTeamCount.value} users',
-            icon: Icons.support_agent_outlined,
-            iconColor: Colors.green,
-            iconBg: const Color(0xFFECFDF5),
-          )),
-          const Divider(height: 1),
-          Obx(() {
-            final compliance = controller.securityCompliance.value;
-            final pct = compliance / 100.0;
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text('Security Compliance',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1B4B))),
-                      const Spacer(),
-                      Text('$compliance%',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: pct.clamp(0.0, 1.0),
-                      minHeight: 6,
-                      backgroundColor: const Color(0xFFEEEEEE),
-                      valueColor: const AlwaysStoppedAnimation<Color>(_purple),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: _purple),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+          Container(height: 1, color: _border),
+          Expanded(
+            child: Obx(() {
+              final kybcPending   = controller.kybcStats.value?.pendingCount ?? 0;
+              final storesNoFiscal = controller.stores
+                  .where((s) => s.fiscalId.isEmpty)
+                  .length;
+              return Column(children: [
+                _alertItem(
+                  icon: Icons.verified_user_outlined,
+                  iconColor: _purple,
+                  iconBg: _purpleLight,
+                  title: 'KYBC pendiente',
+                  badge: kybcPending > 0 ? kybcPending.toString() : null,
+                  onTap: () => Get.toNamed(Routes.KYBC),
                 ),
-                child: const Text('Manage Global Roles',
-                    style: TextStyle(color: _purple, fontSize: 12, fontWeight: FontWeight.w600)),
-              ),
-            ),
+                _alertItem(
+                  icon: Icons.receipt_long_outlined,
+                  iconColor: _amber,
+                  iconBg: const Color(0xFFFFFBEB),
+                  title: 'Datos fiscales',
+                  subtitle: storesNoFiscal > 0
+                      ? '$storesNoFiscal sin completar'
+                      : 'Al día',
+                  actionLabel: storesNoFiscal > 0 ? 'Editar datos' : null,
+                  onTap: () {},
+                ),
+                _alertItem(
+                  icon: Icons.support_agent_outlined,
+                  iconColor: _blue,
+                  iconBg: const Color(0xFFEFF6FF),
+                  title: 'Soporte',
+                  badge: controller.supportPending.value > 0
+                      ? controller.supportPending.value.toString()
+                      : null,
+                  subtitle: 'Tickets pendientes',
+                  onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS),
+                ),
+              ]);
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _permissionRow({
-    required String title,
-    required String sub,
+  Widget _alertItem({
     required IconData icon,
     required Color iconColor,
     required Color iconBg,
+    required String title,
+    String? subtitle,
+    String? badge,
+    String? actionLabel,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 16, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                Text(sub, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, size: 16, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  Widget _networkGrowthCard() {
-    const tabs = ['7D', '30D', '6M'];
-    return Obx(() {
-      final sel = controller.selectedGrowthTab.value;
-      final data = controller.currentGrowthData;
-      final labels = controller.currentGrowthLabels;
-      final hasData = data.isNotEmpty;
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Text('Network Growth',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF1E1B4B))),
-                const Spacer(),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: tabs.asMap().entries.map((entry) {
-                      final i = entry.key;
-                      final label = entry.value;
-                      final isSelected = i == sel;
-                      return GestureDetector(
-                        onTap: () => controller.selectedGrowthTab.value = i,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected ? Colors.white : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: isSelected
-                                ? [const BoxShadow(color: Color(0x1A000000), blurRadius: 4)]
-                                : [],
-                          ),
-                          child: Text(label,
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                                  color: isSelected ? _purple : Colors.grey)),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (!hasData)
-              const SizedBox(
-                height: 80,
-                child: Center(child: Text('Sin datos', style: TextStyle(color: Colors.grey, fontSize: 12))),
-              )
-            else
-              SizedBox(
-                height: 80,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: List.generate(data.length, (i) {
-                    final factor = data[i].clamp(0.0, 1.0);
-                    final isHighest = factor == data.reduce((a, b) => a > b ? a : b);
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            height: (80 * factor).clamp(4.0, 80.0),
-                            decoration: BoxDecoration(
-                              color: isHighest ? _purple : _purpleLight,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
+                child: Icon(icon, size: 15, color: iconColor),
               ),
-            if (hasData && labels.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: labels
-                    .take(data.length)
-                    .map((l) => Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey)))
-                    .toList(),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600, color: _dark)),
+              ),
+              if (badge != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: iconColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(badge,
+                      style: const TextStyle(
+                          fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+            ]),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 41),
+                child: Text(subtitle,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              ),
+            ],
+            if (actionLabel != null) ...[
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(left: 41),
+                child: Text(actionLabel,
+                    style: const TextStyle(
+                        fontSize: 11, color: _purple, fontWeight: FontWeight.w600)),
               ),
             ],
           ],
         ),
-      );
-    });
-  }
-
-  // ─── MOBILE ─────────────────────────────────────────────────────────────────
-
-  Widget _mobileLayout(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bg,
-      drawer: Drawer(
-        child: SafeArea(child: _sidebar(context)),
-      ),
-      body: _mainArea(context, desktop: false),
-    );
-  }
-
-  // ─── DIALOGS ─────────────────────────────────────────────────────────────────
-
-  void _showCreateStoreDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-    final ownerEmailController = TextEditingController();
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Crear Nueva Tienda'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nombre de la tienda')),
-            TextField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Descripción')),
-            TextField(controller: ownerEmailController, decoration: const InputDecoration(labelText: 'Email del dueño')),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              if (nameController.text.isNotEmpty &&
-                  descriptionController.text.isNotEmpty &&
-                  ownerEmailController.text.isNotEmpty) {
-                controller.addStore(StoreModel(
-                  id: 'store_${DateTime.now().millisecondsSinceEpoch}',
-                  name: nameController.text,
-                  description: descriptionController.text,
-                  ownerId: 'owner_${DateTime.now().millisecondsSinceEpoch}',
-                  ownerEmail: ownerEmailController.text,
-                  adminUserIds: [],
-                  fiscalId: 'FISCAL${DateTime.now().millisecondsSinceEpoch}',
-                  address: 'Dirección por definir',
-                  logoUrl: Constants.logo,
-                  billingEmail: ownerEmailController.text,
-                  billingPhone: '000 000 0000',
-                  pin: '0000',
-                  createdAt: DateTime.now(),
-                ));
-                Get.back();
-                Get.snackbar('Éxito', 'Tienda creada correctamente');
-              }
-            },
-            child: const Text('Crear'),
-          ),
-        ],
       ),
     );
   }
 
-  void _confirmDeleteStore(String storeId) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Confirmar eliminación'),
-        content: const Text('¿Estás seguro de que quieres eliminar esta tienda?'),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-          TextButton(
-            onPressed: () {
-              controller.removeStore(storeId);
-              Get.back();
-              Get.snackbar('Éxito', 'Tienda eliminada correctamente');
-            },
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
+  // ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+  static String _fmt(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) {
+      final k = n / 1000;
+      return '${k == k.truncateToDouble() ? k.toInt() : k.toStringAsFixed(1)}k';
+    }
+    return n.toString();
   }
+}
+
+// ─── DATA CLASSES ─────────────────────────────────────────────────────────────
+
+class _StatDef {
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
+  const _StatDef({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
 }

@@ -10,6 +10,7 @@ import '../../../data/models/paginated.dart';
 import '../../../data/models/product_model.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/models/store_user_model.dart';
+import '../../../data/models/role_definition_model.dart';
 import '../../../data/models/voucher_model.dart';
 import '../../../data/repositories/marketplace_repository.dart';
 import '../../../data/services/auth_service.dart';
@@ -20,6 +21,7 @@ class AdminController extends GetxController {
 
   final RxList<ProductModel> products = <ProductModel>[].obs;
   final RxList<StoreUserModel> storeUsers = <StoreUserModel>[].obs;
+  final RxList<RoleDefinitionModel> roleDefinitions = <RoleDefinitionModel>[].obs;
   final RxList<VoucherModel> vouchers = <VoucherModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxSet<String> favoriteVoucherIds = <String>{}.obs;
@@ -1021,7 +1023,7 @@ class AdminController extends GetxController {
     }
   }
 
-  Future<void> reportVoucherIncident(String voucherId,
+  Future<Map<String, dynamic>?> reportVoucherIncident(String voucherId,
       {required String reason, String notes = ''}) async {
     try {
       final result = await _repo.reportVoucherIncident(
@@ -1033,12 +1035,14 @@ class AdminController extends GetxController {
             ? 'Ticket #$ticketId creado. El equipo ha sido notificado.'
             : 'El equipo ha sido notificado.',
       );
+      return result.isNotEmpty ? result : null;
     } on ApiException catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
     } catch (_) {
       CustomSnackBar.showCustomErrorSnackBar(
         title: 'Error', message: 'No se pudo reportar la incidencia.');
     }
+    return null;
   }
 
   // ── Settings ──────────────────────────────────────────────────────────────
@@ -1050,6 +1054,13 @@ class AdminController extends GetxController {
     try {
       final users = await _repo.fetchStoreUsers(storeId.value);
       if (users.isNotEmpty) storeUsers.assignAll(users);
+    } catch (_) {}
+  }
+
+  Future<void> loadRoleDefinitions() async {
+    try {
+      final roles = await _repo.fetchStoreRolesPermissions(storeId.value);
+      if (roles.isNotEmpty) roleDefinitions.assignAll(roles);
     } catch (_) {}
   }
 

@@ -55,7 +55,7 @@ class GdprRequestsView extends StatelessWidget {
           _navItem(Icons.privacy_tip_outlined,  'GDPR', selected: true),
           _navItem(Icons.gavel_outlined,        'Legal'),
           _navItem(Icons.flag_outlined,         'Moderación'),
-          _navItem(Icons.payments_outlined,     'Pagos'),
+          _navItem(Icons.payments_outlined,     'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(Icons.fact_check_outlined,   'Auditoría'),
           _navItem(Icons.settings_outlined,     'Configuración'),
           const Spacer(),

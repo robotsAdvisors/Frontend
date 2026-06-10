@@ -4,9 +4,17 @@ import 'package:image_picker/image_picker.dart';
 import '../../../utils/api_config.dart';
 import '../models/admin_user_model.dart';
 import '../models/audit_log_model.dart';
-import '../models/gdpr_request_model.dart';
-import '../models/review_model.dart';
 import '../models/category_model.dart';
+import '../models/data_subject_request_model.dart';
+import '../models/gdpr_request_model.dart';
+import '../models/legal_consent_model.dart';
+import '../models/legal_stats_response.dart';
+import '../models/legal_version_model.dart';
+import '../models/kybc_stats_model.dart';
+import '../models/sensitive_policy_model.dart';
+import '../models/stripe_dispute_model.dart';
+import '../models/review_model.dart';
+import '../models/role_definition_model.dart';
 import '../models/order_model.dart';
 import '../models/paginated.dart';
 import '../models/parking_spot_model.dart';
@@ -794,6 +802,20 @@ class MarketplaceRepository {
     }
   }
 
+  Future<List<RoleDefinitionModel>> fetchStoreRolesPermissions(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.storeRolesPermissions(storeId));
+      final data = response.data;
+      final rolesRaw = (data is Map ? data['roles'] : data) as List? ?? [];
+      return rolesRaw
+          .whereType<Map>()
+          .map((e) => RoleDefinitionModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
   /// POST /marketplace/stores/<id>/change-pin/ — cambia el PIN de la tienda.
   Future<void> changeStorePin(
       String storeId, String currentPin, String newPin) async {
@@ -1228,11 +1250,211 @@ class MarketplaceRepository {
     }
   }
 
-  /// Estadísticas globales del Super Admin.
+  /// GET /admin/users/<id>/subscription/
+  Future<Map<String, dynamic>?> fetchUserSubscription(String userId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminUserSubscription(userId));
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// GET /admin/users/<id>/benefits/
+  Future<Map<String, dynamic>?> fetchUserBenefits(String userId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminUserBenefits(userId));
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// GET /admin/users/<id>/transactions/
+  Future<List<Map<String, dynamic>>> fetchUserTransactions(String userId, {int limit = 50}) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminUserTransactions(userId),
+        queryParameters: {'limit': limit},
+      );
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      if (raw is Map) {
+        final results = raw['results'] ?? raw['data'] ?? raw['transactions'];
+        if (results is List) {
+          return results.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return [];
+  }
+
+  /// GET /admin/users/<id>/kyc/
+  Future<Map<String, dynamic>?> fetchUserKyc(String userId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminUserKyc(userId));
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// PATCH /admin/users/<id>/kyc/  body: {action: 'restart'|'approve'|'reject', reason?}
+  Future<Map<String, dynamic>?> updateUserKyc(String userId, {
+    required String action,
+    String? reason,
+  }) async {
+    try {
+      final response = await _dio.patch(
+        ApiConfig.adminUserKyc(userId),
+        data: {
+          'action': action,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        },
+      );
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// POST /admin/users/<id>/deactivation/  body: {action: 'soft_delete'|'restore', reason?}
+  Future<bool> updateUserDeactivation(String userId, {
+    required String action,
+    String? reason,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.adminUserDeactivation(userId),
+        data: {
+          'action': action,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        },
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ---------- LEGAL & CONSENTS (ver métodos completos al final) ----------
+
   /// GET /marketplace/admin/stats/
   Future<Map<String, dynamic>?> fetchAdminStats() async {
     try {
       final response = await _dio.get(ApiConfig.adminStats);
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Estadísticas del dashboard ejecutivo del backoffice.
+  /// GET /marketplace/admin/dashboard/stats/
+  Future<Map<String, dynamic>?> fetchDashboardStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminDashboardStats);
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Alertas críticas activas (tickets escalados, disputas abiertas, reportes de reseñas).
+  /// GET /marketplace/admin/alerts/
+  Future<List<Map<String, dynamic>>> fetchAdminAlerts() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminAlerts);
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      if (raw is Map) {
+        final results = raw['results'] ?? raw['data'] ?? raw['alerts'];
+        if (results is List) {
+          return results.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return [];
+  }
+
+  /// Registro global de auditoría.
+  /// GET /marketplace/admin/audit-log/
+  Future<List<Map<String, dynamic>>> fetchGlobalAuditLog({
+    String? model,
+    String? action,
+    String? userId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminAuditLog, queryParameters: {
+        if (model != null) 'model': model,
+        if (action != null) 'action': action,
+        if (userId != null) 'user_id': userId,
+        'page': page,
+        'page_size': pageSize,
+      });
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      }
+      if (raw is Map) {
+        final results = raw['results'] ?? raw['data'] ?? raw['entries'];
+        if (results is List) {
+          return results.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+        }
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return [];
+  }
+
+  /// Salud del sistema (DB, microservicios, latencia, storage, cache).
+  /// GET /marketplace/admin/system/health/
+  Future<Map<String, dynamic>?> fetchSystemHealth() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminSystemHealth);
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Métricas por dominio operacional (Soporte, Cumplimiento, Pagos, Moderación).
+  /// GET /marketplace/admin/domain-stats/
+  Future<Map<String, dynamic>?> fetchDomainStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminDomainStats);
       if (response.statusCode == 200 && response.data is Map) {
         return Map<String, dynamic>.from(response.data as Map);
       }
@@ -1292,4 +1514,397 @@ class MarketplaceRepository {
     }
     return const [];
   }
+
+  // ──────────── LEGAL CONSENTS ────────────
+  /// GET /admin/legal/consents/ - Lista paginada de consentimientos
+  Future<Paginated<LegalConsentModel>> fetchLegalConsents({
+    String? status,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.adminLegalConsents,
+      fromJson: LegalConsentModel.fromJson,
+      query: {
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  /// GET /admin/legal/stats/ - Estadísticas de consentimientos
+  Future<LegalStatsResponse> fetchLegalStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminLegalStats);
+      if (response.statusCode == 200 && response.data is Map) {
+        return LegalStatsResponse.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+      return LegalStatsResponse(
+        totalThisMonth: 0,
+        dailyAverage: 0.0,
+        conversionRate: 0.0,
+        pendingApproval: 0,
+        expiredConsents: 0,
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /admin/legal/consents/{id}/action/ - Actualizar estado de consentimiento
+  Future<void> updateLegalConsent(
+    String consentId, {
+    required String action, // 'accept', 'reject'
+    String? reason,
+  }) async {
+    try {
+      await _dio.post(
+        ApiConfig.adminLegalConsentAction(consentId),
+        data: {
+          'action': action,
+          if (reason != null) 'reason': reason,
+        },
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ──────────── LEGAL DOCUMENTS/VERSIONS ────────────
+  /// GET /admin/legal/documents/ - Lista de documentos legales con versiones
+  Future<Paginated<LegalVersionModel>> fetchLegalVersions({
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.adminLegalDocuments,
+      fromJson: LegalVersionModel.fromJson,
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  /// POST /admin/legal/documents/ - Crear nuevo documento legal
+  Future<LegalVersionModel?> createLegalDocument({
+    required String documentType,
+    required String version,
+    required String title,
+    required String summary,
+    bool activateImmediately = false,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.adminLegalDocuments,
+        data: {
+          'document_type': documentType,
+          'version': version,
+          'title': title,
+          'summary': summary,
+          'is_active': activateImmediately,
+        },
+      );
+      if (response.statusCode == 201 && response.data is Map) {
+        return LegalVersionModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// PATCH /admin/legal/documents/{id}/ - Actualizar documento (ej: activar)
+  Future<LegalVersionModel?> updateLegalDocument(String id, {bool? isActive}) async {
+    try {
+      final response = await _dio.patch(
+        '${ApiConfig.adminLegalDocuments}$id/',
+        data: {
+          if (isActive != null) 'is_active': isActive,
+        },
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return LegalVersionModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  // ──────────── DATA SUBJECT REQUESTS (RGPD) ────────────
+  /// GET /admin/gdpr/requests/ - Lista de solicitudes de derechos RGPD
+  Future<Paginated<DataSubjectRequestModel>> fetchDataSubjectRequests({
+    String? status,
+    String? rightType,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.gdprRequests,
+      fromJson: DataSubjectRequestModel.fromJson,
+      query: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        if (rightType != null && rightType.isNotEmpty) 'right_type': rightType,
+      },
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  /// POST /admin/gdpr/requests/{id}/action/ - Completar/Rechazar solicitud RGPD
+  Future<void> updateDataSubjectRequest(
+    String requestId, {
+    required String action, // 'complete', 'reject'
+    String? reason,
+  }) async {
+    try {
+      await _dio.post(
+        '${ApiConfig.gdprRequests}$requestId/action/',
+        data: {
+          'action': action,
+          if (reason != null) 'reason': reason,
+        },
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ──────────── ADMIN STORE MANAGEMENT ────────────
+
+  /// GET /marketplace/admin/stores/{id}/ - Detalle admin de una tienda
+  Future<StoreModel?> adminGetStoreDetail(String storeId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminStoreDetail(storeId));
+      if (response.data is Map) {
+        return StoreModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// PATCH /marketplace/admin/stores/{id}/ - Actualización admin de una tienda
+  Future<StoreModel?> adminUpdateStore(
+      String storeId, Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.patch(
+        ApiConfig.adminStoreDetail(storeId),
+        data: payload,
+      );
+      if (response.data is Map) {
+        return StoreModel.fromJson(Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  // ──────────── KYBC COMPLIANCE ────────────
+
+  /// GET /admin/kyc/stats/ - Estadísticas globales de KYBC
+  Future<KybcStatsModel> fetchKycStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminKycStats);
+      if (response.data is Map) {
+        return KybcStatsModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return const KybcStatsModel();
+  }
+
+  /// GET /admin/kyc/queue/?status=X&page=N - Cola de verificación KYBC
+  Future<Paginated<AdminUserModel>> fetchKycQueue({
+    String? status, // 'pending' | 'in_review' | 'approved' | 'rejected' | 'suspended'
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return _fetchPage(
+      url: ApiConfig.adminKycQueue,
+      fromJson: AdminUserModel.fromJson,
+      query: {
+        if (status != null && status.isNotEmpty) 'status': status,
+      },
+      page: page,
+      pageSize: pageSize,
+    );
+  }
+
+  /// POST /admin/users/{id}/kyc/action/ - Acción de cumplimiento (suspend_payments, reinstate)
+  Future<void> executeComplianceAction(
+    String userId, {
+    required String action, // 'suspend_payments' | 'reinstate' | 'suspend_certification'
+    String? reason,
+    String? notes,
+  }) async {
+    try {
+      await _dio.post(
+        ApiConfig.adminUserComplianceAction(userId),
+        data: {
+          'action': action,
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+          if (notes != null && notes.isNotEmpty) 'notes': notes,
+        },
+      );
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// GET /admin/users/{id}/compliance/history/ - Registro de sanciones
+  Future<List<Map<String, dynamic>>> fetchComplianceHistory(String userId) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminUserComplianceHistory(userId));
+      final raw = response.data;
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+      }
+      if (raw is Map) {
+        final results = raw['results'] ?? raw['data'] ?? raw['history'] ?? [];
+        if (results is List) {
+          return results
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
+        }
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return [];
+  }
+
+  // ── SENSITIVE POLICIES ────────────────────────────────────────────────────
+
+  /// GET /admin/policies/
+  Future<List<SensitivePolicyModel>> fetchSensitivePolicies({
+    String? status,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminPolicies,
+        queryParameters: {
+          'page': page,
+          'page_size': pageSize,
+          if (status != null) 'status': status,
+        },
+      );
+      final raw = response.data;
+      final list = raw is Map
+          ? (raw['results'] ?? raw['data'] ?? []) as List
+          : _toList(raw);
+      return list
+          .whereType<Map>()
+          .map((e) => SensitivePolicyModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// GET /admin/policies/stats/
+  Future<Map<String, dynamic>> fetchSensitivePoliciesStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminPoliciesStats);
+      if (response.data is Map) return Map<String, dynamic>.from(response.data as Map);
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return {};
+  }
+
+  /// PATCH /admin/policies/{id}/
+  Future<SensitivePolicyModel?> updateSensitivePolicy(
+      String id, Map<String, dynamic> payload) async {
+    try {
+      final response =
+          await _dio.patch(ApiConfig.adminPolicyDetail(id), data: payload);
+      if (response.data is Map) {
+        return SensitivePolicyModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// POST /admin/policies/
+  Future<SensitivePolicyModel?> createSensitivePolicy(
+      Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.post(ApiConfig.adminPolicies, data: payload);
+      if (response.data is Map) {
+        return SensitivePolicyModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  // ──────────── STRIPE DISPUTES & REFUNDS ────────────
+
+  Future<List<StripeDisputeModel>> fetchStripeDisputes({
+    String? status,
+    String? type,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminStripeDisputes,
+        queryParameters: {
+          if (status != null) 'status': status,
+          if (type != null) 'type': type,
+          'page': page,
+          'page_size': pageSize,
+        },
+      );
+      final data = response.data;
+      final list = data is Map ? (data['results'] ?? data['data'] ?? []) : data;
+      if (list is List) {
+        return list.map((e) => StripeDisputeModel.fromJson(e as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return [];
+  }
+
+  Future<StripeDisputeStats> fetchStripeDisputeStats() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminStripeDisputeStats);
+      if (response.data is Map) {
+        return StripeDisputeStats.fromJson(response.data as Map<String, dynamic>);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return const StripeDisputeStats(totalDisputes: 0, completed: 0, successRate: 0);
+  }
+
+  Future<bool> performStripeDisputeAction(String id, {required String action, String? notes}) async {
+    try {
+      await _dio.post(
+        ApiConfig.adminStripeDisputeAction(id),
+        data: {'action': action, if (notes != null) 'notes': notes},
+      );
+      return true;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
 }
+
