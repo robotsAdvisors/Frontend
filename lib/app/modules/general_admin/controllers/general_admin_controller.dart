@@ -81,6 +81,9 @@ class GeneralAdminController extends GetxController {
   final RxString selectedStorePinMasked = ''.obs;
   final RxBool isLoadingStore = false.obs;
   final RxBool isSavingStore = false.obs;
+  final RxString storeQuery = ''.obs;
+
+  void searchStores(String query) => storeQuery.value = query.toLowerCase();
 
   // KYBC Compliance
   final Rx<KybcStatsModel?> kybcStats = Rx<KybcStatsModel?>(null);
@@ -790,22 +793,30 @@ class GeneralAdminController extends GetxController {
 
   // ──────────── STORE CONFIGURATION ────────────
 
-  Future<void> loadStoreDetail(String storeId) async {
+  Future<void> loadStoreDetail(String storeId,
+      {StoreModel? knownStore}) async {
     isLoadingStore.value = true;
-    selectedStore.value = null;
+    // Show the known store immediately while fetching fresh data
+    if (knownStore != null) selectedStore.value = knownStore;
     selectedStoreUsers.clear();
     selectedStorePinMasked.value = '';
     try {
       final results = await Future.wait([
-        _repo.adminGetStoreDetail(storeId),
-        _repo.fetchStoreUsers(storeId),
+        _repo.adminGetStoreDetail(storeId)
+            .catchError((_) => null as StoreModel?),
+        _repo.fetchStoreUsers(storeId)
+            .catchError((_) => <StoreUserModel>[]),
         _repo.fetchStorePIN(storeId).catchError((_) => <String, dynamic>{}),
       ]);
       final store = results[0] as StoreModel?;
       final users = results[1] as List<StoreUserModel>;
       final pinInfo = results[2] as Map<String, dynamic>;
       if (store != null) selectedStore.value = store;
-      selectedStoreUsers.assignAll(users);
+      // Fallback: filter from the global storeUsers list if API returned nothing
+      final effectiveUsers = users.isNotEmpty
+          ? users
+          : storeUsers.where((u) => u.storeId == storeId).toList();
+      selectedStoreUsers.assignAll(effectiveUsers);
       selectedStorePinMasked.value =
           (pinInfo['pin_masked'] ?? pinInfo['pin'] ?? '****').toString();
     } catch (e) {

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-
 import '../../../../utils/api_config.dart';
 import '../../local/my_shared_pref.dart';
 
@@ -17,38 +16,49 @@ class ApiClient {
         receiveTimeout: const Duration(seconds: 30),
         contentType: 'application/json',
         responseType: ResponseType.json,
-        validateStatus: (status) => status != null && status < 500,
+        validateStatus: (status) => status != null,
       ),
     );
 
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          final token = MySharedPref.getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
+          final path = options.path;
+          final isAuthEndpoint = path.contains('/auth/login') ||
+              path.contains('/auth/signup') ||
+              path.contains('/auth/social-login') ||
+              path.contains('/auth/social-signup');
+          if (!isAuthEndpoint) {
+            final token = MySharedPref.getAccessToken();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
           handler.next(options);
         },
-        onError: (error, handler) async {
-          final response = error.response;
-          final requestPath = error.requestOptions.path;
+        onResponse: (response, handler) async {
+          final status = response.statusCode ?? 0;
+          final requestPath = response.requestOptions.path;
           final isRefreshRequest = requestPath.contains('token/refresh');
+          final isAuthEndpoint = requestPath.contains('/auth/login') ||
+              requestPath.contains('/auth/signup') ||
+              requestPath.contains('/auth/social-login') ||
+              requestPath.contains('/auth/social-signup');
 
-          if (response?.statusCode == 401 && !isRefreshRequest) {
+          if (status == 401 && !isRefreshRequest && !isAuthEndpoint) {
             final refreshed = await _tryRefreshToken();
             if (refreshed) {
               try {
-                final cloned = await _retry(error.requestOptions);
+                final cloned = await _retry(response.requestOptions);
                 return handler.resolve(cloned);
-              } catch (_) {
-                // fallthrough al error original
-              }
+              } catch (_) {}
             } else {
-              // refresh fallido -> limpiar tokens
               await MySharedPref.clearTokens();
             }
           }
+          handler.next(response);
+        },
+        onError: (error, handler) {
           handler.next(error);
         },
       ),

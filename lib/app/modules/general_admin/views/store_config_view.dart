@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -75,7 +75,7 @@ class StoreConfigView extends GetView<GeneralAdminController> {
             onTap: () => Get.offNamed(Routes.GENERAL_ADMIN),
           ),
           _navItem(icon: Icons.people_outline, label: 'Usuarios',
-              onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
               onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
           _navItem(icon: Icons.gavel_outlined, label: 'Legal'),
@@ -84,7 +84,7 @@ class StoreConfigView extends GetView<GeneralAdminController> {
           _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.confirmation_number_outlined, label: 'Soporte',
               onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-          _navItem(icon: Icons.settings_outlined, label: 'Configuración'),
+
           const Spacer(),
           const Divider(height: 1),
           ListTile(

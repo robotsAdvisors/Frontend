@@ -63,7 +63,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
           _navItem(icon: Icons.flag_outlined, label: 'Moderación'),
           _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
-          _navItem(icon: Icons.settings_outlined, label: 'Configuración'),
+
           const Spacer(),
           const Divider(height: 1),
           ListTile(

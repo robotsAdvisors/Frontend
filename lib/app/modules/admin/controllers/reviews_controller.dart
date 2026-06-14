@@ -35,11 +35,26 @@ class ReviewsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadStats();
-    loadReviews();
+    final adminCtrl = Get.find<AdminController>();
+    if (_hasRealStoreId) {
+      loadStats();
+      loadReviews();
+    } else {
+      // El storeId todavía es el dummy — espera a que llegue el real.
+      once(adminCtrl.storeId, (String id) {
+        if (id.isNotEmpty && !id.startsWith('store_')) {
+          loadStats();
+          loadReviews();
+        }
+      });
+    }
   }
 
+  bool get _hasRealStoreId =>
+      _storeId.isNotEmpty && !_storeId.startsWith('store_');
+
   Future<void> loadStats() async {
+    if (!_hasRealStoreId) return;
     isLoadingStats.value = true;
     try {
       stats.value = await _repo.fetchReviewStats(_storeId);
@@ -49,6 +64,7 @@ class ReviewsController extends GetxController {
   }
 
   Future<void> loadReviews({int page = 1}) async {
+    if (!_hasRealStoreId) return;
     isLoading.value = true;
     try {
       final filter = activeFilter.value == 'all' ? null : activeFilter.value;

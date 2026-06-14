@@ -183,9 +183,10 @@ class _ReviewsViewState extends State<ReviewsView> {
 
   Widget _topBar() {
     return Container(
-      height: 64, color: Colors.white,
+      height: 64,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
+          color: Colors.white,
           border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE)))),
       child: Row(children: [
         const Text('Reseñas de la Tienda',

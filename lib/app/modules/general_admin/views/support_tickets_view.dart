@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -138,7 +138,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
         _navItem(icon: Icons.support_agent_outlined, label: 'Soporte',
             selected: true),
         _navItem(icon: Icons.people_outline, label: 'Usuarios',
-            onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+            onTap: () => Get.toNamed(Routes.COMERCIOS)),
         _navItem(icon: Icons.gavel_outlined, label: 'Legal'),
         _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
             onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
@@ -147,7 +147,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
         _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
         _navItem(icon: Icons.fact_check_outlined, label: 'Cumplimiento'),
         _navItem(icon: Icons.history_edu_outlined, label: 'Auditoría'),
-        _navItem(icon: Icons.settings_outlined, label: 'Configuración'),
+
         const Spacer(),
         const Divider(height: 1),
         ListTile(dense: true,
@@ -241,7 +241,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               value: _ctrl.statusFilter.value.isEmpty
                   ? 'all' : _ctrl.statusFilter.value,
               items: const {
-                'all':        'Todos los Estado',
+                'all':        'Estado',
                 'open':       'Abierto',
                 'pending':    'Pendiente',
                 'prioritized':'Priorizado',
@@ -260,7 +260,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               value: _ctrl.categoryFilter.value.isEmpty
                   ? 'all' : _ctrl.categoryFilter.value,
               items: {
-                'all': 'Todas las Catego.',
+                'all': 'Categoría',
                 for (final c in _ctrl.categories) c.name: c.name,
               },
               onChanged: (v) {
@@ -434,12 +434,14 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
         borderRadius: BorderRadius.circular(8)),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
-          value: value, isDense: true,
+          value: value, isDense: true, isExpanded: true,
           style: const TextStyle(fontSize: 11, color: Color(0xFF374151)),
           icon: const Icon(Icons.keyboard_arrow_down, size: 14, color: Colors.grey),
           borderRadius: BorderRadius.circular(10),
-          items: items.entries.map((e) =>
-              DropdownMenuItem<T>(value: e.key, child: Text(e.value))).toList(),
+          items: items.entries.map((e) => DropdownMenuItem<T>(
+            value: e.key,
+            child: Text(e.value, overflow: TextOverflow.ellipsis, maxLines: 1),
+          )).toList(),
           onChanged: onChanged),
       ),
     );

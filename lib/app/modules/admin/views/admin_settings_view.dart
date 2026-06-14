@@ -127,7 +127,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         _nav(Icons.bar_chart_outlined,     'Estadísticas',
             onTap: () => Get.offNamed(Routes.ANALYTICS)),
         _nav(Icons.lock_outline,           'PIN',
-            onTap: () {}),
+            onTap: () => _showChangePinDialog(context)),
         _nav(Icons.security_outlined,      'Seguridad', selected: true),
         const Spacer(),
         const Divider(height: 1),
@@ -282,6 +282,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Obx(() {
+              _ctrl.storeId.value;
               final url = _ctrl.currentStore.banner;
               return url.startsWith('http')
                   ? Image.network(url, width: 200, height: 120, fit: BoxFit.cover,
@@ -323,6 +324,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                   color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 8, offset: const Offset(0, 2))]),
             child: Obx(() {
+              _ctrl.storeId.value;
               final url = _ctrl.currentStore.logoUrl;
               return url.startsWith('http')
                   ? ClipOval(child: Image.network(url,

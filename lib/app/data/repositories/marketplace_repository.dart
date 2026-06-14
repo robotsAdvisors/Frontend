@@ -1541,7 +1541,7 @@ class MarketplaceRepository {
         return LegalStatsResponse.fromJson(Map<String, dynamic>.from(response.data as Map));
       }
       return LegalStatsResponse(
-        totalThisMonth: 0,
+        totalActive: 0,
         dailyAverage: 0.0,
         conversionRate: 0.0,
         pendingApproval: 0,

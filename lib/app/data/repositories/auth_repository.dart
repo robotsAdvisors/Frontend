@@ -39,9 +39,7 @@ class AuthRepository {
         await MySharedPref.setLoggedIn(true);
         return data;
       }
-      throw toApiException(
-        Exception(response.data?.toString() ?? 'Error de autenticacion'),
-      );
+      throw _httpError(response.statusCode, response.data);
     } catch (error) {
       throw toApiException(error);
     }
@@ -69,9 +67,7 @@ class AuthRepository {
         await MySharedPref.setLoggedIn(true);
         return data;
       }
-      throw toApiException(
-        Exception(response.data?.toString() ?? 'Error de registro'),
-      );
+      throw _httpError(response.statusCode, response.data);
     } catch (error) {
       throw toApiException(error);
     }
@@ -122,9 +118,7 @@ class AuthRepository {
         await MySharedPref.setLoggedIn(true);
         return data;
       }
-      throw toApiException(
-        Exception(response.data?.toString() ?? 'Error de social login'),
-      );
+      throw _httpError(response.statusCode, response.data);
     } catch (error) {
       throw toApiException(error);
     }
@@ -334,6 +328,22 @@ class AuthRepository {
     } catch (_) {
       return {};
     }
+  }
+
+  static ApiException _httpError(int? statusCode, dynamic data) {
+    if (data is String && data.trimLeft().startsWith('<')) {
+      return ApiException(
+        statusCode == 404
+            ? 'Endpoint no encontrado. Verifica la URL del servidor.'
+            : 'Error del servidor ($statusCode)',
+        statusCode: statusCode,
+      );
+    }
+    if (data is Map) {
+      final detail = data['detail'] ?? data['error'] ?? data['message'];
+      if (detail != null) return ApiException(detail.toString(), statusCode: statusCode);
+    }
+    return ApiException(data?.toString() ?? 'Error desconocido ($statusCode)', statusCode: statusCode);
   }
 
   static String mapRole(String backendRole) {

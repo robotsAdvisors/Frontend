@@ -44,6 +44,7 @@ abstract class Routes {
   static const SEGURIDAD          = _Paths.SEGURIDAD;
   static const INCIDENCIAS        = _Paths.INCIDENCIAS;
   static const CONFIRMAR_ENTREGA  = _Paths.CONFIRMAR_ENTREGA;
+  static const COMERCIOS          = _Paths.COMERCIOS;
 }
 
 abstract class _Paths {
@@ -89,4 +90,5 @@ abstract class _Paths {
   static const SEGURIDAD          = '/admin/seguridad';
   static const INCIDENCIAS        = '/admin/incidencias';
   static const CONFIRMAR_ENTREGA  = '/admin/confirmar-entrega';
+  static const COMERCIOS          = '/backoffice/comercios';
 }

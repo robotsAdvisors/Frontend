@@ -54,6 +54,7 @@ import '../modules/admin/views/empleados_view.dart';
 import '../modules/admin/views/seguridad_view.dart';
 import '../modules/admin/views/incidencias_view.dart';
 import '../modules/admin/views/confirmar_entrega_view.dart';
+import '../modules/general_admin/views/comercios_view.dart';
 import '../modules/update_parking/bindings/update_parking_binding.dart';
 import '../modules/update_parking/views/update_parking_view.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
@@ -224,6 +225,13 @@ class AppPages {
       name: _Paths.CONFIRMAR_ENTREGA,
       page: () => const ConfirmarEntregaView(),
       binding: AdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.COMERCIOS,
+      page: () => const ComerciosView(),
+      binding: GeneralAdminBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

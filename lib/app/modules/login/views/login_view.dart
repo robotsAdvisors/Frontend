@@ -18,13 +18,15 @@ class LoginView extends GetView<LoginController> {
       body: Stack(
         children: [
           // Gradient background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFF0EBFF), Colors.white, Color(0xFFFDF4FF)],
-                stops: [0.0, 0.55, 1.0],
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFF0EBFF), Colors.white, Color(0xFFFDF4FF)],
+                  stops: [0.0, 0.55, 1.0],
+                ),
               ),
             ),
           ),
@@ -99,13 +101,11 @@ class LoginView extends GetView<LoginController> {
                                   24.verticalSpace,
                                   Obx(() {
                                     final role = controller.selectedRole.value;
-                                    final isAdmin = role != AuthService.customerRole;
-                                    if (!isAdmin) return const SizedBox.shrink();
                                     final label = role == AuthService.generalAdminRole
                                         ? 'Super Admin'
                                         : role == AuthService.storeViewerRole
                                             ? 'Store Viewer'
-                                            : 'Store Admin';
+                                            : 'Admin Tienda';
                                     return Column(children: [
                                       Container(
                                         width: double.infinity,
@@ -120,12 +120,15 @@ class LoginView extends GetView<LoginController> {
                                           children: [
                                             const Icon(Icons.admin_panel_settings, size: 16, color: Color(0xFF7C3AED)),
                                             6.horizontalSpace,
-                                            Text(
-                                              'Modo administrador — $label',
-                                              style: const TextStyle(
-                                                color: Color(0xFF7C3AED),
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13,
+                                            Flexible(
+                                              child: Text(
+                                                'Modo administrador — $label',
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF7C3AED),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -142,7 +145,7 @@ class LoginView extends GetView<LoginController> {
                                   ),
                                   8.verticalSpace,
                                   Text(
-                                    'Tu portal de recompensas y marketplace',
+                                    'Panel de administración',
                                     style: theme.textTheme.bodyMedium,
                                     textAlign: TextAlign.center,
                                   ),
@@ -337,7 +340,13 @@ class LoginView extends GetView<LoginController> {
                                         ),
                                       )),
                                   const Divider(height: 24),
-                                  _buildAdminSection(theme),
+                                  Row(children: [
+                                    _adminRoleChip(theme, 'Tienda',      AuthService.storeAdminRole),
+                                    8.horizontalSpace,
+                                    _adminRoleChip(theme, 'Viewer',      AuthService.storeViewerRole),
+                                    8.horizontalSpace,
+                                    _adminRoleChip(theme, 'Super Admin', AuthService.generalAdminRole),
+                                  ]),
                                 ],
                               ),
                             ),
@@ -363,62 +372,6 @@ class LoginView extends GetView<LoginController> {
       height: 36.h,
       fit: BoxFit.contain,
     );
-  }
-
-  Widget _buildAdminSection(ThemeData theme) {
-    return Obx(() {
-      final isAdmin =
-          controller.selectedRole.value != AuthService.customerRole;
-      return Column(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F3FF),
-              borderRadius: BorderRadius.circular(50.r),
-              border: Border.all(color: const Color(0xFFEDE9FE)),
-            ),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 6,
-              children: [
-                Icon(Icons.admin_panel_settings_outlined,
-                    size: 15, color: Colors.grey.shade500),
-                Text(
-                  '¿Eres administrador?',
-                  style: TextStyle(
-                      color: Colors.grey.shade600, fontSize: 12.sp),
-                ),
-                GestureDetector(
-                  onTap: controller.toggleAdminPanel,
-                  child: Text(
-                    isAdmin ? 'Volver' : 'Ingresa aquí',
-                    style: TextStyle(
-                      color: theme.primaryColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12.sp,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isAdmin) ...[
-            12.verticalSpace,
-            Row(
-              children: [
-                _adminRoleChip(theme, 'Tienda', AuthService.storeAdminRole),
-                8.horizontalSpace,
-                _adminRoleChip(theme, 'Viewer', AuthService.storeViewerRole),
-                8.horizontalSpace,
-                _adminRoleChip(theme, 'Super Admin', AuthService.generalAdminRole),
-              ],
-            ),
-          ],
-        ],
-      );
-    });
   }
 
   Widget _adminRoleChip(ThemeData theme, String label, String role) {

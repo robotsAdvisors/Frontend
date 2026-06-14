@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/admin_user_model.dart';
@@ -64,12 +64,12 @@ class KybcView extends GetView<GeneralAdminController> {
           _navItem(Icons.dashboard_outlined, 'Dashboard',
               onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
           _navItem(Icons.people_outline, 'Usuarios',
-              onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(Icons.verified_user_outlined, 'KYBC', selected: true),
           _navItem(Icons.flag_outlined, 'Moderación'),
           _navItem(Icons.payments_outlined, 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(Icons.history_outlined, 'Auditoría'),
-          _navItem(Icons.settings_outlined, 'Configuración'),
+
           const Spacer(),
           const Divider(height: 1),
           ListTile(

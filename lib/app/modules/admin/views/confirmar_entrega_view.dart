@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../data/models/voucher_model.dart';
 import '../../../data/services/auth_service.dart';
@@ -196,28 +195,25 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
             style: TextStyle(fontSize: 13, color: Colors.grey)),
       ]),
       const Spacer(),
-      Obx(() {
-        final store = _ctrl.currentStore;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: _purpleLight,
-            borderRadius: BorderRadius.circular(20),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: _purpleLight,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(children: [
+          Container(
+            width: 28, height: 28,
+            decoration: BoxDecoration(
+                color: _purple, borderRadius: BorderRadius.circular(14)),
+            child: const Icon(Icons.store_outlined, size: 14, color: Colors.white),
           ),
-          child: Row(children: [
-            Container(
-              width: 28, height: 28,
-              decoration: BoxDecoration(
-                  color: _purple, borderRadius: BorderRadius.circular(14)),
-              child: const Icon(Icons.store_outlined, size: 14, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-            Text(store.name.isNotEmpty ? store.name : 'Admin Tienda',
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600, color: _purple)),
-          ]),
-        );
-      }),
+          const SizedBox(width: 8),
+          Text(_ctrl.currentStore.name.isNotEmpty ? _ctrl.currentStore.name : 'Admin Tienda',
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: _purple)),
+        ]),
+      ),
     ]);
   }
 
@@ -489,10 +485,10 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
 
       final customerName = _ctrl.customerNameFor(v);
       final productName  = _ctrl.productNameFor(v);
-      final pointsFmt    = NumberFormat('#,###').format(v.pointsUsed);
-      final issuedFmt    = DateFormat('dd/MM/yyyy').format(v.issuedAt.toLocal());
+      final pointsFmt    = _formatNumber(v.pointsUsed);
+      final issuedFmt    = _formatDate(v.issuedAt.toLocal());
       final expiresFmt   = v.expiresAt != null
-          ? DateFormat('dd/MM/yyyy').format(v.expiresAt!.toLocal())
+          ? _formatDate(v.expiresAt!.toLocal())
           : '—';
       final canConfirm   = v.status == VoucherStatus.paid ||
           v.status == VoucherStatus.pending;
@@ -790,6 +786,19 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
   }
 
   // ─── HELPERS ──────────────────────────────────────────────────────────────
+
+  String _formatNumber(int n) {
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
+  String _formatDate(DateTime dt) =>
+      '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
 
   String _statusLabel(VoucherStatus status) => switch (status) {
     VoucherStatus.pending   => 'Pendiente',

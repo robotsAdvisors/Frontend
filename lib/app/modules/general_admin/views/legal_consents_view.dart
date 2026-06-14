@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/data_subject_request_model.dart';
@@ -82,18 +82,18 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
           _navItem(icon: Icons.store_outlined,         label: 'Tiendas',
               onTap: () => Get.offAllNamed(Routes.GENERAL_ADMIN)),
           _navItem(icon: Icons.people_outline,         label: 'Comercios',
-              onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(icon: Icons.gavel_outlined,         label: 'Legal', selected: true),
           _navItem(icon: Icons.verified_user_outlined, label: 'KYBC',
               onTap: () => Get.toNamed(Routes.KYBC)),
           _navItem(icon: Icons.policy_outlined,        label: 'Políticas',
               onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
-          _navItem(icon: Icons.receipt_long_outlined,  label: 'Datos fiscales'),
+
           _navItem(icon: Icons.payments_outlined,       label: 'Pagos',
               onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.support_agent_outlined, label: 'Soporte',
               onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-          _navItem(icon: Icons.settings_outlined,      label: 'Configuración'),
+
           const Spacer(),
           Container(height: 1, color: _border),
           ListTile(

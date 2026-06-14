@@ -15,7 +15,7 @@ class ApiConfig {
   );
 
   /// Prefijo de la API REST.
-  static const String apiPrefix = '/v1';
+  static const String apiPrefix = '/api/v1';
 
   /// URL completa base para las peticiones.
   static String get apiBaseUrl => '$baseUrl$apiPrefix';
@@ -25,9 +25,11 @@ class ApiConfig {
   static const String authLogin = '/auth/login';
   static const String authSignup = '/auth/signup';
   static const String authSocialLogin = '/auth/social-login';
+  static const String authSocialSignup = '/auth/social-signup';
+  static const String authVerifyEmail = '/auth/account-verification/validate';
   static const String authResetPassword = '/auth/reset-password';
   static const String authSetPassword = '/auth/set-password';
-  static const String authChangePassword = '/v1/users/me/change-password';
+  static const String authChangePassword = '/users/me/change-password';
   static const String tokenRefresh = '/auth/token/refresh';
 
   // Profile

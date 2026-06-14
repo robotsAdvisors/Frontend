@@ -132,6 +132,9 @@ class AdminController extends GetxController {
         storeReviewCount.value = picked.reviewCount;
       }
 
+      // Si fetchStores falló o devolvió vacío el storeId sigue siendo dummy — no llamar al backend.
+      if (storeId.value.isEmpty || storeId.value.startsWith('store_')) return;
+
       // 2. Cargar productos, vouchers, categorias, analytics, actividad y meta mensual en paralelo.
       final results = await Future.wait<dynamic>([
         _repo.fetchProducts(storeId: storeId.value),
@@ -157,6 +160,8 @@ class AdminController extends GetxController {
             .catchError((_) => <String, dynamic>{}),
         _repo.fetchTopRedeemedProducts(storeId.value)
             .catchError((_) => <Map<String, dynamic>>[]),
+        _repo.fetchStoreUsers(storeId.value)
+            .catchError((_) => <StoreUserModel>[]),
       ]);
 
       final remoteProducts      = results[0]  as List<ProductModel>;
@@ -172,15 +177,15 @@ class AdminController extends GetxController {
       final remoteInvStats      = results[10] as Map<String, dynamic>;
       final remoteVoucherStatus = results[11] as Map<String, dynamic>;
       final remoteTopRedeemed   = results[12] as List<Map<String, dynamic>>;
+      final remoteStoreUsers    = results[13] as List<StoreUserModel>;
 
       products.assignAll(remoteProducts);
 
       vouchersMeta.value = vouchersPage.meta;
-      vouchers.assignAll(
-        vouchersPage.data
-            .where((v) => v.storeId.isEmpty || v.storeId == storeId.value)
-            .toList(),
-      );
+      // El endpoint /marketplace/vouchers/ ya filtra por tienda autenticada.
+      // No filtrar adicionalmente por storeId para evitar descartar vouchers
+      // cuyo campo store venga en formato distinto (string vs objeto).
+      vouchers.assignAll(vouchersPage.data);
 
       if (remoteCategories.isNotEmpty) categories.assignAll(remoteCategories);
       if (remoteDailyVouchers.isNotEmpty) dailyVouchers.assignAll(remoteDailyVouchers);
@@ -199,6 +204,7 @@ class AdminController extends GetxController {
       if (remoteInvStats.isNotEmpty)      inventoryStats.value  = remoteInvStats;
       if (remoteVoucherStatus.isNotEmpty) vouchersByStatus.value = remoteVoucherStatus;
       if (remoteTopRedeemed.isNotEmpty)   topRedeemedProducts.assignAll(remoteTopRedeemed);
+      if (remoteStoreUsers.isNotEmpty)    storeUsers.assignAll(remoteStoreUsers);
 
       _calculateStoreMetrics();
     } catch (_) {
@@ -285,6 +291,7 @@ class AdminController extends GetxController {
     String? category,
     String ordering = 'name',
   }) async {
+    if (storeId.value.isEmpty || storeId.value.startsWith('store_')) return;
     if (isLoadingInventory.value) return;
     isLoadingInventory.value = true;
     try {
@@ -1051,6 +1058,8 @@ class AdminController extends GetxController {
 
   /// Recarga la lista de usuarios desde el backend.
   Future<void> reloadStoreUsers() async {
+    // Evitar llamadas con el ID dummy antes de que el backend cargue.
+    if (storeId.value.isEmpty || storeId.value.startsWith('store_')) return;
     try {
       final users = await _repo.fetchStoreUsers(storeId.value);
       if (users.isNotEmpty) storeUsers.assignAll(users);
@@ -1058,6 +1067,7 @@ class AdminController extends GetxController {
   }
 
   Future<void> loadRoleDefinitions() async {
+    if (storeId.value.isEmpty || storeId.value.startsWith('store_')) return;
     try {
       final roles = await _repo.fetchStoreRolesPermissions(storeId.value);
       if (roles.isNotEmpty) roleDefinitions.assignAll(roles);

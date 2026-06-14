@@ -1,9 +1,10 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../data/models/category_model.dart';
 import '../../../data/models/product_model.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/admin_controller.dart';
@@ -51,7 +52,9 @@ class _PremiosViewState extends State<PremiosView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<AdminController>();
-    _ctrl.loadInventoryPage(page: 1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.loadInventoryPage(page: 1);
+    });
     _searchCtrl.addListener(() {
       if (_searchCtrl.text != _search) {
         setState(() => _search = _searchCtrl.text);
@@ -223,9 +226,9 @@ class _PremiosViewState extends State<PremiosView> {
   Widget _topHeader() {
     return Container(
       height: 56,
-      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(
@@ -334,12 +337,13 @@ class _PremiosViewState extends State<PremiosView> {
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF111827)),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Obx(() {
-                        final sub = _ctrl.currentStore.subtitle;
-                        return Text(sub.isNotEmpty ? sub : 'Gestión de Tienda',
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
-                            maxLines: 1, overflow: TextOverflow.ellipsis);
-                      }),
+                      Text(
+                        _ctrl.currentStore.subtitle.isNotEmpty
+                            ? _ctrl.currentStore.subtitle
+                            : 'Gestión de Tienda',
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   );
                 }),
@@ -678,7 +682,7 @@ class _PremiosViewState extends State<PremiosView> {
                   width: 16,
                   height: 16,
                   decoration: const BoxDecoration(
-                      color: Color(0xFFF59E0B),
+        color: Color(0xFFF59E0B),
                       shape: BoxShape.circle),
                   child: const Icon(Icons.star,
                       size: 9, color: Colors.white),
@@ -961,6 +965,7 @@ class _PremiosViewState extends State<PremiosView> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
+        color: Colors.white,
               border: Border(
                 top: BorderSide(color: Color(0xFFEEEEEE)),
                 left: BorderSide(color: Color(0xFFEEEEEE)),
@@ -1734,6 +1739,7 @@ class _PremiosViewState extends State<PremiosView> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: const BoxDecoration(
+        color: Colors.white,
             border: Border(top: BorderSide(color: Color(0xFFF3F4F6)))),
         child: Row(children: [
           Text('Página $page de $lastPage',

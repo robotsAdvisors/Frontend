@@ -223,10 +223,14 @@ class _VoucherHistoryViewState extends State<VoucherHistoryView> {
           const SizedBox(height: 6),
           _navItem(icon: Icons.home_outlined, label: 'Inicio',
               onTap: () => Get.offNamed(Routes.ADMIN)),
-          _navItem(icon: Icons.swap_horiz_rounded, label: 'Canjes', selected: true),
+          _navItem(icon: Icons.swap_horiz_rounded, label: 'Canjes',
+              selected: _mainTab == 0,
+              onTap: () => setState(() => _mainTab = 0)),
           _navItem(icon: Icons.card_giftcard_outlined, label: 'Canjes y Beneficios',
               onTap: () => Get.toNamed(Routes.PREMIOS)),
-          _navItem(icon: Icons.history_outlined, label: 'Historial'),
+          _navItem(icon: Icons.history_outlined, label: 'Historial',
+              selected: _mainTab == 1,
+              onTap: () => setState(() => _mainTab = 1)),
           _navItem(icon: Icons.bar_chart_outlined, label: 'Estadísticas',
               onTap: () => Get.toNamed(Routes.ANALYTICS)),
           const Spacer(),
@@ -287,9 +291,9 @@ class _VoucherHistoryViewState extends State<VoucherHistoryView> {
   Widget _topBar() {
     return Container(
       height: 56,
-      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(children: [
@@ -301,7 +305,7 @@ class _VoucherHistoryViewState extends State<VoucherHistoryView> {
         const SizedBox(width: 14),
         const Icon(Icons.notifications_outlined, size: 20, color: Color(0xFF374151)),
         const SizedBox(width: 14),
-        Obx(() => CircleAvatar(
+        CircleAvatar(
           radius: 16, backgroundColor: _purpleLight,
           child: _ctrl.currentStore.logoUrl.startsWith('http')
               ? ClipOval(child: Image.network(_ctrl.currentStore.logoUrl,
@@ -309,7 +313,7 @@ class _VoucherHistoryViewState extends State<VoucherHistoryView> {
                   errorBuilder: (_, __, ___) =>
                       const Icon(Icons.person, size: 16, color: _purple)))
               : const Icon(Icons.person, size: 16, color: _purple),
-        )),
+        ),
       ]),
     );
   }

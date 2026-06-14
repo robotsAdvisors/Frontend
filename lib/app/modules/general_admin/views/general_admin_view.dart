@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/store_model.dart';
@@ -75,21 +75,20 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           Container(height: 1, color: _border),
           const SizedBox(height: 8),
           _navItem(icon: Icons.grid_view_outlined,       label: 'Dashboard',      selected: true),
-          _navItem(icon: Icons.store_outlined,            label: 'Tiendas'),
+          _navItem(icon: Icons.store_outlined,            label: 'Tiendas',
+              onTap: () => Get.toNamed(Routes.STORE_CONFIG)),
           _navItem(icon: Icons.people_outline,            label: 'Comercios',
-              onTap: () => Get.toNamed(Routes.ADMIN_USER_DETAIL)),
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(icon: Icons.gavel_outlined,            label: 'Legal',
               onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
           _navItem(icon: Icons.verified_user_outlined,    label: 'KYBC',
               onTap: () => Get.toNamed(Routes.KYBC)),
           _navItem(icon: Icons.policy_outlined,            label: 'Políticas',
               onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
-          _navItem(icon: Icons.receipt_long_outlined,     label: 'Datos fiscales'),
           _navItem(icon: Icons.payments_outlined,          label: 'Pagos',
               onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.support_agent_outlined,    label: 'Soporte',
               onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-          _navItem(icon: Icons.settings_outlined,         label: 'Configuración'),
           const Spacer(),
           Container(height: 1, color: _border),
           ListTile(
@@ -384,6 +383,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
       ),
       child: Row(children: [
@@ -574,6 +574,7 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
         decoration: const BoxDecoration(
+        color: Colors.white,
           border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
         ),
         child: Column(

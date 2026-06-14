@@ -343,7 +343,8 @@ class _AdminViewState extends State<AdminView> {
           const Icon(Icons.help_outline,
               size: 22, color: Color(0xFF374151)),
           const SizedBox(width: 20),
-          Obx(() => Row(
+          Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     radius: 16,
@@ -368,6 +369,7 @@ class _AdminViewState extends State<AdminView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         AuthService.isStoreAdmin
@@ -385,7 +387,7 @@ class _AdminViewState extends State<AdminView> {
                     ],
                   ),
                 ],
-              )),
+              ),
         ],
       ),
     );
@@ -455,7 +457,7 @@ class _AdminViewState extends State<AdminView> {
         : Colors.orange.withValues(alpha: 0.15);
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
@@ -464,35 +466,40 @@ class _AdminViewState extends State<AdminView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, size: 22, color: iconColor),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: BorderRadius.circular(20),
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: textColor)),
                 ),
-                child: Text(label,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: textColor)),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(value,
               style: TextStyle(
-                  fontSize: 36,
+                  fontSize: 30,
                   fontWeight: FontWeight.w800,
                   color: textColor,
                   height: 1)),
           const SizedBox(height: 4),
           Text(sublabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   color: textColor.withValues(alpha: 0.7))),
         ],
       ),
@@ -539,8 +546,12 @@ class _AdminViewState extends State<AdminView> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Text('Tarjeta actual de puntos: ',
-                    style: TextStyle(fontSize: 11, color: Colors.white60)),
+                const Flexible(
+                  child: Text('Tarjeta actual de puntos: ',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: Colors.white60)),
+                ),
                 Text('${_fmtNumLong(available)} Pts',
                     style: const TextStyle(
                         fontSize: 11,
@@ -1146,42 +1157,59 @@ class _AdminViewState extends State<AdminView> {
           children: [
             const Icon(Icons.emoji_events_outlined, color: _purple, size: 20),
             const SizedBox(width: 10),
-            const Text(
-              'Meta Mensual de Fidelización',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            Flexible(
+              flex: 2,
+              child: Text(
+                'Meta Mensual de Fidelización',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
+              flex: 3,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: LinearProgressIndicator(
                   value: percent,
                   backgroundColor: const Color(0xFFE5E7EB),
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(_purple),
+                  valueColor: const AlwaysStoppedAnimation<Color>(_purple),
                   minHeight: 8,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Text(
-              '${(percent * 100).toStringAsFixed(0)}%  •  ${_fmtNumLong(current)} / ${_fmtNumLong(target)} Pts',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            const SizedBox(width: 10),
+            Flexible(
+              flex: 2,
+              child: Text(
+                '${(percent * 100).toStringAsFixed(0)}% · ${_fmtNumLong(current)}/${_fmtNumLong(target)} Pts',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
             ),
-            const SizedBox(width: 16),
-            Text(
-              'Días restantes: $days días',
-              style: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600),
+            const SizedBox(width: 10),
+            Flexible(
+              flex: 2,
+              child: Text(
+                '$days días',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
             ),
             if (prize.isNotEmpty) ...[
-              const SizedBox(width: 16),
-              Text(
-                'Premio meta: $prize',
-                style: const TextStyle(
-                    fontSize: 12,
-                    color: _purple,
-                    fontWeight: FontWeight.w600),
+              const SizedBox(width: 10),
+              Flexible(
+                flex: 2,
+                child: Text(
+                  prize,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12, color: _purple, fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ],

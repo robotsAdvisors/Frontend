@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/gdpr_request_model.dart';
@@ -51,13 +51,13 @@ class GdprRequestsView extends StatelessWidget {
           _navItem(Icons.dashboard_outlined,   'Dashboard',
               onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
           _navItem(Icons.people_outline,        'Usuarios',
-              onTap: () => Get.offNamed(Routes.ADMIN_USER_DETAIL)),
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(Icons.privacy_tip_outlined,  'GDPR', selected: true),
           _navItem(Icons.gavel_outlined,        'Legal'),
           _navItem(Icons.flag_outlined,         'Moderación'),
           _navItem(Icons.payments_outlined,     'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(Icons.fact_check_outlined,   'Auditoría'),
-          _navItem(Icons.settings_outlined,     'Configuración'),
+
           const Spacer(),
           const Divider(height: 1),
           Padding(
@@ -177,9 +177,9 @@ class GdprRequestsView extends StatelessWidget {
   Widget _topBar(GdprController ctrl) {
     return Container(
       height: 64,
-      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
+        color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: Row(children: [
@@ -404,7 +404,7 @@ class GdprRequestsView extends StatelessWidget {
           _filterTab(ctrl, 'due_3days','Pró. 3 días'),
           _filterTab(ctrl, 'resolved', 'Resueltas'),
           const SizedBox(width: 16),
-          const VerticalDivider(width: 1, height: 24),
+          const VerticalDivider(width: 1),
           const SizedBox(width: 16),
           // Type dropdown
           _typeDropdown(ctrl),
@@ -767,7 +767,7 @@ class GdprRequestsView extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Colors.white,
+        color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(

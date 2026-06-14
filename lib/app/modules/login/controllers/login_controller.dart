@@ -11,15 +11,7 @@ class LoginController extends GetxController {
   final TextEditingController passwordController = TextEditingController();
   final RxBool isLoading = false.obs;
   final RxBool hidePassword = true.obs;
-  final RxString selectedRole = AuthService.customerRole.obs;
-  final RxBool showAdminRoles = false.obs;
-
-  void toggleAdminPanel() {
-    showAdminRoles.value = !showAdminRoles.value;
-    selectedRole.value = showAdminRoles.value
-        ? AuthService.storeAdminRole
-        : AuthService.customerRole;
-  }
+  final RxString selectedRole = AuthService.storeAdminRole.obs;
 
   @override
   void onClose() {

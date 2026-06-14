@@ -39,8 +39,10 @@ class _EmpleadosViewState extends State<EmpleadosView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<AdminController>();
-    _ctrl.reloadStoreUsers();
-    _ctrl.loadRoleDefinitions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.reloadStoreUsers();
+      _ctrl.loadRoleDefinitions();
+    });
   }
 
   @override
@@ -98,8 +100,10 @@ class _EmpleadosViewState extends State<EmpleadosView> {
         const SizedBox(height: 8),
         _navItem(icon: Icons.grid_view_outlined,  label: 'Inicio',
             onTap: () => Get.offAllNamed(Routes.ADMIN)),
-        _navItem(icon: Icons.group_outlined,       label: 'Equipo'),
-        _navItem(icon: Icons.receipt_outlined,     label: 'Pedidos'),
+        _navItem(icon: Icons.group_outlined,       label: 'Equipo',
+            onTap: () => Get.toNamed(Routes.EMPLEADOS)),
+        _navItem(icon: Icons.receipt_outlined,     label: 'Pedidos',
+            onTap: () => Get.toNamed(Routes.CONFIRMAR_ENTREGA)),
         _navItem(icon: Icons.inventory_2_outlined, label: 'Productos',
             onTap: () => Get.toNamed(Routes.INVENTARIO)),
         _navItem(icon: Icons.badge_outlined,       label: 'Empleados', selected: true),

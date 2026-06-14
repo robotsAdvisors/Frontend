@@ -41,8 +41,9 @@ class _InventarioViewState extends State<InventarioView> {
   void initState() {
     super.initState();
     _ctrl = Get.find<AdminController>();
-    _ctrl.loadInventoryPage(page: 1);
-    _ctrl.loadCategories();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ctrl.loadInventoryPage(page: 1);
+    });
   }
 
   @override
@@ -118,8 +119,10 @@ class _InventarioViewState extends State<InventarioView> {
         const SizedBox(height: 8),
         _navItem(icon: Icons.grid_view_outlined,    label: 'Inicio',
             onTap: () => Get.offAllNamed(Routes.ADMIN)),
-        _navItem(icon: Icons.group_outlined,         label: 'Equipo'),
-        _navItem(icon: Icons.receipt_outlined,       label: 'Pedidos'),
+        _navItem(icon: Icons.group_outlined,         label: 'Equipo',
+            onTap: () => Get.toNamed(Routes.EMPLEADOS)),
+        _navItem(icon: Icons.receipt_outlined,       label: 'Pedidos',
+            onTap: () => Get.toNamed(Routes.CONFIRMAR_ENTREGA)),
         _navItem(icon: Icons.inventory_2_outlined,   label: 'Productos', selected: true),
         _navItem(icon: Icons.badge_outlined,         label: 'Empleados',
             onTap: () => Get.toNamed(Routes.EMPLEADOS)),
