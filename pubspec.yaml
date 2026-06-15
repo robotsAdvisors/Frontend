@@ -33,7 +33,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
 
-  flutter_test: 
+  flutter_test:
     sdk: flutter
 
 flutter_icons:

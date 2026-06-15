@@ -162,14 +162,19 @@ class LoginView extends GetView<LoginController> {
                                     ),
                                   ),
                                   8.verticalSpace,
-                                  CustomFormField(
-                                    hint: 'ejemplo@correo.com',
-                                    controller: controller.emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: controller.validateEmail,
-                                    textInputAction: TextInputAction.next,
-                                    prefixIcon: Icon(Icons.email_outlined,
-                                        color: theme.primaryColor, size: 20),
+                                  Semantics(
+
+                                    label: 'Correo Electrónico',
+                                    textField: true,
+                                    child: CustomFormField(
+                                      hint: 'ejemplo@correo.com',
+                                      controller: controller.emailController,
+                                      keyboardType: TextInputType.emailAddress,
+                                      validator: controller.validateEmail,
+                                      textInputAction: TextInputAction.next,
+                                      prefixIcon: Icon(Icons.email_outlined,
+                                          color: theme.primaryColor, size: 20),
+                                    ),
                                   ),
                                   20.verticalSpace,
                                   // Password label row
@@ -205,28 +210,35 @@ class LoginView extends GetView<LoginController> {
                                     ],
                                   ),
                                   8.verticalSpace,
-                                  Obx(() => CustomFormField(
-                                        hint: '••••••••',
-                                        controller:
-                                            controller.passwordController,
-                                        obscureText:
-                                            controller.hidePassword.value,
-                                        validator: controller.validatePassword,
-                                        prefixIcon: Icon(Icons.lock_outline,
-                                            color: theme.primaryColor, size: 20),
-                                        suffixIcon: IconButton(
-                                          icon: Icon(
-                                            controller.hidePassword.value
-                                                ? Icons.visibility_off_outlined
-                                                : Icons.visibility_outlined,
-                                            color: theme.hintColor,
-                                            size: 20,
+                                  Obx(() => Semantics(
+                                        label: 'Contraseña',
+                                        textField: true,
+                                        child: CustomFormField(
+                                          hint: '••••••••',
+                                          controller:
+                                              controller.passwordController,
+                                          obscureText:
+                                              controller.hidePassword.value,
+                                          validator:
+                                              controller.validatePassword,
+                                          prefixIcon: Icon(Icons.lock_outline,
+                                              color: theme.primaryColor,
+                                              size: 20),
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              controller.hidePassword.value
+                                                  ? Icons
+                                                      .visibility_off_outlined
+                                                  : Icons.visibility_outlined,
+                                              color: theme.hintColor,
+                                              size: 20,
+                                            ),
+                                            onPressed: () => controller
+                                                    .hidePassword.value =
+                                                !controller.hidePassword.value,
                                           ),
-                                          onPressed: () =>
-                                              controller.hidePassword.value =
-                                                  !controller.hidePassword.value,
+                                          textInputAction: TextInputAction.done,
                                         ),
-                                        textInputAction: TextInputAction.done,
                                       )),
                                   28.verticalSpace,
                                   // Login button

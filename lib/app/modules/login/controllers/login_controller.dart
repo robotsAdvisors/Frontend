@@ -38,20 +38,32 @@ class LoginController extends GetxController {
                 : Routes.BASE,
       );
     } on ApiException catch (exception) {
-      Get.snackbar(
-        'Error',
-        exception.message,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showLoginError(_authErrorMessage(exception));
     } catch (error) {
-      Get.snackbar(
-        'Error',
-        error.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      _showLoginError(error.toString());
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// Traduce los fallos de autenticación a un mensaje claro y localizado.
+  /// El backend (DRF/SimpleJWT) devuelve 401/400 con textos en inglés como
+  /// "No active account found with the given credentials"; para credenciales
+  /// inválidas mostramos siempre el mismo mensaje en español.
+  String _authErrorMessage(ApiException exception) {
+    if (exception.statusCode == 401 || exception.statusCode == 400) {
+      return 'Correo o contraseña incorrectos.';
+    }
+    return exception.message;
+  }
+
+  void _showLoginError(String message) {
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 5),
+    );
   }
 
   Future<void> register() async {

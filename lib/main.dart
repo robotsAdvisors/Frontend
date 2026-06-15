@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
@@ -13,6 +14,15 @@ import 'firebase_options.dart';
 Future<void> main() async {
   // wait for bindings
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Force the semantics (accessibility) tree to build from startup. On Flutter
+  // Web (CanvasKit) the UI is painted to a <canvas>, so without semantics each
+  // text field only exists as a single transient <input> for the *focused*
+  // field. Enabling semantics mounts a persistent, accessible DOM (real
+  // `textbox` nodes with labels) so screen readers — and end-to-end automation
+  // (Playwright/Selenium) — can address each field independently instead of
+  // overwriting one shared input.
+  SemanticsBinding.instance.ensureSemantics();
 
   // init shared preference
   await MySharedPref.init();
