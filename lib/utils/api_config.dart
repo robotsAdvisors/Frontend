@@ -22,15 +22,18 @@ class ApiConfig {
 
   // ---- Endpoints ----
   // Auth
-  static const String authLogin = '/auth/login';
-  static const String authSignup = '/auth/signup';
-  static const String authSocialLogin = '/auth/social-login';
-  static const String authSocialSignup = '/auth/social-signup';
-  static const String authVerifyEmail = '/auth/account-verification/validate';
-  static const String authResetPassword = '/auth/reset-password';
-  static const String authSetPassword = '/auth/set-password';
+  // NOTE: the backend (DRF) defines all `/auth/...` routes WITH a trailing
+  // slash, and returns 405/404 without it. The `/users/me...` routes are
+  // defined WITHOUT a trailing slash, so those stay as-is.
+  static const String authLogin = '/auth/login/';
+  static const String authSignup = '/auth/signup/';
+  static const String authSocialLogin = '/auth/social-login/';
+  static const String authSocialSignup = '/auth/social-signup/';
+  static const String authVerifyEmail = '/auth/account-verification/validate/';
+  static const String authResetPassword = '/auth/password-reset/';
+  static const String authSetPassword = '/auth/set-password/';
   static const String authChangePassword = '/users/me/change-password';
-  static const String tokenRefresh = '/auth/token/refresh';
+  static const String tokenRefresh = '/auth/token/refresh/';
 
   // Profile
   static const String me = '/users/me';
