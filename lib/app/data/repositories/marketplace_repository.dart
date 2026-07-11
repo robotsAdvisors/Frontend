@@ -17,7 +17,6 @@ import '../models/review_model.dart';
 import '../models/role_definition_model.dart';
 import '../models/order_model.dart';
 import '../models/paginated.dart';
-import '../models/parking_spot_model.dart';
 import '../models/product_model.dart';
 import '../models/store_model.dart';
 import '../models/store_user_model.dart';
@@ -555,62 +554,6 @@ class MarketplaceRepository {
         return Map<String, dynamic>.from(response.data as Map);
       }
       return const {};
-    } catch (e) {
-      throw toApiException(e);
-    }
-  }
-
-  // ---------- PARKING ----------
-
-  /// GET /parking/spots/{id}/
-  Future<ParkingSpotModel?> fetchParkingSpot(String spotId) async {
-    try {
-      final response = await _dio.get(ApiConfig.parkingSpotDetail(spotId));
-      if (response.statusCode == 200 && response.data is Map) {
-        return ParkingSpotModel.fromJson(
-          Map<String, dynamic>.from(response.data as Map),
-        );
-      }
-    } catch (e) {
-      throw toApiException(e);
-    }
-    return null;
-  }
-
-  /// PATCH /parking/spots/{uuid}/report/
-  /// Crea o actualiza el reporte del usuario.
-  /// [waitTime] en minutos (null = sin cambio).
-  /// [photo] es un archivo multipart; pasar null si no hay foto nueva.
-  /// Devuelve el spot actualizado con el wait_time y photo del reporte.
-  Future<ParkingSpotModel?> updateParkingReport(
-    String spotId, {
-    int? waitTime,
-    // ignore: unused_element
-    dynamic photoFile, // MultipartFile cuando se integre image_picker
-  }) async {
-    try {
-      final data = <String, dynamic>{
-        if (waitTime != null) 'wait_time': waitTime,
-      };
-      final response = await _dio.patch(
-        ApiConfig.parkingSpotReport(spotId),
-        data: data,
-      );
-      if (response.data is Map) {
-        return ParkingSpotModel.fromJson(
-          Map<String, dynamic>.from(response.data as Map),
-        );
-      }
-    } catch (e) {
-      throw toApiException(e);
-    }
-    return null;
-  }
-
-  /// DELETE /parking/spots/{uuid}/report/ → 204 No Content
-  Future<void> deleteParkingReport(String spotId) async {
-    try {
-      await _dio.delete(ApiConfig.parkingSpotReport(spotId));
     } catch (e) {
       throw toApiException(e);
     }

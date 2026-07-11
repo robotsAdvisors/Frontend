@@ -746,9 +746,6 @@ class VirtualCardView extends GetView<VirtualCardController> {
 
   (IconData, Color, Color) _benefitIcon(String key) {
     switch (key.toLowerCase()) {
-      case 'priority_parking':
-        return (Icons.local_parking_rounded,
-            const Color(0xFFDCFCE7), const Color(0xFF166534));
       case 'ev_boost':
       case 'ev_boost_rewards':
         return (Icons.bolt_rounded, _purpleLight, _purple);

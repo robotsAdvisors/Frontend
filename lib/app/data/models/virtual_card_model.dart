@@ -1,7 +1,7 @@
 /// Un beneficio de la tarjeta, devuelto embebido en GET /wallet/virtual-card/
 class CardBenefit {
   final String id;
-  final String key; // "priority_parking" | "ev_boost" | "marketplace_access" …
+  final String key; // "ev_boost" | "marketplace_access" | "cashback" …
   final String title;
   final String description;
 

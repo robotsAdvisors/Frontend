@@ -154,7 +154,7 @@ class MySharedPref {
 
   static Map<String, bool>? getNotificationPrefs() {
     const keys = [
-      'email', 'push', 'parking', 'police', 'road', 'traffic',
+      'email', 'push', 'police', 'road', 'traffic',
       'marketplace', 'rewards', 'weather', 'events', 'friends',
     ];
     final stored = <String, bool>{};

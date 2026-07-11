@@ -22,7 +22,6 @@ class _PreferencesViewState extends State<PreferencesView> {
   final Map<String, bool> _prefs = {
     'email_notifications': true,
     'push_notifications': true,
-    'parking_alert': true,
     'police_alert': false,
     'road_alert': true,
     'traffic_alert': true,
@@ -204,13 +203,6 @@ class _PreferencesViewState extends State<PreferencesView> {
     return _sectionCard(
       title: 'Alert Types',
       children: [
-        _alertRow(
-          iconBg: const Color(0xFF22C55E),
-          icon: Icons.local_parking_rounded,
-          label: 'Available spaces nearby',
-          key: 'parking_alert',
-        ),
-        _divider(),
         _alertRow(
           iconBg: const Color(0xFF8B5CF6),
           icon: Icons.shield_outlined,

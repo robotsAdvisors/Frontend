@@ -21,7 +21,6 @@ void main() {
 
     test('builders parametrizados insertan el id', () {
       expect(ApiConfig.storeDetail('42'), '/marketplace/stores/42/');
-      expect(ApiConfig.bookingCancel('b1'), '/parking/bookings/b1/cancel/');
       expect(ApiConfig.adminUserDetail('u9'), '/admin/users/u9/');
       expect(ApiConfig.voucherIncident('v3'),
           '/marketplace/vouchers/v3/incident/');

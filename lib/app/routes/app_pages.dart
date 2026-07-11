@@ -55,12 +55,8 @@ import '../modules/admin/views/seguridad_view.dart';
 import '../modules/admin/views/incidencias_view.dart';
 import '../modules/admin/views/confirmar_entrega_view.dart';
 import '../modules/general_admin/views/comercios_view.dart';
-import '../modules/update_parking/bindings/update_parking_binding.dart';
-import '../modules/update_parking/views/update_parking_view.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
 import '../modules/withdrawals/views/withdrawals_view.dart';
-import '../modules/bookings/bindings/bookings_binding.dart';
-import '../modules/bookings/views/bookings_view.dart';
 import '../modules/virtual_card/bindings/virtual_card_binding.dart';
 import '../modules/virtual_card/views/virtual_card_view.dart';
 
@@ -306,23 +302,9 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 250),
     ),
     GetPage(
-      name: _Paths.UPDATE_PARKING,
-      page: () => const UpdateParkingView(),
-      binding: UpdateParkingBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
       name: _Paths.WITHDRAWALS,
       page: () => const WithdrawalsView(),
       binding: WithdrawalsBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.BOOKINGS,
-      page: () => const BookingsView(),
-      binding: BookingsBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

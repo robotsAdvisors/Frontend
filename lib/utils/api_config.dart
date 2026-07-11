@@ -169,19 +169,9 @@ class ApiConfig {
   static String storeChangePIN(String id) => '/marketplace/stores/$id/change-pin/';
   static String storeSecurity(String id) => '/marketplace/stores/$id/security/';
 
-  // Parking
-  static const String parkingSpots = '/parking/spots/';
-  static String parkingSpotDetail(String id) => '/parking/spots/$id/';
-  static String parkingSpotReport(String id) => '/parking/spots/$id/report/';
-
   // Withdrawals
   static const String withdrawals = '/wallet/withdrawals/';
   static const String withdrawalsConfig = '/wallet/withdrawals/config/';
-
-  // Bookings
-  static const String bookings = '/parking/bookings/';
-  static String bookingDetail(String id) => '/parking/bookings/$id/';
-  static String bookingCancel(String id) => '/parking/bookings/$id/cancel/';
 
   // Virtual Card
   static const String virtualCard = '/wallet/virtual-card/';
