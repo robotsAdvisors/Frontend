@@ -38,9 +38,7 @@ class OrderItemModel {
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     final price = _toDouble(json['unit_price'] ?? json['price']);
-    final qty = (json['quantity'] ?? 1) is int
-        ? json['quantity'] as int
-        : int.tryParse(json['quantity'].toString()) ?? 1;
+    final qty = _toInt(json['quantity'], fallback: 1);
     return OrderItemModel(
       id: (json['id'] ?? '').toString(),
       productId: (json['product'] ?? '').toString(),
@@ -84,9 +82,7 @@ class OrderModel {
       subtotal: _toDouble(json['subtotal']),
       total: _toDouble(json['total']),
       pointsDiscount: _toDouble(json['points_discount']),
-      usedPoints: (json['used_points'] ?? 0) is int
-          ? json['used_points'] as int
-          : int.tryParse(json['used_points'].toString()) ?? 0,
+      usedPoints: _toInt(json['used_points']),
       isOpen: json['is_open'] is bool ? json['is_open'] as bool : true,
       createdAt: DateTime.tryParse((json['created'] ?? '').toString()) ??
           DateTime.now(),
@@ -115,17 +111,11 @@ class OrdersStats {
 
   factory OrdersStats.fromJson(Map<String, dynamic> json) {
     return OrdersStats(
-      totalOrders: (json['total_orders'] ?? 0) is int
-          ? json['total_orders'] as int
-          : int.tryParse(json['total_orders'].toString()) ?? 0,
+      totalOrders: _toInt(json['total_orders']),
       totalSpent: _toDouble(json['total_spent']),
-      totalPointsUsed: (json['total_points_used'] ?? 0) is int
-          ? json['total_points_used'] as int
-          : int.tryParse(json['total_points_used'].toString()) ?? 0,
+      totalPointsUsed: _toInt(json['total_points_used']),
       totalSaved: _toDouble(json['total_saved']),
-      currentPoints: (json['current_points'] ?? 0) is int
-          ? json['current_points'] as int
-          : int.tryParse(json['current_points'].toString()) ?? 0,
+      currentPoints: _toInt(json['current_points']),
     );
   }
 }
@@ -160,15 +150,9 @@ class OrdersPage {
           .whereType<Map>()
           .map((e) => OrderModel.fromJson(Map<String, dynamic>.from(e)))
           .toList(),
-      total: (meta['total'] ?? rawData.length) is int
-          ? meta['total'] as int
-          : int.tryParse(meta['total'].toString()) ?? rawData.length,
-      page: (meta['page'] ?? 1) is int
-          ? meta['page'] as int
-          : int.tryParse(meta['page'].toString()) ?? 1,
-      lastPage: (meta['lastPage'] ?? 1) is int
-          ? meta['lastPage'] as int
-          : int.tryParse(meta['lastPage'].toString()) ?? 1,
+      total: _toInt(meta['total'], fallback: rawData.length),
+      page: _toInt(meta['page'], fallback: 1),
+      lastPage: _toInt(meta['lastPage'], fallback: 1),
       stats: OrdersStats.fromJson(rawStats),
     );
   }
@@ -178,4 +162,11 @@ double _toDouble(dynamic value) {
   if (value == null) return 0;
   if (value is num) return value.toDouble();
   return double.tryParse(value.toString()) ?? 0;
+}
+
+int _toInt(dynamic value, {int fallback = 0}) {
+  if (value == null) return fallback;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString()) ?? fallback;
 }
