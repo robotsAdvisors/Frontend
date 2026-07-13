@@ -1,4 +1,4 @@
-class VoucherCampaignModel {
+class RedemptionCodeCampaignModel {
   final String id;
   final String storeId;
   final String name;
@@ -7,7 +7,7 @@ class VoucherCampaignModel {
   final double discountPercent;
   final bool isActive;
 
-  VoucherCampaignModel({
+  RedemptionCodeCampaignModel({
     required this.id,
     required this.storeId,
     required this.name,

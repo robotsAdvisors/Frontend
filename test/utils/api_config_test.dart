@@ -22,8 +22,8 @@ void main() {
     test('builders parametrizados insertan el id', () {
       expect(ApiConfig.storeDetail('42'), '/marketplace/stores/42/');
       expect(ApiConfig.adminUserDetail('u9'), '/admin/users/u9/');
-      expect(ApiConfig.voucherIncident('v3'),
-          '/marketplace/vouchers/v3/incident/');
+      expect(ApiConfig.redemptionCodeIncident('v3'),
+          '/marketplace/redemption-codes/v3/incident/');
     });
 
     test('storeUserDetail combina dos ids', () {

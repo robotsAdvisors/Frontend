@@ -34,7 +34,7 @@ import '../modules/admin/views/add_product_view.dart';
 import '../modules/admin/views/analytics_view.dart';
 import '../modules/admin/views/admin_view.dart';
 import '../modules/admin/views/reviews_view.dart';
-import '../modules/admin/views/voucher_history_view.dart';
+import '../modules/admin/views/redemption_code_history_view.dart';
 import '../modules/admin/views/admin_settings_view.dart';
 import '../modules/admin/views/inventario_view.dart';
 import '../modules/admin/views/premios_view.dart';
@@ -96,8 +96,8 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 250),
     ),
     GetPage(
-      name: _Paths.VOUCHER_HISTORY,
-      page: () => const VoucherHistoryView(),
+      name: _Paths.REDEMPTION_CODE_HISTORY,
+      page: () => const RedemptionCodeHistoryView(),
       binding: AdminBinding(),
     ),
     GetPage(

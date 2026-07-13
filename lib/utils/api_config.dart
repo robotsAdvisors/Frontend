@@ -45,13 +45,13 @@ class ApiConfig {
   static const String products = '/marketplace/products/';
 
   // Marketplace - autenticado
-  static const String vouchers = '/marketplace/vouchers/';
-  static const String vouchersPending = '/marketplace/vouchers/pending/';
-  static const String vouchersCreateOnline = '/marketplace/vouchers/create-online/';
-  static const String vouchersValidate  = '/marketplace/vouchers/validate/';
-  static const String vouchersPreview   = '/marketplace/vouchers/preview/';
-  static String voucherIncident(String id)        => '/marketplace/vouchers/$id/incident/';
-  static String voucherInitiatePayment(String code) => '/marketplace/vouchers/$code/initiate-payment/';
+  static const String redemptionCodes = '/marketplace/redemption-codes/';
+  static const String redemptionCodesPending = '/marketplace/redemption-codes/pending/';
+  static const String redemptionCodesCreateOnline = '/marketplace/redemption-codes/create-online/';
+  static const String redemptionCodesValidate  = '/marketplace/redemption-codes/validate/';
+  static const String redemptionCodesPreview   = '/marketplace/redemption-codes/preview/';
+  static String redemptionCodeIncident(String id)        => '/marketplace/redemption-codes/$id/incident/';
+  static String redemptionCodeInitiatePayment(String code) => '/marketplace/redemption-codes/$code/initiate-payment/';
   static const String orders      = '/marketplace/orders/';
   static const String storeOrders = '/marketplace/store/orders/';
   static const String purchaseWithRedeem = '/marketplace/purchase/with-redeem/';
@@ -72,9 +72,9 @@ class ApiConfig {
   static const String adminDomainStats    = '/marketplace/admin/domain-stats/';
 
   // Marketplace - analytics
-  static const String analyticsVouchersDaily    = '/marketplace/analytics/vouchers/daily/';
+  static const String analyticsRedemptionCodesDaily    = '/marketplace/analytics/redemption-codes/daily/';
   static const String analyticsSummary          = '/marketplace/analytics/summary/';
-  static const String analyticsVouchersByStatus = '/marketplace/analytics/vouchers/by-status/';
+  static const String analyticsRedemptionCodesByStatus = '/marketplace/analytics/redemption-codes/by-status/';
   static const String analyticsTopRedeemed      = '/marketplace/analytics/products/top-redeemed/';
 
   // Marketplace - store detail, activity & management

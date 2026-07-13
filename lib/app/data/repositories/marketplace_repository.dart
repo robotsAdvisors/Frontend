@@ -20,7 +20,7 @@ import '../models/paginated.dart';
 import '../models/product_model.dart';
 import '../models/store_model.dart';
 import '../models/store_user_model.dart';
-import '../models/voucher_model.dart';
+import '../models/redemption_code_model.dart';
 import '../services/http/api_client.dart';
 
 /// Repositorio del modulo marketplace contra el backend Django Letdem.
@@ -168,15 +168,15 @@ class MarketplaceRepository {
     return null;
   }
 
-  // ---------- VOUCHERS ----------
+  // ---------- REDEMPTION_CODES ----------
 
-  Future<List<VoucherModel>> fetchVouchers({
+  Future<List<RedemptionCodeModel>> fetchRedemptionCodes({
     String? status,
     String? redeemType,
   }) async {
     try {
       final response = await _dio.get(
-        ApiConfig.vouchers,
+        ApiConfig.redemptionCodes,
         queryParameters: {
           if (status != null && status.isNotEmpty) 'status': status,
           if (redeemType != null && redeemType.isNotEmpty)
@@ -184,15 +184,15 @@ class MarketplaceRepository {
         },
       );
       return _toList(response.data)
-          .map((e) => VoucherModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .map((e) => RedemptionCodeModel.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
     } catch (e) {
       throw toApiException(e);
     }
   }
 
-  /// Versión paginada de [fetchVouchers] que expone el `meta`.
-  Future<Paginated<VoucherModel>> fetchVouchersPage({
+  /// Versión paginada de [fetchRedemptionCodes] que expone el `meta`.
+  Future<Paginated<RedemptionCodeModel>> fetchRedemptionCodesPage({
     String? status,
     String? redeemType,
     int? page,
@@ -201,7 +201,7 @@ class MarketplaceRepository {
     String? date,
   }) async {
     return _fetchPage(
-      url: ApiConfig.vouchers,
+      url: ApiConfig.redemptionCodes,
       page: page,
       pageSize: pageSize,
       query: {
@@ -209,17 +209,17 @@ class MarketplaceRepository {
         if (redeemType != null && redeemType.isNotEmpty) 'redeem_type': redeemType,
         if (date != null && date.isNotEmpty) 'date': date,
       },
-      fromJson: VoucherModel.fromJson,
+      fromJson: RedemptionCodeModel.fromJson,
     );
   }
 
-  Future<VoucherModel?> createVoucherOnline({
+  Future<RedemptionCodeModel?> createRedemptionCodeOnline({
     required String storeId,
     required String productId,
   }) async {
     try {
       final response = await _dio.post(
-        ApiConfig.vouchersCreateOnline,
+        ApiConfig.redemptionCodesCreateOnline,
         data: {
           'store_id': storeId,
           'product_id': productId,
@@ -227,7 +227,7 @@ class MarketplaceRepository {
       );
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data is Map) {
-        return VoucherModel.fromJson(
+        return RedemptionCodeModel.fromJson(
           Map<String, dynamic>.from(response.data as Map),
         );
       }
@@ -237,14 +237,14 @@ class MarketplaceRepository {
     return null;
   }
 
-  /// Reporta una incidencia sobre un voucher.
-  /// POST /marketplace/vouchers/<id>/incident/  body: {reason, notes}
-  /// Response 201: {ticket_id, voucher_code, reason, notes, status, created_at}
-  Future<Map<String, dynamic>> reportVoucherIncident(String voucherId,
+  /// Reporta una incidencia sobre un código de canje.
+  /// POST /marketplace/redemption-codes/<id>/incident/  body: {reason, notes}
+  /// Response 201: {ticket_id, redemption_code, reason, notes, status, created_at}
+  Future<Map<String, dynamic>> reportRedemptionCodeIncident(String redemptionCodeId,
       {required String reason, String notes = ''}) async {
     try {
       final response = await _dio.post(
-        ApiConfig.voucherIncident(voucherId),
+        ApiConfig.redemptionCodeIncident(redemptionCodeId),
         data: {'reason': reason, if (notes.isNotEmpty) 'notes': notes},
       );
       if (response.data is Map) {
@@ -256,17 +256,17 @@ class MarketplaceRepository {
     }
   }
 
-  /// Preview de un voucher por código (sin canjearlo).
-  /// GET /marketplace/vouchers/preview/?code=X
-  /// Retorna el VoucherModel con datos del producto, cliente y pago.
-  Future<VoucherModel?> previewVoucher(String code) async {
+  /// Preview de un código de canje (sin canjearlo).
+  /// GET /marketplace/redemption-codes/preview/?code=X
+  /// Retorna el RedemptionCodeModel con datos del producto, cliente y pago.
+  Future<RedemptionCodeModel?> previewRedemptionCode(String code) async {
     try {
       final response = await _dio.get(
-        ApiConfig.vouchersPreview,
+        ApiConfig.redemptionCodesPreview,
         queryParameters: {'code': code},
       );
       if (response.statusCode == 200 && response.data is Map) {
-        return VoucherModel.fromJson(
+        return RedemptionCodeModel.fromJson(
             Map<String, dynamic>.from(response.data as Map));
       }
     } catch (e) {
@@ -275,15 +275,15 @@ class MarketplaceRepository {
     return null;
   }
 
-  /// Inicia un pago Stripe para un voucher con precio monetario.
-  /// POST /marketplace/vouchers/{code}/initiate-payment/
+  /// Inicia un pago Stripe para un código de canje con precio monetario.
+  /// POST /marketplace/redemption-codes/{code}/initiate-payment/
   /// Body opcional: { "payment_method_id": "pm_xxx" }
   /// Respuesta: { client_secret, payment_intent_id, amount_eur, status }
-  Future<Map<String, dynamic>> initiateVoucherPayment(String code,
+  Future<Map<String, dynamic>> initiateRedemptionCodePayment(String code,
       {String? paymentMethodId}) async {
     try {
       final response = await _dio.post(
-        ApiConfig.voucherInitiatePayment(code),
+        ApiConfig.redemptionCodeInitiatePayment(code),
         data: {
           if (paymentMethodId != null && paymentMethodId.isNotEmpty)
             'payment_method_id': paymentMethodId,
@@ -298,10 +298,10 @@ class MarketplaceRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> validateVoucher(String code) async {
+  Future<Map<String, dynamic>?> validateRedemptionCode(String code) async {
     try {
       final response = await _dio.post(
-        ApiConfig.vouchersValidate,
+        ApiConfig.redemptionCodesValidate,
         data: {'code': code},
       );
       if (response.statusCode == 200 && response.data is Map) {
@@ -476,14 +476,14 @@ class MarketplaceRepository {
   }
 
   /// Canjes por día para la tienda.
-  /// GET /marketplace/analytics/vouchers/daily/?store_id=X&days=30
-  Future<List<Map<String, dynamic>>> fetchAnalyticsVouchersDaily(
+  /// GET /marketplace/analytics/redemption-codes/daily/?store_id=X&days=30
+  Future<List<Map<String, dynamic>>> fetchAnalyticsRedemptionCodesDaily(
       String storeId, {
       int days = 30,
   }) async {
     try {
       final response = await _dio.get(
-        ApiConfig.analyticsVouchersDaily,
+        ApiConfig.analyticsRedemptionCodesDaily,
         queryParameters: {
           if (storeId.isNotEmpty) 'store_id': storeId,
           'days': days,
@@ -499,12 +499,12 @@ class MarketplaceRepository {
   }
 
   /// Desglose de canjes por estado para la tienda.
-  /// GET /marketplace/analytics/vouchers/by-status/?store={id}
+  /// GET /marketplace/analytics/redemption-codes/by-status/?store={id}
   /// Retorna: { entregados, pendientes, expirados }
-  Future<Map<String, dynamic>> fetchVouchersByStatus(String storeId) async {
+  Future<Map<String, dynamic>> fetchRedemptionCodesByStatus(String storeId) async {
     try {
       final response = await _dio.get(
-        ApiConfig.analyticsVouchersByStatus,
+        ApiConfig.analyticsRedemptionCodesByStatus,
         queryParameters: {if (storeId.isNotEmpty) 'store': storeId},
       );
       if (response.data is Map) {
@@ -787,7 +787,7 @@ class MarketplaceRepository {
 
   /// Feed de actividad de una tienda específica.
   /// GET /marketplace/stores/<id>/activity/?limit=N
-  /// Devuelve {activities: [...], ...} — tipos: voucher_redeemed, product_added, system_update
+  /// Devuelve {activities: [...], ...} — tipos: redemption_code_redeemed, product_added, system_update
   Future<List<Map<String, dynamic>>> fetchStoreActivity(
     String storeId, {
     int limit = 20,

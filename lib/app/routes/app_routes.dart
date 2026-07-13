@@ -16,7 +16,7 @@ abstract class Routes {
   static const CALENDAR = _Paths.CALENDAR;
   static const PROFILE = _Paths.PROFILE;
   static const PRODUCTS = _Paths.PRODUCTS;
-  static const VOUCHER_HISTORY = _Paths.VOUCHER_HISTORY;
+  static const REDEMPTION_CODE_HISTORY = _Paths.REDEMPTION_CODE_HISTORY;
   static const CUSTOMER_HISTORY = _Paths.CUSTOMER_HISTORY;
   static const STORES = _Paths.STORES;
   static const ADD_PRODUCT = _Paths.ADD_PRODUCT;
@@ -60,7 +60,7 @@ abstract class _Paths {
   static const CALENDAR = '/calendar';
   static const PROFILE = '/profile';
   static const PRODUCTS = '/products';
-  static const VOUCHER_HISTORY = '/voucher-history';
+  static const REDEMPTION_CODE_HISTORY = '/redemption-code-history';
   static const CUSTOMER_HISTORY = '/customer-history';
   static const STORES = '/stores';
   static const ADD_PRODUCT = '/add-product';

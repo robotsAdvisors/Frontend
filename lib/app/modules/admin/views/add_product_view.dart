@@ -286,7 +286,7 @@ class _AddProductViewState extends State<AddProductView> {
           const SizedBox(height: 6),
           _field(
             controller: _nameCtrl,
-            hint: 'e.g. Premium Coffee Voucher',
+            hint: 'e.g. Premium Coffee Redemption Code',
           ),
           const SizedBox(height: 16),
           Row(

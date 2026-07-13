@@ -1,4 +1,4 @@
-enum VoucherStatus {
+enum RedemptionCodeStatus {
   pending,
   paid,
   redeemed,
@@ -6,7 +6,7 @@ enum VoucherStatus {
   cancelled,
 }
 
-class VoucherModel {
+class RedemptionCodeModel {
   final String id;
   final String campaignId;
   final String storeId;
@@ -17,7 +17,7 @@ class VoucherModel {
   final DateTime? redeemedAt;
   final DateTime? expiresAt;
   final double discountPercent;
-  final VoucherStatus status;
+  final RedemptionCodeStatus status;
   final int pointsUsed;
   final String redeemType; // 'ONLINE' | 'IN_STORE'
   final String? qrCode;
@@ -34,7 +34,7 @@ class VoucherModel {
   final bool paymentVerified;
   final int? daysLeft;           // calculado por backend en preview
 
-  VoucherModel({
+  RedemptionCodeModel({
     required this.id,
     required this.campaignId,
     required this.storeId,
@@ -45,7 +45,7 @@ class VoucherModel {
     this.redeemedAt,
     this.expiresAt,
     this.discountPercent = 0,
-    this.status = VoucherStatus.pending,
+    this.status = RedemptionCodeStatus.pending,
     this.pointsUsed = 0,
     this.redeemType = 'ONLINE',
     this.qrCode,
@@ -66,16 +66,16 @@ class VoucherModel {
   // Compatibility alias for old UI fields.
   DateTime get createdAt => issuedAt;
 
-  bool get isRedeemed => status == VoucherStatus.redeemed;
+  bool get isRedeemed => status == RedemptionCodeStatus.redeemed;
 
   bool get isExpired {
-    if (status == VoucherStatus.expired) {
+    if (status == RedemptionCodeStatus.expired) {
       return true;
     }
     return expiresAt != null && expiresAt!.isBefore(DateTime.now());
   }
 
-  factory VoucherModel.fromJson(Map<String, dynamic> json) {
+  factory RedemptionCodeModel.fromJson(Map<String, dynamic> json) {
     final user = json['user'];
     final store = json['store'];
     final product = json['product'];
@@ -89,7 +89,7 @@ class VoucherModel {
         ? (product['id']?.toString() ?? '')
         : (product?.toString() ?? '');
 
-    return VoucherModel(
+    return RedemptionCodeModel(
       id: json['id']?.toString() ?? '',
       campaignId: (json['campaign_id'] ?? '').toString(),
       storeId: storeId,
@@ -144,19 +144,19 @@ class VoucherModel {
     return DateTime.tryParse(v.toString());
   }
 
-  static VoucherStatus _parseStatus(dynamic v) {
+  static RedemptionCodeStatus _parseStatus(dynamic v) {
     switch ((v ?? '').toString().toUpperCase()) {
       case 'PAID':
-        return VoucherStatus.paid;
+        return RedemptionCodeStatus.paid;
       case 'REDEEMED':
-        return VoucherStatus.redeemed;
+        return RedemptionCodeStatus.redeemed;
       case 'EXPIRED':
-        return VoucherStatus.expired;
+        return RedemptionCodeStatus.expired;
       case 'CANCELLED':
-        return VoucherStatus.cancelled;
+        return RedemptionCodeStatus.cancelled;
       case 'PENDING':
       default:
-        return VoucherStatus.pending;
+        return RedemptionCodeStatus.pending;
     }
   }
 }
