@@ -695,11 +695,15 @@ class _IncidenciasViewState extends State<IncidenciasView> {
   // ─── HELPERS ──────────────────────────────────────────────────────────────
 
   String _redemptionCodeStatusLabel(RedemptionCodeStatus status) => switch (status) {
-    RedemptionCodeStatus.pending   => 'Pendiente',
-    RedemptionCodeStatus.paid      => 'Pagado',
-    RedemptionCodeStatus.redeemed  => 'Canjeado',
-    RedemptionCodeStatus.expired   => 'Expirado',
-    RedemptionCodeStatus.cancelled => 'Cancelado',
+    RedemptionCodeStatus.pending    => 'Pendiente',
+    RedemptionCodeStatus.paid       => 'Pagado',
+    RedemptionCodeStatus.inProgress => 'En proceso',
+    RedemptionCodeStatus.delivered  => 'Entregado',
+    RedemptionCodeStatus.incident   => 'Incidencia',
+    RedemptionCodeStatus.redeemed   => 'Entregado',
+    RedemptionCodeStatus.expired    => 'Expirado',
+    RedemptionCodeStatus.cancelled  => 'Cancelado',
+    RedemptionCodeStatus.rejected   => 'Rechazado',
   };
 
   // ─── SUBMIT ───────────────────────────────────────────────────────────────

@@ -191,7 +191,9 @@ class MarketplaceRepository {
     }
   }
 
-  /// Versión paginada de [fetchRedemptionCodes] que expone el `meta`.
+  /// Versión paginada para el BACKOFFICE DE TIENDA: los canjes del comercio.
+  /// Usa la ruta scopeada a tienda (`stores/redemption-codes/`), no la genérica
+  /// del usuario, que devolvería los canjes donde la tienda es cliente.
   Future<Paginated<RedemptionCodeModel>> fetchRedemptionCodesPage({
     String? status,
     String? redeemType,
@@ -201,7 +203,7 @@ class MarketplaceRepository {
     String? date,
   }) async {
     return _fetchPage(
-      url: ApiConfig.redemptionCodes,
+      url: ApiConfig.storeRedemptionCodes,
       page: page,
       pageSize: pageSize,
       query: {
@@ -298,11 +300,38 @@ class MarketplaceRepository {
     }
   }
 
-  Future<Map<String, dynamic>?> validateRedemptionCode(String code) async {
+  /// Valida un código en el mostrador (ST-CJ-02): el código pasa a IN_PROGRESS.
+  /// No consume puntos todavía; eso es la entrega.
+  /// POST /marketplace/stores/redemption-codes/validation/  body: {code, pin?}
+  /// El PIN se envía solo si la tienda tiene uno definido; el backend lo exige
+  /// en ese caso y responde 403 si falta o es incorrecto.
+  Future<Map<String, dynamic>?> validateRedemptionCode(String code,
+      {String? pin}) async {
     try {
       final response = await _dio.post(
         ApiConfig.redemptionCodesValidate,
-        data: {'code': code},
+        data: {
+          'code': code,
+          if (pin != null && pin.isNotEmpty) 'pin': pin,
+        },
+      );
+      if (response.statusCode == 200 && response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// Entrega un código ya validado (ST-CJ-03): pasa a DELIVERED y el backend
+  /// consume los puntos bloqueados. Falla con 400 si el código no está en
+  /// IN_PROGRESS (no se puede entregar sin validar antes).
+  /// POST /marketplace/stores/redemption-codes/<id>/delivery/  (sin body)
+  Future<Map<String, dynamic>?> deliverRedemptionCode(String redemptionCodeId) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.redemptionCodeDelivery(redemptionCodeId),
       );
       if (response.statusCode == 200 && response.data is Map) {
         return Map<String, dynamic>.from(response.data as Map);

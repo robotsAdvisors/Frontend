@@ -427,7 +427,11 @@ class AdminController extends GetxController {
     }
     return redemptionCodes
         .where((v) =>
-            v.status == RedemptionCodeStatus.pending || v.status == RedemptionCodeStatus.paid)
+            v.status == RedemptionCodeStatus.pending ||
+            v.status == RedemptionCodeStatus.paid ||
+            // Validado pero aún sin entregar: sigue pendiente de acción en el
+            // mostrador (falta confirmar la entrega).
+            v.status == RedemptionCodeStatus.inProgress)
         .length;
   }
 
@@ -922,15 +926,19 @@ class AdminController extends GetxController {
     previewError.value = '';
   }
 
-  Future<bool> validateRedemptionCodeCode(String code) async {
+  /// Paso 1 del mostrador (ST-CJ-02): validar. El código pasa a IN_PROGRESS
+  /// pero NO se consumen puntos todavía; eso es la entrega. Se conserva el
+  /// código a la vista, con su estado ya actualizado, para poder entregarlo.
+  Future<bool> validateRedemptionCodeCode(String code, {String? pin}) async {
     try {
-      final result = await _repo.validateRedemptionCode(code);
+      final result = await _repo.validateRedemptionCode(code, pin: pin);
       if (result != null) {
-        clearRedemptionCodePreview();
+        _applyRedemptionCodeResult(result);
         await _loadFromBackend();
         CustomSnackBar.showCustomSnackBar(
-          title: 'Código de canje válido',
-          message: 'El código de canje fue canjeado correctamente.',
+          title: 'Código validado',
+          message:
+              'Canje en proceso. Confirma la entrega para completarlo y consumir los puntos.',
         );
         return true;
       }
@@ -946,6 +954,49 @@ class AdminController extends GetxController {
       );
     }
     return false;
+  }
+
+  /// Paso 2 del mostrador (ST-CJ-03): entregar. El código pasa a DELIVERED y el
+  /// backend consume los puntos bloqueados. Falla con 400 si no se validó antes.
+  Future<bool> deliverRedemptionCodeCode(String redemptionCodeId) async {
+    try {
+      final result = await _repo.deliverRedemptionCode(redemptionCodeId);
+      if (result != null) {
+        _applyRedemptionCodeResult(result);
+        await _loadFromBackend();
+        CustomSnackBar.showCustomSnackBar(
+          title: 'Entrega confirmada',
+          message: 'El canje se entregó y los puntos se consumieron.',
+        );
+        return true;
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'No se pudo entregar',
+        message: e.message,
+      );
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error',
+        message: 'No fue posible confirmar la entrega.',
+      );
+    }
+    return false;
+  }
+
+  /// Refresca el código a la vista con el estado/id de la respuesta del backend,
+  /// conservando los datos ricos del preview (producto, cliente…).
+  void _applyRedemptionCodeResult(Map<String, dynamic> result) {
+    final fresh = RedemptionCodeModel.fromJson(result);
+    final current = previewedRedemptionCode.value;
+    previewedRedemptionCode.value = current == null
+        ? fresh
+        : current.copyWith(
+            id: fresh.id.isNotEmpty ? fresh.id : current.id,
+            status: fresh.status,
+            redeemedAt: fresh.redeemedAt,
+          );
+    previewError.value = '';
   }
 
   // ── Store Orders ─────────────────────────────────────────────────────────

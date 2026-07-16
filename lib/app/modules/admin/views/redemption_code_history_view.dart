@@ -1191,9 +1191,15 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
     if (v.isRedeemed) {
       statusBg = const Color(0xFFECFDF5); statusFg = const Color(0xFF059669);
       statusLabel = 'Entregado';
+    } else if (v.isIncident) {
+      statusBg = const Color(0xFFFEF2F2); statusFg = const Color(0xFFDC2626);
+      statusLabel = 'Incidencia';
     } else if (v.isExpired) {
       statusBg = const Color(0xFFF3F4F6); statusFg = const Color(0xFF6B7280);
       statusLabel = 'Expirado';
+    } else if (v.isInProgress) {
+      statusBg = const Color(0xFFDBEAFE); statusFg = const Color(0xFF1D4ED8);
+      statusLabel = 'En proceso';
     } else {
       statusBg = const Color(0xFFFFF7ED); statusFg = const Color(0xFFD97706);
       statusLabel = 'Pendiente';

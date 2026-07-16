@@ -46,12 +46,20 @@ class ApiConfig {
 
   // Marketplace - autenticado
   static const String redemptionCodes = '/marketplace/redemption-codes/';
+  // Canjes del COMERCIO (backoffice de tienda). La genérica de arriba está
+  // scopeada al usuario: sirve para el historial del cliente, NO para la tienda.
+  static const String storeRedemptionCodes = '/marketplace/stores/redemption-codes/';
   static const String redemptionCodesPending = '/marketplace/redemption-codes/pending/';
   static const String redemptionCodesCreateOnline = '/marketplace/redemption-codes/online/';
   // La validación de un código la hace la tienda, y cuelga de `stores/`.
   static const String redemptionCodesValidate  = '/marketplace/stores/redemption-codes/validation/';
+  // Entrega (ST-CJ-03): segundo paso del mostrador. Aquí el backend consume
+  // los puntos bloqueados y el código pasa a DELIVERED.
+  static String redemptionCodeDelivery(String id)        => '/marketplace/stores/redemption-codes/$id/delivery/';
   static const String redemptionCodesPreview   = '/marketplace/redemption-codes/preview/';
-  static String redemptionCodeIncident(String id)        => '/marketplace/redemption-codes/$id/incident/';
+  // La incidencia del mostrador cuelga de `stores/`: es la tienda quien la
+  // registra sobre un canje suyo (DG-07), no el usuario sobre el propio.
+  static String redemptionCodeIncident(String id)        => '/marketplace/stores/redemption-codes/$id/incident/';
   static String redemptionCodeInitiatePayment(String code) => '/marketplace/redemption-codes/$code/payment-intent/';
   static const String orders      = '/marketplace/orders/';
   static const String storeOrders = '/marketplace/stores/orders/';

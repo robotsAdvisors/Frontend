@@ -117,12 +117,18 @@ class CustomerHistoryController extends GetxController {
 
   String statusLabel(RedemptionCodeModel redemptionCode) {
     if (redemptionCode.isRedeemed) {
-      return 'Canjeado';
+      return 'Entregado';
+    }
+    if (redemptionCode.isIncident) {
+      return 'Incidencia';
     }
     final expiredByDate = redemptionCode.expiresAt != null &&
         redemptionCode.expiresAt!.isBefore(DateTime.now());
     if (redemptionCode.isExpired || expiredByDate) {
       return 'Expirado';
+    }
+    if (redemptionCode.isInProgress) {
+      return 'En proceso';
     }
     return 'Pendiente';
   }

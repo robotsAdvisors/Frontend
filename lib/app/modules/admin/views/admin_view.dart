@@ -791,19 +791,25 @@ class _AdminViewState extends State<AdminView> {
 
   String _statusLabel(RedemptionCodeModel v) {
     if (v.isRedeemed) return 'COMPLETADO';
+    if (v.isIncident) return 'INCIDENCIA';
     if (v.isExpired) return 'EXPIRADO';
+    if (v.isInProgress) return 'EN PROCESO';
     return 'PENDIENTE';
   }
 
   Color _statusColor(RedemptionCodeModel v) {
     if (v.isRedeemed) return const Color(0xFF166534);
+    if (v.isIncident) return const Color(0xFF991B1B);
     if (v.isExpired) return const Color(0xFF991B1B);
+    if (v.isInProgress) return const Color(0xFF1D4ED8);
     return const Color(0xFF92400E);
   }
 
   Color _statusBg(RedemptionCodeModel v) {
     if (v.isRedeemed) return const Color(0xFFDCFCE7);
+    if (v.isIncident) return const Color(0xFFFEE2E2);
     if (v.isExpired) return const Color(0xFFFEE2E2);
+    if (v.isInProgress) return const Color(0xFFDBEAFE);
     return const Color(0xFFFEF3C7);
   }
 

@@ -533,11 +533,13 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
 
   Widget _historyTile(RedemptionCodeModel redemptionCode) {
     final status = controller.statusLabel(redemptionCode);
-    final statusColor = status == 'Canjeado'
+    final statusColor = redemptionCode.isDelivered
         ? Colors.green.shade600
-        : status == 'Pendiente'
-            ? Colors.orange
-            : Colors.redAccent;
+        : redemptionCode.isInProgress
+            ? Colors.blue.shade600
+            : status == 'Pendiente'
+                ? Colors.orange
+                : Colors.redAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -561,9 +563,11 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              status == 'Canjeado'
+              redemptionCode.isDelivered
                   ? Icons.check_circle_outline
-                  : Icons.cancel_outlined,
+                  : redemptionCode.isInProgress
+                      ? Icons.hourglass_bottom
+                      : Icons.cancel_outlined,
               color: statusColor,
               size: 20,
             ),
@@ -582,7 +586,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
                 const SizedBox(height: 2),
                 Text(
                   redemptionCode.redeemedAt != null
-                      ? 'Canjeado ${_formatDate(redemptionCode.redeemedAt!.toLocal())}'
+                      ? 'Entregado ${_formatDate(redemptionCode.redeemedAt!.toLocal())}'
                       : 'Expirado ${redemptionCode.expiresAt != null ? _formatDate(redemptionCode.expiresAt!.toLocal()) : ''}',
                   style:
                       const TextStyle(fontSize: 11, color: Colors.grey),

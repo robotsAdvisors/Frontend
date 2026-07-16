@@ -26,6 +26,9 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
 
   late final AdminController _ctrl;
   final _codeCtrl = TextEditingController();
+  // PIN del mostrador: el backend lo exige al validar solo si la tienda tiene
+  // uno definido. Si se deja vacío, no se envía (tiendas sin PIN).
+  final _pinCtrl = TextEditingController();
   bool _isConfirming = false;
   bool _justConfirmed = false;
 
@@ -38,6 +41,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
   @override
   void dispose() {
     _codeCtrl.dispose();
+    _pinCtrl.dispose();
     _ctrl.clearRedemptionCodePreview();
     super.dispose();
   }
@@ -490,8 +494,12 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
       final expiresFmt   = v.expiresAt != null
           ? _formatDate(v.expiresAt!.toLocal())
           : '—';
-      final canConfirm   = v.status == RedemptionCodeStatus.paid ||
+      // Mostrador en dos pasos (§3): primero validar (→ IN_PROGRESS), luego
+      // entregar (→ DELIVERED, aquí se consumen los puntos). No se puede
+      // entregar sin validar antes.
+      final canValidate = v.status == RedemptionCodeStatus.paid ||
           v.status == RedemptionCodeStatus.pending;
+      final canDeliver = v.status == RedemptionCodeStatus.inProgress;
 
       return Container(
         padding: const EdgeInsets.all(24),
@@ -598,58 +606,130 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
 
           const SizedBox(height: 20),
 
-          // ── Status warning if not confirmable ───────────────────────────
-          if (!canConfirm)
+          // ── Aviso si el código no admite ninguna acción ─────────────────
+          if (!canValidate && !canDeliver)
             Container(
               padding: const EdgeInsets.all(12),
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF2F2),
+                color: v.isDelivered
+                    ? const Color(0xFFECFDF5)
+                    : const Color(0xFFFEF2F2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(children: [
-                const Icon(Icons.warning_amber_outlined,
-                    size: 14, color: _red),
+                Icon(
+                    v.isDelivered
+                        ? Icons.check_circle_outline
+                        : Icons.warning_amber_outlined,
+                    size: 14,
+                    color: v.isDelivered ? _green : _red),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Este código de canje no puede confirmarse (${_statusLabel(v.status)}).',
-                    style: const TextStyle(
-                        fontSize: 12, color: _red, height: 1.4),
+                    v.isDelivered
+                        ? 'Este canje ya fue entregado.'
+                        : 'Este código de canje no admite entrega (${_statusLabel(v.status)}).',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: v.isDelivered ? _green : _red,
+                        height: 1.4),
                   ),
                 ),
               ]),
             ),
 
-          // ── Confirm button ──────────────────────────────────────────────
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: canConfirm ? _purple : Colors.grey.shade200,
-                foregroundColor:
-                    canConfirm ? Colors.white : Colors.grey,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
+          // ── Paso 1: validar ─────────────────────────────────────────────
+          if (canValidate) ...[
+            TextField(
+              controller: _pinCtrl,
+              obscureText: true,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'PIN de la tienda (si aplica)',
+                helperText:
+                    'Solo si tu tienda tiene PIN. Déjalo vacío si no.',
+                border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 12),
               ),
-              icon: _isConfirming
-                  ? const SizedBox(
-                      width: 16, height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.check_circle_outline, size: 18),
-              label: Text(
-                _isConfirming ? 'Confirmando...' : 'Confirmar entrega',
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-              onPressed: canConfirm && !_isConfirming
-                  ? () => _confirmDelivery(v)
-                  : null,
             ),
-          ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _purple,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                icon: _isConfirming
+                    ? const SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.qr_code_scanner, size: 18),
+                label: Text(
+                  _isConfirming ? 'Validando...' : 'Validar código',
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                onPressed: _isConfirming ? null : () => _validate(v),
+              ),
+            ),
+          ],
+
+          // ── Paso 2: entregar ────────────────────────────────────────────
+          if (canDeliver) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(children: [
+                Icon(Icons.info_outline, size: 14, color: Color(0xFF2563EB)),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Código validado, canje en proceso. Confirma la entrega solo cuando el cliente reciba el producto: al hacerlo se consumen sus puntos.',
+                    style: TextStyle(
+                        fontSize: 12, color: Color(0xFF2563EB), height: 1.4),
+                  ),
+                ),
+              ]),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _green,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                icon: _isConfirming
+                    ? const SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check_circle_outline, size: 18),
+                label: Text(
+                  _isConfirming ? 'Confirmando...' : 'Confirmar entrega',
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                onPressed: _isConfirming ? null : () => _deliver(v),
+              ),
+            ),
+          ],
         ]),
       );
     });
@@ -734,7 +814,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
                 fontSize: 20, fontWeight: FontWeight.w800, color: _green)),
         const SizedBox(height: 6),
         const Text(
-          'El código de canje fue marcado como canjeado correctamente.',
+          'El canje se entregó y los puntos del cliente se consumieron.',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, color: Colors.grey),
         ),
@@ -755,6 +835,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
                   fontSize: 13, fontWeight: FontWeight.w600)),
           onPressed: () {
             _codeCtrl.clear();
+            _pinCtrl.clear();
             _ctrl.clearRedemptionCodePreview();
             setState(() => _justConfirmed = false);
           },
@@ -801,17 +882,37 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
       '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
 
   String _statusLabel(RedemptionCodeStatus status) => switch (status) {
-    RedemptionCodeStatus.pending   => 'Pendiente',
-    RedemptionCodeStatus.paid      => 'Pagado',
-    RedemptionCodeStatus.redeemed  => 'Canjeado',
-    RedemptionCodeStatus.expired   => 'Expirado',
-    RedemptionCodeStatus.cancelled => 'Cancelado',
+    RedemptionCodeStatus.pending    => 'Pendiente',
+    RedemptionCodeStatus.paid       => 'Pagado',
+    RedemptionCodeStatus.inProgress => 'En proceso',
+    RedemptionCodeStatus.delivered  => 'Entregado',
+    RedemptionCodeStatus.incident   => 'Incidencia',
+    RedemptionCodeStatus.redeemed   => 'Entregado',
+    RedemptionCodeStatus.expired    => 'Expirado',
+    RedemptionCodeStatus.cancelled  => 'Cancelado',
+    RedemptionCodeStatus.rejected   => 'Rechazado',
   };
 
-  Future<void> _confirmDelivery(RedemptionCodeModel redemptionCode) async {
+  /// Paso 1: validar el código (→ IN_PROGRESS). No abre el banner de éxito; el
+  /// flujo continúa mostrando el botón de entregar.
+  Future<void> _validate(RedemptionCodeModel redemptionCode) async {
     setState(() => _isConfirming = true);
     try {
-      final ok = await _ctrl.validateRedemptionCodeCode(redemptionCode.code);
+      final ok = await _ctrl.validateRedemptionCodeCode(
+        redemptionCode.code,
+        pin: _pinCtrl.text.trim(),
+      );
+      if (ok) _pinCtrl.clear();
+    } finally {
+      if (mounted) setState(() => _isConfirming = false);
+    }
+  }
+
+  /// Paso 2: entregar (→ DELIVERED). Aquí el backend consume los puntos.
+  Future<void> _deliver(RedemptionCodeModel redemptionCode) async {
+    setState(() => _isConfirming = true);
+    try {
+      final ok = await _ctrl.deliverRedemptionCodeCode(redemptionCode.id);
       if (ok && mounted) {
         setState(() => _justConfirmed = true);
       }
