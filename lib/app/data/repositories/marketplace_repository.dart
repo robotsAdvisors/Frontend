@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../utils/api_config.dart';
 import '../models/admin_user_model.dart';
 import '../models/audit_log_model.dart';
+import '../models/campaign_model.dart';
 import '../models/category_model.dart';
 import '../models/data_subject_request_model.dart';
 import '../models/gdpr_request_model.dart';
@@ -166,6 +167,27 @@ class MarketplaceRepository {
       throw toApiException(e);
     }
     return null;
+  }
+
+  /// Lista de tiendas para el BACKOFFICE GENERAL: todas las creadas, publicadas
+  /// o no. Usa el endpoint admin, a diferencia de [fetchStores] (catálogo público
+  /// que solo expone las publicadas).
+  /// GET /marketplace/admin/stores/
+  Future<List<StoreModel>> fetchAdminStores({String? search}) async {
+    try {
+      final response = await _dio.get(
+        ApiConfig.adminStores,
+        queryParameters: {
+          if (search != null && search.isNotEmpty) 'search': search,
+        },
+      );
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => StoreModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
   }
 
   // ---------- REDEMPTION_CODES ----------
@@ -729,7 +751,13 @@ class MarketplaceRepository {
   Future<List<StoreUserModel>> fetchStoreUsers(String storeId) async {
     try {
       final response = await _dio.get(ApiConfig.storeUsers(storeId));
-      return _toList(response.data)
+      final data = response.data;
+      // Este endpoint envuelve distinto: {store_id, members: [...]}. No es el
+      // envelope canónico (results/data), así que _toList no lo desenvuelve.
+      final rawList = data is Map && data['members'] is List
+          ? data['members'] as List
+          : _toList(data);
+      return rawList
           .whereType<Map>()
           .map((e) => StoreUserModel.fromJson(Map<String, dynamic>.from(e)))
           .toList();
@@ -1874,6 +1902,116 @@ class MarketplaceRepository {
         data: {'action': action, if (notes != null) 'notes': notes},
       );
       return true;
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  // ──────────── CAMPAÑAS PROMOCIONALES (superadmin) ────────────
+  // Namespace points_admin (`/admin/campaigns/`). El listado es un array pelado
+  // (sin envelope). Requiere IsSuperAdmin: un store admin recibe 403.
+
+  /// GET /admin/campaigns/ — lista de campañas.
+  Future<List<CampaignModel>> fetchCampaigns() async {
+    try {
+      final response = await _dio.get(ApiConfig.adminCampaigns);
+      return _toList(response.data)
+          .whereType<Map>()
+          .map((e) => CampaignModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /admin/campaigns/ — crea una campaña. Devuelve la campaña con su `id`
+  /// (necesario para subir luego el banner). `banner_image` también se acepta
+  /// como string en el payload si ya se tiene la URL.
+  Future<CampaignModel?> createCampaign(Map<String, dynamic> payload) async {
+    try {
+      final response = await _dio.post(ApiConfig.adminCampaigns, data: payload);
+      if (response.data is Map) {
+        return CampaignModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// PATCH /admin/campaigns/{id}/ — actualiza una campaña.
+  Future<CampaignModel?> updateCampaign(
+      String id, Map<String, dynamic> payload) async {
+    try {
+      final response =
+          await _dio.patch(ApiConfig.adminCampaignDetail(id), data: payload);
+      if (response.data is Map) {
+        return CampaignModel.fromJson(
+            Map<String, dynamic>.from(response.data as Map));
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// DELETE /admin/campaigns/{id}/
+  Future<void> deleteCampaign(String id) async {
+    try {
+      await _dio.delete(ApiConfig.adminCampaignDetail(id));
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// POST /admin/campaigns/{id}/image/ (multipart, campo `image`).
+  /// Flujo: primero crea la campaña (para tener el id), luego sube la imagen.
+  /// Respuesta: { banner_image: "https://..." }.
+  Future<String?> uploadCampaignImage(String campaignId, XFile file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final formData = FormData.fromMap({
+        'image': MultipartFile.fromBytes(bytes, filename: file.name),
+      });
+      final response = await _dio.post(
+        ApiConfig.adminCampaignImage(campaignId),
+        data: formData,
+      );
+      if (response.data is Map) {
+        return (response.data['banner_image'] ?? response.data['image_url'])
+            ?.toString();
+      }
+    } catch (e) {
+      throw toApiException(e);
+    }
+    return null;
+  }
+
+  /// GET /admin/campaigns/{id}/impact/ — analítica de rendimiento.
+  /// Trae {campaign, affects, points_granted, points_bonus, users_reached,
+  /// budget:{...}, ...}. Se devuelve crudo para la pantalla de rendimiento.
+  Future<Map<String, dynamic>> fetchCampaignImpact(String id) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminCampaignImpact(id));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
+    } catch (e) {
+      throw toApiException(e);
+    }
+  }
+
+  /// GET /admin/campaigns/{id}/preview/ — el banner tal como lo verá el usuario
+  /// y la tienda (mismo serializer del marketplace). Se devuelve crudo.
+  Future<Map<String, dynamic>> fetchCampaignPreview(String id) async {
+    try {
+      final response = await _dio.get(ApiConfig.adminCampaignPreview(id));
+      if (response.data is Map) {
+        return Map<String, dynamic>.from(response.data as Map);
+      }
+      return const {};
     } catch (e) {
       throw toApiException(e);
     }

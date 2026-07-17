@@ -22,6 +22,11 @@ class UserDetailView extends GetView<GeneralAdminController> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         controller.selectUser(userId);
       });
+    } else {
+      // Sin usuario en argumentos: asegurar la lista cargada desde el backend.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (controller.adminUsers.isEmpty) controller.loadAdminUsers();
+      });
     }
 
     return Scaffold(
@@ -126,10 +131,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             }
             final user = controller.selectedUser.value;
             if (user == null) {
-              return const Center(
-                child: Text('Selecciona un usuario para ver su ficha.',
-                    style: TextStyle(color: Colors.grey)),
-              );
+              return _usersList();
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -176,6 +178,72 @@ class UserDetailView extends GetView<GeneralAdminController> {
           }),
         ),
       ],
+    );
+  }
+
+  // ─── USERS LIST ──────────────────────────────────────────────────────────────
+
+  /// Lista de usuarios reales del backend (GET /admin/users/). Se muestra cuando
+  /// no hay ninguno seleccionado; al tocar uno se abre su ficha.
+  Widget _usersList() {
+    final users = controller.adminUsers;
+    if (users.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(
+            'No hay usuarios para mostrar.\n'
+            'Busca por email/ID arriba o crea usuarios en el backend.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: users.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (_, i) {
+        final u = users[i];
+        final email = u.emailFull.isNotEmpty ? u.emailFull : u.emailMasked;
+        final display = u.name.trim().isNotEmpty ? u.name.trim() : email;
+        final initial = display.isNotEmpty ? display[0].toUpperCase() : '?';
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: _purpleLight,
+            child: Text(initial,
+                style: const TextStyle(
+                    color: _purple, fontWeight: FontWeight.w700)),
+          ),
+          title: Text(display,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 14)),
+          subtitle: Text(email,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          trailing: u.isSuspended
+              ? _statusChip('Suspendido', Colors.red)
+              : (u.isActive
+                  ? _statusChip('Activo', Colors.green)
+                  : _statusChip('Inactivo', Colors.grey)),
+          onTap: () => controller.selectUser(u.id),
+        );
+      },
+    );
+  }
+
+  Widget _statusChip(String label, MaterialColor color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color.shade700,
+              fontSize: 11,
+              fontWeight: FontWeight.w600)),
     );
   }
 

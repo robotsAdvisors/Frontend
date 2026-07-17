@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:get/get.dart';
 
+import '../../../../utils/app_config.dart';
 import '../../../../utils/dummy_helper.dart';
 import '../../../components/custom_snackbar.dart';
 import '../../../data/models/admin_user_model.dart';
@@ -144,8 +145,11 @@ class GeneralAdminController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    stores.assignAll(DummyHelper.stores);
-    storeUsers.assignAll(DummyHelper.storeUsers);
+    if (AppConfig.useDummyData) {
+      // Bootstrap de demo; en real se espera al backend (sin tiendas ficticias).
+      stores.assignAll(DummyHelper.stores);
+      storeUsers.assignAll(DummyHelper.storeUsers);
+    }
     _initUserProfile();
     _calculateMetrics();
     _loadFromBackend();
@@ -163,7 +167,8 @@ class GeneralAdminController extends GetxController {
     isLoading.value = true;
 
     await Future.wait<void>([
-      _repo.fetchStores().then((s) { if (s.isNotEmpty) stores.assignAll(s); }).catchError((_) {}),
+      _loadStoresForBackoffice(),
+      loadAdminUsers(),
       _repo.fetchCategories().then((c) { if (c.isNotEmpty) categories.assignAll(c); }).catchError((_) {}),
       _repo.fetchDashboardStats().then((s) { if (s != null) _applyStats(s); }).catchError((_) {}),
       _repo.fetchAdminAlerts().then((a) { if (a.isNotEmpty) criticalAlerts.assignAll(a); }).catchError((_) {}),
@@ -177,6 +182,24 @@ class GeneralAdminController extends GetxController {
 
     _calculateMetrics();
     isLoading.value = false;
+  }
+
+  /// Carga las tiendas del backoffice: primero TODAS vía el endpoint admin;
+  /// si ese no responde, cae al catálogo público (solo publicadas).
+  Future<void> _loadStoresForBackoffice() async {
+    try {
+      final all = await _repo.fetchAdminStores();
+      if (all.isNotEmpty) {
+        stores.assignAll(all);
+        return;
+      }
+    } catch (_) {
+      // Endpoint admin no disponible/erróneo: intentar el público.
+    }
+    try {
+      final published = await _repo.fetchStores();
+      if (published.isNotEmpty) stores.assignAll(published);
+    } catch (_) {}
   }
 
   void _applyOrderStats(OrdersStats s) {
@@ -379,7 +402,8 @@ class GeneralAdminController extends GetxController {
 
   void _calculateMetrics() {
     if (totalStores.value == 0) totalStores.value = stores.length;
-    if (totalStoreUsers.value == 0) totalStoreUsers.value = storeUsers.length;
+    // Conteo de usuarios: la lista real del backend (adminUsers), no el dummy.
+    if (totalStoreUsers.value == 0) totalStoreUsers.value = adminUsers.length;
     if (totalCategories.value == 0) totalCategories.value = categories.length;
   }
 
@@ -546,6 +570,11 @@ class GeneralAdminController extends GetxController {
           kycRejectionReason: kyc?['rejection_reason'] ?? user.kycRejectionReason,
           deactivationStatus: user.deactivationStatus,
           deactivationDate: user.deactivationDate,
+          // Conservar los anidados del detalle (se pierden si no se copian).
+          storeMemberships: user.storeMemberships,
+          consents: user.consents,
+          gdprRequests: user.gdprRequests,
+          recentAudit: user.recentAudit,
         );
         selectedUser.value = mergedUser;
       }
@@ -1015,6 +1044,13 @@ class GeneralAdminController extends GetxController {
           policies.where((p) => p.status == 'pending').length;
       final cov = _parseDouble(stats['coverage_pct'] ?? stats['coverage'] ?? stats['cobertura']);
       policiesCoverage.value = cov ?? 100.0;
+    } on ApiException catch (e) {
+      // `/admin/policies/` aún no existe en el backend: degradar a estado vacío
+      // en vez de un error crudo. Cualquier otro fallo sí se muestra.
+      sensitivePolicies.clear();
+      if (!e.isUnavailable) {
+        CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+      }
     } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.toString());
     } finally {
@@ -1034,7 +1070,11 @@ class GeneralAdminController extends GetxController {
             message: 'Los cambios se guardaron correctamente.');
       }
     } on ApiException catch (e) {
-      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error',
+          message: e.isUnavailable
+              ? 'La gestión de políticas aún no está disponible.'
+              : e.message);
     } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.toString());
     }
@@ -1050,7 +1090,11 @@ class GeneralAdminController extends GetxController {
             title: 'Política creada', message: 'La política fue creada correctamente.');
       }
     } on ApiException catch (e) {
-      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error',
+          message: e.isUnavailable
+              ? 'La gestión de políticas aún no está disponible.'
+              : e.message);
     } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.toString());
     }

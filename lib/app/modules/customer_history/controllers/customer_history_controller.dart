@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../../utils/app_config.dart';
 import '../../../../utils/dummy_helper.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/models/redemption_code_model.dart';
@@ -85,6 +86,9 @@ class CustomerHistoryController extends GetxController {
     } finally {
       loadingHistory.value = false;
     }
+
+    // En builds reales no se inventa historial: se queda vacío ante fallo.
+    if (!AppConfig.useDummyData) return;
 
     final userEmail =
         AuthService.currentUserEmail ?? 'cliente@marketplace.com';

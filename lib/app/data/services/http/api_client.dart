@@ -51,11 +51,33 @@ class ApiClient {
               try {
                 final cloned = await _retry(response.requestOptions);
                 return handler.resolve(cloned);
-              } catch (_) {}
+              } on DioException catch (e) {
+                return handler.reject(e);
+              } catch (_) {
+                // Cae al reject genérico de abajo con la respuesta original.
+              }
             } else {
               await MySharedPref.clearTokens();
             }
           }
+
+          // `validateStatus` deja pasar TODOS los estados para poder inspeccionar
+          // el 401 y refrescar el token. Pero el resto de errores del backend
+          // (>= 400) llegan con el contrato {error_code, message, details}: hay que
+          // convertirlos en DioException para que `toApiException` los lea. Si no,
+          // cada repo trataría el cuerpo del error como una respuesta OK (o lo
+          // descartaría como null con un mensaje genérico), y la UI nunca vería el
+          // error_code ni el `missingPoints`.
+          if (status >= 400) {
+            return handler.reject(
+              DioException(
+                requestOptions: response.requestOptions,
+                response: response,
+                type: DioExceptionType.badResponse,
+              ),
+            );
+          }
+
           handler.next(response);
         },
         onError: (error, handler) {
@@ -133,6 +155,12 @@ class ApiException implements Exception {
   /// `details` del contrato: el contexto del error. En `INSUFFICIENT_POINTS`
   /// trae `needed` y `available`; en `VALIDATION_ERROR`, los errores por campo.
   final Map<String, dynamic> details;
+
+  /// El endpoint no está disponible en el backend: aún sin implementar o
+  /// retirado (404 / 405 / 501). Sirve para degradar a un estado "no disponible"
+  /// en la UI en vez de mostrar un error crudo al usuario.
+  bool get isUnavailable =>
+      statusCode == 404 || statusCode == 405 || statusCode == 501;
 
   /// Puntos que faltaban, cuando el backend devuelve `INSUFFICIENT_POINTS`.
   /// Null si el error es otro o si no vino la cifra.

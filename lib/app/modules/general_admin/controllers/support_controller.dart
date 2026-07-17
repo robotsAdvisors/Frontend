@@ -242,11 +242,14 @@ class SupportController extends GetxController {
         selectedTicket.value =
             ticket.copyWith(messages: [...ticket.messages, msg]);
       }
-    } on DioException catch (e) {
-      final errMsg = (e.response?.data is Map)
-          ? (e.response!.data['detail'] ?? 'Error al enviar').toString()
-          : 'Error al enviar el mensaje';
-      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: errMsg);
+    } catch (e) {
+      final ex = toApiException(e);
+      CustomSnackBar.showCustomErrorSnackBar(
+        title: 'Error',
+        message: ex.isUnavailable
+            ? 'El envío de mensajes aún no está disponible.'
+            : ex.message,
+      );
     } finally {
       isSending.value = false;
     }
@@ -254,19 +257,25 @@ class SupportController extends GetxController {
 
   // ─── Actions ───────────────────────────────────────────────────────────────
 
+  // Las rutas de acción dedicadas (/escalate/, /close/, /reassign/) no existen en
+  // el backend; el cambio de estado y de asignación se hace vía el PATCH del
+  // detalle (`AdminTicketDetailView`), que sí está expuesto.
   Future<void> escalateTicket() async {
     final ticket = selectedTicket.value;
     if (ticket == null || isActing.value) return;
     isActing.value = true;
     try {
-      await _dio.post(ApiConfig.adminTicketEscalate(ticket.id));
+      await _dio.patch(
+        ApiConfig.adminTicketDetail(ticket.id),
+        data: {'status': 'escalated'},
+      );
       selectedTicket.value = ticket.copyWith(status: 'escalated');
       _syncStatus(ticket.id, 'escalated');
       CustomSnackBar.showCustomSnackBar(
           title: 'Escalado', message: 'Ticket escalado correctamente.');
-    } catch (_) {
+    } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
-          title: 'Error', message: 'No se pudo escalar el ticket.');
+          title: 'Error', message: toApiException(e).message);
     } finally {
       isActing.value = false;
     }
@@ -277,13 +286,16 @@ class SupportController extends GetxController {
     if (ticket == null || isActing.value) return;
     isActing.value = true;
     try {
-      await _dio.post(ApiConfig.adminTicketClose(ticket.id));
+      await _dio.patch(
+        ApiConfig.adminTicketDetail(ticket.id),
+        data: {'status': 'closed'},
+      );
       selectedTicket.value = ticket.copyWith(status: 'closed');
       _syncStatus(ticket.id, 'closed');
       CustomSnackBar.showCustomSnackBar(title: 'Cerrado', message: 'Ticket cerrado.');
-    } catch (_) {
+    } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
-          title: 'Error', message: 'No se pudo cerrar el ticket.');
+          title: 'Error', message: toApiException(e).message);
     } finally {
       isActing.value = false;
     }
@@ -294,15 +306,17 @@ class SupportController extends GetxController {
     if (ticket == null || agentId.isEmpty || isActing.value) return;
     isActing.value = true;
     try {
-      await _dio.post(
-        ApiConfig.adminTicketReassign(ticket.id),
-        data: {'agent_id': agentId},
+      await _dio.patch(
+        ApiConfig.adminTicketDetail(ticket.id),
+        data: {'assigned_to': agentId},
       );
+      // Relee el detalle para reflejar el nuevo responsable en la vista.
+      await _loadMessages(ticket.id);
       CustomSnackBar.showCustomSnackBar(
           title: 'Reasignado', message: 'Ticket reasignado a $agentName.');
-    } catch (_) {
+    } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
-          title: 'Error', message: 'No se pudo reasignar el ticket.');
+          title: 'Error', message: toApiException(e).message);
     } finally {
       isActing.value = false;
     }

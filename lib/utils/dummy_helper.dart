@@ -3,7 +3,7 @@ import '../app/data/models/customer_model.dart';
 import '../app/data/models/product_model.dart';
 import '../app/data/models/store_model.dart';
 import '../app/data/models/store_user_model.dart';
-import '../app/data/models/redemption_code_campaign_model.dart';
+import '../app/data/models/campaign_model.dart';
 import '../app/data/models/redemption_code_model.dart';
 import 'constants.dart';
 
@@ -330,21 +330,21 @@ class DummyHelper {
     ),
   ];
 
-  static List<RedemptionCodeCampaignModel> redemptionCodeCampaigns = [
-    RedemptionCodeCampaignModel(
+  static List<CampaignModel> redemptionCodeCampaigns = [
+    CampaignModel(
       id: 'campaign_1',
       storeId: 'store_1',
       name: 'Campana bienvenida tienda 1',
-      validFrom: DateTime.now().subtract(const Duration(days: 120)),
-      validUntil: DateTime.now().add(const Duration(days: 120)),
+      startDate: DateTime.now().subtract(const Duration(days: 120)),
+      endDate: DateTime.now().add(const Duration(days: 120)),
       discountPercent: 20,
     ),
-    RedemptionCodeCampaignModel(
+    CampaignModel(
       id: 'campaign_2',
       storeId: 'store_2',
       name: 'Campana bienvenida tienda 2',
-      validFrom: DateTime.now().subtract(const Duration(days: 120)),
-      validUntil: DateTime.now().add(const Duration(days: 120)),
+      startDate: DateTime.now().subtract(const Duration(days: 120)),
+      endDate: DateTime.now().add(const Duration(days: 120)),
       discountPercent: 15,
     ),
   ];

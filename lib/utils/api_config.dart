@@ -127,14 +127,12 @@ class ApiConfig {
   static const String adminTicketsCreate    = '/marketplace/admin/tickets/';
   static const String adminTicketCategories = '/marketplace/admin/ticket-categories/';
   static const String adminAgents           = '/marketplace/admin/agents/';
-  // El detalle (GET/PATCH) YA existe: AdminTicketDetailView. Las otras cuatro
-  // (messages/escalate/close/reassign) siguen sin exponerse en el backend, así
-  // que las pantallas que las llaman reciben 404/405.
+  // El detalle (GET/PATCH) YA existe: AdminTicketDetailView. Escalar, cerrar y
+  // reasignar se hacen por ese PATCH (status / assigned_to), no por rutas de
+  // acción dedicadas. `messages/` sigue SIN exponerse: enviar mensaje da 404
+  // hasta que el backend lo implemente (la UI lo degrada a "no disponible").
   static String adminTicketDetail(String id)   => '/marketplace/admin/tickets/$id/';
   static String adminTicketMessages(String id) => '/marketplace/admin/tickets/$id/messages/';
-  static String adminTicketEscalate(String id) => '/marketplace/admin/tickets/$id/escalate/';
-  static String adminTicketClose(String id)    => '/marketplace/admin/tickets/$id/close/';
-  static String adminTicketReassign(String id) => '/marketplace/admin/tickets/$id/reassign/';
 
   // Backoffice — Admin User Management
   static const String adminUsers = '/admin/users/';
@@ -201,4 +199,17 @@ class ApiConfig {
   static String adminStripeDisputeDetail(String id) => '/admin/disputes/$id/';
   static String adminStripeDisputeAction(String id) => '/admin/disputes/$id/action/';
   static const String adminStripeRefunds       = '/admin/refunds/';
+
+  // Backoffice — Campañas promocionales (superadmin / IsSuperAdmin).
+  // OJO: cuelgan de `/admin/` (points_admin), NO de `/marketplace/admin/`
+  // (que da 404). El listado es un array pelado (sin results/meta).
+  static const String adminCampaigns = '/admin/campaigns/';
+  static String adminCampaignDetail(String id)  => '/admin/campaigns/$id/';
+  // Subida del banner (multipart, campo `image`). Necesita el id → primero se
+  // crea la campaña y con el id devuelto se sube la imagen.
+  static String adminCampaignImage(String id)   => '/admin/campaigns/$id/image/';
+  // Analítica de rendimiento de la campaña (puntos, alcance, presupuesto).
+  static String adminCampaignImpact(String id)  => '/admin/campaigns/$id/impact/';
+  // Vista previa: mismo serializer que ve el usuario/tienda en el marketplace.
+  static String adminCampaignPreview(String id) => '/admin/campaigns/$id/preview/';
 }

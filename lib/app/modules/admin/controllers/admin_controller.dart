@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../utils/app_config.dart';
 import '../../../../utils/dummy_helper.dart';
 import '../../../components/custom_snackbar.dart';
 import '../../../data/models/category_model.dart';
@@ -90,6 +91,13 @@ class AdminController extends GetxController {
 
   // Muestra datos dummy instantáneamente mientras carga el backend.
   void _bootstrapFromDummy() {
+    if (!AppConfig.useDummyData) {
+      // Sin datos demo: arranca con una tienda vacía (sin nombre/PIN/códigos
+      // ficticios) hasta que el backend responda. `currentStore` debe quedar
+      // inicializada para no romper los getters que la usan.
+      currentStore = StoreModel.fromJson(const {});
+      return;
+    }
     final email = AuthService.currentUserEmail ?? '';
     final resolvedId = DummyHelper.storeIdForAdminEmail(email);
     storeId.value = resolvedId ?? DummyHelper.stores.first.id;
