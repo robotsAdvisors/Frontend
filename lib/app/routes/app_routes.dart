@@ -43,6 +43,7 @@ abstract class Routes {
   static const INCIDENCIAS        = _Paths.INCIDENCIAS;
   static const CONFIRMAR_ENTREGA  = _Paths.CONFIRMAR_ENTREGA;
   static const COMERCIOS          = _Paths.COMERCIOS;
+  static const CAMPAIGNS          = _Paths.CAMPAIGNS;
 }
 
 abstract class _Paths {
@@ -87,4 +88,5 @@ abstract class _Paths {
   static const INCIDENCIAS        = '/admin/incidencias';
   static const CONFIRMAR_ENTREGA  = '/admin/confirmar-entrega';
   static const COMERCIOS          = '/backoffice/comercios';
+  static const CAMPAIGNS          = '/backoffice/campaigns';
 }

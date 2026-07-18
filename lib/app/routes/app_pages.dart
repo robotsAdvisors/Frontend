@@ -55,6 +55,7 @@ import '../modules/admin/views/seguridad_view.dart';
 import '../modules/admin/views/incidencias_view.dart';
 import '../modules/admin/views/confirmar_entrega_view.dart';
 import '../modules/general_admin/views/comercios_view.dart';
+import '../modules/general_admin/views/campaigns_view.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
 import '../modules/withdrawals/views/withdrawals_view.dart';
 import '../modules/virtual_card/bindings/virtual_card_binding.dart';
@@ -227,6 +228,13 @@ class AppPages {
     GetPage(
       name: _Paths.COMERCIOS,
       page: () => const ComerciosView(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.CAMPAIGNS,
+      page: () => const CampaignsView(),
       binding: GeneralAdminBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),

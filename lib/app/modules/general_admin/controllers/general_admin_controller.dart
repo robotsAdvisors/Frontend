@@ -7,6 +7,7 @@ import '../../../../utils/dummy_helper.dart';
 import '../../../components/custom_snackbar.dart';
 import '../../../data/models/admin_user_model.dart';
 import '../../../data/models/audit_log_model.dart';
+import '../../../data/models/campaign_model.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/kybc_stats_model.dart';
 import '../../../data/models/sensitive_policy_model.dart';
@@ -57,6 +58,10 @@ class GeneralAdminController extends GetxController {
 
   // Backoffice — gestión de usuarios
   final RxList<AdminUserModel> adminUsers = <AdminUserModel>[].obs;
+  // Campañas promocionales (superadmin). La vista solo lista por ahora; el
+  // crear/editar/subir banner se cablea después con _repo.createCampaign etc.
+  final RxList<CampaignModel> campaigns = <CampaignModel>[].obs;
+  final RxBool isLoadingCampaigns = false.obs;
   final Rx<AdminUserModel?> selectedUser = Rx<AdminUserModel?>(null);
   final RxList<AuditLogModel> auditLog = <AuditLogModel>[].obs;
   final RxBool isLoadingUser = false.obs;
@@ -200,6 +205,27 @@ class GeneralAdminController extends GetxController {
       final published = await _repo.fetchStores();
       if (published.isNotEmpty) stores.assignAll(published);
     } catch (_) {}
+  }
+
+  // ──────────── CAMPAÑAS PROMOCIONALES ────────────
+
+  /// Lista las campañas del superadmin. GET /admin/campaigns/ (solo lectura por
+  /// ahora). Un store admin recibe 403 → se degrada sin ruido.
+  Future<void> loadCampaigns() async {
+    if (isLoadingCampaigns.value) return;
+    isLoadingCampaigns.value = true;
+    try {
+      final list = await _repo.fetchCampaigns();
+      campaigns.assignAll(list);
+    } on ApiException catch (e) {
+      if (!e.isUnavailable && e.statusCode != 403) {
+        CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+      }
+    } catch (_) {
+      // silencio: la pantalla queda vacía
+    } finally {
+      isLoadingCampaigns.value = false;
+    }
   }
 
   void _applyOrderStats(OrdersStats s) {
