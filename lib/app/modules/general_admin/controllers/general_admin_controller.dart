@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../utils/app_config.dart';
 import '../../../../utils/dummy_helper.dart';
@@ -225,6 +226,63 @@ class GeneralAdminController extends GetxController {
       // silencio: la pantalla queda vacía
     } finally {
       isLoadingCampaigns.value = false;
+    }
+  }
+
+  final RxBool isSavingCampaign = false.obs;
+
+  /// Crea (o edita, si [editId] no es null) una campaña y, si se eligió una
+  /// [image], la sube DESPUÉS con el id devuelto (la subida necesita el id).
+  /// Devuelve true si se guardó. Los errores del backend se muestran con su
+  /// mensaje real (contrato de error), útil para depurar el payload al probar.
+  Future<bool> submitCampaign(
+    Map<String, dynamic> payload, {
+    XFile? image,
+    String? editId,
+  }) async {
+    if (isSavingCampaign.value) return false;
+    isSavingCampaign.value = true;
+    try {
+      final CampaignModel? saved = (editId != null && editId.isNotEmpty)
+          ? await _repo.updateCampaign(editId, payload)
+          : await _repo.createCampaign(payload);
+      final id = saved?.id.isNotEmpty == true ? saved!.id : (editId ?? '');
+      if (image != null && id.isNotEmpty) {
+        await _repo.uploadCampaignImage(id, image);
+      }
+      await loadCampaigns();
+      CustomSnackBar.showCustomSnackBar(
+        title: editId != null ? 'Campaña actualizada' : 'Campaña creada',
+        message: 'Se guardó correctamente.',
+      );
+      return true;
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo guardar la campaña.');
+    } finally {
+      isSavingCampaign.value = false;
+    }
+    return false;
+  }
+
+  /// Elimina una campaña (DELETE /admin/campaigns/{id}/) con update optimista.
+  Future<void> removeCampaign(String id) async {
+    final idx = campaigns.indexWhere((c) => c.id == id);
+    final backup = idx != -1 ? campaigns[idx] : null;
+    if (idx != -1) campaigns.removeAt(idx);
+    try {
+      await _repo.deleteCampaign(id);
+      CustomSnackBar.showCustomSnackBar(
+          title: 'Campaña eliminada', message: 'Se eliminó correctamente.');
+    } on ApiException catch (e) {
+      if (backup != null) campaigns.insert(idx, backup);
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+    } catch (_) {
+      if (backup != null) campaigns.insert(idx, backup);
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo eliminar la campaña.');
     }
   }
 
