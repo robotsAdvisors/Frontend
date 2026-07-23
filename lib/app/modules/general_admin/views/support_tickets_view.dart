@@ -662,6 +662,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final userCtrl = TextEditingController();
+    TicketCategoryModel? selCategory;
     String selPriority = 'MEDIUM';
 
     InputDecoration deco(String hint) => InputDecoration(
@@ -732,27 +733,69 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
                       style: const TextStyle(fontSize: 14),
                       decoration: deco('correo@ejemplo.com')),
                   const SizedBox(height: 14),
-                  label('Prioridad'),
-                  DropdownButtonFormField<String>(
-                    initialValue: selPriority,
-                    isExpanded: true,
-                    style: const TextStyle(
-                        fontSize: 13, color: Color(0xFF111827)),
-                    decoration: deco(''),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'LOW',
-                          child: Text('Baja', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(
-                          value: 'MEDIUM',
-                          child: Text('Media', style: TextStyle(fontSize: 13))),
-                      DropdownMenuItem(
-                          value: 'HIGH',
-                          child: Text('Alta', style: TextStyle(fontSize: 13))),
-                    ],
-                    onChanged: (v) =>
-                        setDlgState(() => selPriority = v ?? 'MEDIUM'),
-                  ),
+                  Row(children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          label('Categoría'),
+                          DropdownButtonFormField<TicketCategoryModel>(
+                            initialValue: selCategory,
+                            isExpanded: true,
+                            hint: Text(
+                                _ctrl.categories.isEmpty
+                                    ? 'Sin categorías'
+                                    : 'Opcional',
+                                style: const TextStyle(fontSize: 13)),
+                            style: const TextStyle(
+                                fontSize: 13, color: Color(0xFF111827)),
+                            decoration: deco(''),
+                            items: _ctrl.categories
+                                .map((c) => DropdownMenuItem(
+                                    value: c,
+                                    child: Text(c.name,
+                                        style: const TextStyle(fontSize: 13),
+                                        overflow: TextOverflow.ellipsis)))
+                                .toList(),
+                            onChanged: (v) =>
+                                setDlgState(() => selCategory = v),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          label('Prioridad'),
+                          DropdownButtonFormField<String>(
+                            initialValue: selPriority,
+                            isExpanded: true,
+                            style: const TextStyle(
+                                fontSize: 13, color: Color(0xFF111827)),
+                            decoration: deco(''),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'LOW',
+                                  child: Text('Baja',
+                                      style: TextStyle(fontSize: 13))),
+                              DropdownMenuItem(
+                                  value: 'MEDIUM',
+                                  child: Text('Media',
+                                      style: TextStyle(fontSize: 13))),
+                              DropdownMenuItem(
+                                  value: 'HIGH',
+                                  child: Text('Alta',
+                                      style: TextStyle(fontSize: 13))),
+                            ],
+                            onChanged: (v) => setDlgState(
+                                () => selPriority = v ?? 'MEDIUM'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ]),
                   const SizedBox(height: 22),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -784,6 +827,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
                                       description: descCtrl.text,
                                       userEmail: userCtrl.text.trim(),
                                       priority: selPriority,
+                                      categoryId: selCategory?.id,
                                     );
                                     if (ok && ctx.mounted) {
                                       Navigator.of(ctx).pop();
