@@ -147,6 +147,15 @@ class ApiConfig {
   static String adminUserKyc(String id) => '/admin/users/$id/kyc/';
   static String adminUserDeactivation(String id) => '/admin/users/$id/deactivation/';
 
+  // Backoffice — Antifraude (points_admin: /api/v1/admin/...)
+  // BG-06: cola de contribuciones sospechosas + decisión del moderador.
+  static const String moderationQueue = '/admin/moderation/contributions/';
+  static String moderationDecision(String kind, String id) =>
+      '/admin/moderation/contributions/$kind/$id/';
+  // BG-07: umbrales antifraude (CRUD del Super Admin).
+  static const String antifraudRules = '/admin/antifraud-rules/';
+  static String antifraudRuleDetail(int id) => '/admin/antifraud-rules/$id/';
+
   // Backoffice — Admin Store Management
   static String adminStoreDetail(String id) => '/marketplace/admin/stores/$id/';
 
