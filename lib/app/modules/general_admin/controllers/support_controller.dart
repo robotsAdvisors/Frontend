@@ -155,9 +155,9 @@ class SupportController extends GetxController {
   Future<bool> createTicket({
     required String title,
     required String description,
-    required int categoryId,
+    required String userEmail,
     required String priority,
-    required String userId,
+    int? categoryId,
     String? storeId,
   }) async {
     if (isCreating.value) return false;
@@ -168,9 +168,9 @@ class SupportController extends GetxController {
         data: {
           'title':       title.trim(),
           'description': description.trim(),
-          'category_id': categoryId,
+          'user_email':  userEmail.trim(),
           'priority':    priority,
-          'user_id':     userId.trim(),
+          if (categoryId != null) 'category_id': categoryId,
           if (storeId != null && storeId.isNotEmpty) 'store_id': storeId,
         },
       );
@@ -184,15 +184,19 @@ class SupportController extends GetxController {
         return true;
       }
       return false;
-    } on DioException catch (e) {
-      final body = e.response?.data;
-      String msg = 'No se pudo crear el ticket.';
-      if (body is Map) {
-        final first = body.values.whereType<List>().firstOrNull;
-        msg = first?.firstOrNull?.toString() ??
-            body['detail']?.toString() ?? msg;
-      }
-      CustomSnackBar.showCustomErrorSnackBar(title: 'Error al crear', message: msg);
+    } catch (e) {
+      // Usa el contrato de error del backend ({error_code, message, details})
+      // y muestra el detalle por campo, para saber exactamente qué rechaza.
+      final ex = toApiException(e);
+      final detail = ex.details.isNotEmpty
+          ? ex.details.entries.map((x) {
+              final v = x.value;
+              return '${x.key}: ${v is List ? v.join(', ') : v}';
+            }).join('  ·  ')
+          : '';
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error al crear',
+          message: detail.isNotEmpty ? '${ex.message}\n$detail' : ex.message);
       return false;
     } finally {
       isCreating.value = false;
