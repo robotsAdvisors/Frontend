@@ -46,7 +46,6 @@ abstract class Routes {
   static const CAMPAIGNS          = _Paths.CAMPAIGNS;
   static const ANTIFRAUDE          = _Paths.ANTIFRAUDE;
   static const ANTIFRAUDE_DETAIL   = _Paths.ANTIFRAUDE_DETAIL;
-  static const ANTIFRAUDE_ACTIONS  = _Paths.ANTIFRAUDE_ACTIONS;
   static const ANTIFRAUDE_SETTINGS = _Paths.ANTIFRAUDE_SETTINGS;
 }
 
@@ -96,6 +95,5 @@ abstract class _Paths {
   // Antifraude: las pantallas navegan con estas rutas literales (Navigator.pushNamed).
   static const ANTIFRAUDE          = '/antifraude';
   static const ANTIFRAUDE_DETAIL   = '/antifraude/detail';
-  static const ANTIFRAUDE_ACTIONS  = '/antifraude/actions';
   static const ANTIFRAUDE_SETTINGS = '/antifraude/settings';
 }
