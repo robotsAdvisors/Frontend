@@ -123,6 +123,14 @@ class ComerciosView extends GetView<GeneralAdminController> {
     );
   }
 
+  void _openCreateStore() {
+    Get.bottomSheet(
+      _CreateStoreForm(controller: controller),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
   // ─── STORE LIST ──────────────────────────────────────────────────────────────
 
   Widget _storeList() {
@@ -145,6 +153,17 @@ class ComerciosView extends GetView<GeneralAdminController> {
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
                       color: _purple)),
             )),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: _openCreateStore,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                    color: _purple, borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.add, size: 16, color: Colors.white),
+              ),
+            ),
           ]),
         ),
         // Search
@@ -557,5 +576,164 @@ class _HeaderCell extends StatelessWidget {
     return Text(text,
         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
             color: Colors.grey, letterSpacing: 0.4));
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Formulario de alta de tienda
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _CreateStoreForm extends StatefulWidget {
+  const _CreateStoreForm({required this.controller});
+  final GeneralAdminController controller;
+
+  @override
+  State<_CreateStoreForm> createState() => _CreateStoreFormState();
+}
+
+class _CreateStoreFormState extends State<_CreateStoreForm> {
+  static const Color _purple = Color(0xFF7C3AED);
+  static const Color _ink = Color(0xFF1E1B4B);
+  static const Color _muted = Color(0xFF6B7280);
+
+  final _name = TextEditingController();
+  final _description = TextEditingController();
+  final _address = TextEditingController();
+  final _phone = TextEditingController();
+  final _email = TextEditingController();
+  final _website = TextEditingController();
+  final _cif = TextEditingController();
+  final _ownerEmail = TextEditingController();
+
+  @override
+  void dispose() {
+    for (final c in [_name, _description, _address, _phone, _email, _website, _cif, _ownerEmail]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final name = _name.text.trim();
+    if (name.isEmpty) {
+      Get.snackbar('Falta el nombre', 'El nombre de la tienda es obligatorio',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    String? v(TextEditingController c) => c.text.trim().isEmpty ? null : c.text.trim();
+    final payload = <String, dynamic>{
+      'name': name,
+      if (v(_description) != null) 'description': v(_description),
+      if (v(_address) != null) 'address': v(_address),
+      if (v(_phone) != null) 'phone': v(_phone),
+      if (v(_email) != null) 'email': v(_email),
+      if (v(_website) != null) 'website': v(_website),
+      if (v(_cif) != null) 'cif': v(_cif),
+      if (v(_ownerEmail) != null) 'owner_email': v(_ownerEmail),
+    };
+    final ok = await widget.controller.createStore(payload);
+    if (ok && mounted) Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(width: 44, height: 5,
+              decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB), borderRadius: BorderRadius.circular(3))),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Row(children: [
+              const Text('Nueva tienda',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
+              const Spacer(),
+              IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close, color: _muted)),
+            ]),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                _field('Nombre comercial *', _name, hint: 'Ej. Healthy Foods'),
+                _field('Descripción', _description, hint: 'Breve descripción', lines: 2),
+                _field('Dirección física', _address, hint: 'Calle, número, ciudad'),
+                Row(children: [
+                  Expanded(child: _field('Teléfono', _phone, keyboard: TextInputType.phone)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _field('CIF / NIF', _cif)),
+                ]),
+                _field('Email', _email, keyboard: TextInputType.emailAddress),
+                _field('Sitio web', _website, keyboard: TextInputType.url, hint: 'https://...'),
+                _field('Email del dueño', _ownerEmail,
+                    keyboard: TextInputType.emailAddress, hint: 'propietario@...'),
+                const SizedBox(height: 20),
+              ]),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(24, 8, 24, MediaQuery.of(context).viewInsets.bottom + 16),
+            child: SizedBox(
+              height: 52,
+              width: double.infinity,
+              child: Obx(() => FilledButton(
+                    style: FilledButton.styleFrom(
+                        backgroundColor: _purple,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                    onPressed: widget.controller.isCreatingStore.value ? null : _submit,
+                    child: widget.controller.isCreatingStore.value
+                        ? const SizedBox(height: 22, width: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('Crear tienda',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  )),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _field(String label, TextEditingController c,
+      {String? hint, TextInputType? keyboard, int lines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(label,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _ink)),
+        ),
+        TextField(
+          controller: c,
+          keyboardType: keyboard,
+          maxLines: lines,
+          decoration: InputDecoration(
+            hintText: hint,
+            filled: true,
+            fillColor: const Color(0xFFF9FAFB),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: _purple, width: 1.5),
+            ),
+          ),
+        ),
+      ]),
+    );
   }
 }

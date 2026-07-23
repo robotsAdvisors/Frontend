@@ -515,6 +515,35 @@ class GeneralAdminController extends GetxController {
     if (totalCategories.value == 0) totalCategories.value = categories.length;
   }
 
+  final RxBool isCreatingStore = false.obs;
+
+  /// Da de alta una tienda nueva (POST /marketplace/admin/stores/). Devuelve
+  /// true si se creó. Los errores del backend se muestran con su detalle por
+  /// campo (contrato de error) para saber qué falta al probar.
+  Future<bool> createStore(Map<String, dynamic> payload) async {
+    if (isCreatingStore.value) return false;
+    isCreatingStore.value = true;
+    try {
+      final created = await _repo.adminCreateStore(payload);
+      if (created != null) {
+        stores.insert(0, created);
+        _calculateMetrics();
+        CustomSnackBar.showCustomSnackBar(
+            title: 'Tienda creada', message: 'La tienda se guardó en el backend.');
+        return true;
+      }
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'No se pudo crear', message: _formatApiError(e));
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo crear la tienda.');
+    } finally {
+      isCreatingStore.value = false;
+    }
+    return false;
+  }
+
   Future<void> addStore(StoreModel store) async {
     stores.add(store);
     _calculateMetrics();

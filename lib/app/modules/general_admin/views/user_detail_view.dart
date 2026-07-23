@@ -65,7 +65,8 @@ class UserDetailView extends GetView<GeneralAdminController> {
           _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
               onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
           _navItem(icon: Icons.gavel_outlined, label: 'Legal'),
-          _navItem(icon: Icons.flag_outlined, label: 'Moderación'),
+          _navItem(icon: Icons.flag_outlined, label: 'Moderación',
+              onTap: () => Get.toNamed(Routes.ANTIFRAUDE)),
           _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
 

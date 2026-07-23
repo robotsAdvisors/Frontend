@@ -5,70 +5,224 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/campaign_model.dart';
+import '../../../data/services/auth_service.dart';
+import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
 
 /// Campañas promocionales del superadmin, cableada al backend
-/// (`/admin/campaigns/`): lista, crea, edita, elimina y sube el banner.
+/// (`/admin/campaigns/`). Mismo layout de backoffice que Tiendas: sidebar +
+/// contenido.
 class CampaignsView extends GetView<GeneralAdminController> {
   const CampaignsView({super.key});
 
-  // Paleta
   static const Color _purple = Color(0xFF7C3AED);
   static const Color _purpleDark = Color(0xFF5B21B6);
   static const Color _purpleLight = Color(0xFFEDE9FE);
-  static const Color _bg = Color(0xFFF6F5FB);
+  static const Color _bg = Color(0xFFF8F7FF);
   static const Color _ink = Color(0xFF1E1B4B);
   static const Color _muted = Color(0xFF6B7280);
+  static const Color _border = Color(0xFFE5E7EB);
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (controller.campaigns.isEmpty) controller.loadCampaigns();
     });
-
     return Scaffold(
       backgroundColor: _bg,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: _purple,
-        foregroundColor: Colors.white,
-        title: const Text('Campañas Promocionales',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+      body: Row(
+        children: [
+          _sidebar(),
+          const VerticalDivider(width: 1, thickness: 1, color: _border),
+          Expanded(child: _content()),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: _purple,
-        foregroundColor: Colors.white,
-        elevation: 2,
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva campaña'),
-        onPressed: () => _openForm(context),
-      ),
-      body: Obx(() {
-        if (controller.isLoadingCampaigns.value && controller.campaigns.isEmpty) {
-          return const Center(child: CircularProgressIndicator(color: _purple));
-        }
-        if (controller.campaigns.isEmpty) return _emptyState(context);
-        return RefreshIndicator(
-          color: _purple,
-          onRefresh: controller.loadCampaigns,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                itemCount: controller.campaigns.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 14),
-                itemBuilder: (_, i) => _campaignCard(context, controller.campaigns[i]),
-              ),
-            ),
-          ),
-        );
-      }),
     );
   }
 
-  // ── Empty state ─────────────────────────────────────────────────────────────
-  Widget _emptyState(BuildContext context) {
+  // ─── SIDEBAR (igual que Tiendas) ─────────────────────────────────────────────
+  Widget _sidebar() {
+    return Container(
+      width: 220,
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 24, 20, 4),
+            child: Row(children: [
+              Icon(Icons.rocket_launch_outlined, size: 18, color: _purple),
+              SizedBox(width: 8),
+              Text('Enterprise Portal',
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: _ink)),
+            ]),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(left: 46, bottom: 12),
+            child: Text('Gestión Global',
+                style: TextStyle(fontSize: 11, color: Colors.grey)),
+          ),
+          Obx(() => Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: Row(children: [
+                  CircleAvatar(
+                      radius: 16,
+                      backgroundColor: _purpleLight,
+                      child: Text(
+                          controller.currentUserInitials.value.isEmpty
+                              ? 'SA'
+                              : controller.currentUserInitials.value,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: _purple))),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text(
+                            controller.currentUserName.value.isEmpty
+                                ? 'Super Admin'
+                                : controller.currentUserName.value,
+                            style: const TextStyle(
+                                fontSize: 12, fontWeight: FontWeight.w700),
+                            overflow: TextOverflow.ellipsis),
+                        const Text('Admin',
+                            style:
+                                TextStyle(fontSize: 10, color: Colors.grey)),
+                      ])),
+                ]),
+              )),
+          const Divider(height: 1, color: _border),
+          const SizedBox(height: 8),
+          _navItem(Icons.dashboard_outlined, 'Dashboard',
+              onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
+          _navItem(Icons.store_outlined, 'Tiendas',
+              onTap: () => Get.toNamed(Routes.COMERCIOS)),
+          _navItem(Icons.campaign_outlined, 'Campañas', selected: true),
+          _navItem(Icons.shield_outlined, 'Antifraude',
+              onTap: () => Get.toNamed(Routes.ANTIFRAUDE)),
+          _navItem(Icons.gavel_outlined, 'Legal',
+              onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
+          _navItem(Icons.privacy_tip_outlined, 'GDPR',
+              onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
+          _navItem(Icons.verified_user_outlined, 'KYBC',
+              onTap: () => Get.toNamed(Routes.KYBC)),
+          _navItem(Icons.policy_outlined, 'Políticas',
+              onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
+          _navItem(Icons.payments_outlined, 'Pagos',
+              onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
+          _navItem(Icons.support_agent_outlined, 'Soporte',
+              onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
+          const Spacer(),
+          const Divider(height: 1, color: _border),
+          ListTile(
+              dense: true,
+              leading: const Icon(Icons.logout, size: 16, color: Colors.grey),
+              title: const Text('Logout',
+                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+              onTap: () async {
+                await AuthService.signOut();
+                Get.offAllNamed(Routes.LOGIN);
+              }),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _navItem(IconData icon, String label,
+      {bool selected = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+            color: selected ? _purpleLight : Colors.transparent,
+            borderRadius: BorderRadius.circular(10)),
+        child: Row(children: [
+          Icon(icon, size: 17, color: selected ? _purple : Colors.grey.shade500),
+          const SizedBox(width: 10),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? _purple : Colors.grey.shade700)),
+        ]),
+      ),
+    );
+  }
+
+  // ─── CONTENIDO ───────────────────────────────────────────────────────────────
+  Widget _content() {
+    return Column(
+      children: [
+        // Top bar
+        Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: _border)),
+          ),
+          child: Row(
+            children: [
+              const Text('Campañas Promocionales',
+                  style: TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800, color: _ink)),
+              const Spacer(),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: _purple,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: _openForm,
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Nueva campaña',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Obx(() {
+            if (controller.isLoadingCampaigns.value &&
+                controller.campaigns.isEmpty) {
+              return const Center(
+                  child: CircularProgressIndicator(color: _purple));
+            }
+            if (controller.campaigns.isEmpty) return _emptyState();
+            return RefreshIndicator(
+              color: _purple,
+              onRefresh: controller.loadCampaigns,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(28, 24, 28, 32),
+                    itemCount: controller.campaigns.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 14),
+                    itemBuilder: (_, i) =>
+                        _campaignCard(controller.campaigns[i]),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _emptyState() {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -76,8 +230,8 @@ class CampaignsView extends GetView<GeneralAdminController> {
           Container(
             width: 96,
             height: 96,
-            decoration: const BoxDecoration(
-                color: _purpleLight, shape: BoxShape.circle),
+            decoration:
+                const BoxDecoration(color: _purpleLight, shape: BoxShape.circle),
             child: const Icon(Icons.campaign_outlined, size: 44, color: _purple),
           ),
           const SizedBox(height: 20),
@@ -93,7 +247,7 @@ class CampaignsView extends GetView<GeneralAdminController> {
               backgroundColor: _purple,
               padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
             ),
-            onPressed: () => _openForm(context),
+            onPressed: _openForm,
             icon: const Icon(Icons.add),
             label: const Text('Crear campaña'),
           ),
@@ -102,8 +256,8 @@ class CampaignsView extends GetView<GeneralAdminController> {
     );
   }
 
-  // ── Card ────────────────────────────────────────────────────────────────────
-  Widget _campaignCard(BuildContext context, CampaignModel c) {
+  // ─── CARD ────────────────────────────────────────────────────────────────────
+  Widget _campaignCard(CampaignModel c) {
     final hasBanner =
         c.bannerImage != null && c.bannerImage!.startsWith('http');
     return Container(
@@ -121,7 +275,6 @@ class CampaignsView extends GetView<GeneralAdminController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: banner o gradiente, con nombre + estado
           SizedBox(
             height: 96,
             width: double.infinity,
@@ -134,7 +287,6 @@ class CampaignsView extends GetView<GeneralAdminController> {
                       errorBuilder: (_, __, ___) => _gradientHeader())
                 else
                   _gradientHeader(),
-                // velo para legibilidad
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -151,15 +303,13 @@ class CampaignsView extends GetView<GeneralAdminController> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          c.name.isNotEmpty ? c.name : 'Sin nombre',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800),
-                        ),
+                        child: Text(c.name.isNotEmpty ? c.name : 'Sin nombre',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800)),
                       ),
                       _statusBadge(c.isActive),
                     ],
@@ -173,7 +323,6 @@ class CampaignsView extends GetView<GeneralAdminController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // chips
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -183,7 +332,8 @@ class CampaignsView extends GetView<GeneralAdminController> {
                       _chip(Icons.close, '×${_multiplier(c)}', _purple),
                     if (c.discountPercent > 0)
                       _chip(Icons.percent,
-                          '${c.discountPercent.toStringAsFixed(0)}%', Colors.teal),
+                          '${c.discountPercent.toStringAsFixed(0)}%',
+                          Colors.teal),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -198,14 +348,14 @@ class CampaignsView extends GetView<GeneralAdminController> {
                     const Spacer(),
                     TextButton.icon(
                       style: TextButton.styleFrom(foregroundColor: _purpleDark),
-                      onPressed: () => _openForm(context, campaign: c),
+                      onPressed: () => _openForm(campaign: c),
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       label: const Text('Editar'),
                     ),
                     IconButton(
                       tooltip: 'Eliminar',
                       color: Colors.red.shade400,
-                      onPressed: () => _confirmDelete(context, c),
+                      onPressed: () => _confirmDelete(c),
                       icon: const Icon(Icons.delete_outline),
                     ),
                   ],
@@ -227,8 +377,8 @@ class CampaignsView extends GetView<GeneralAdminController> {
           ),
         ),
         child: Center(
-          child: Icon(Icons.local_offer_outlined,
-              color: Colors.white24, size: 48),
+          child:
+              Icon(Icons.local_offer_outlined, color: Colors.white24, size: 48),
         ),
       );
 
@@ -237,8 +387,7 @@ class CampaignsView extends GetView<GeneralAdminController> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20)),
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -285,13 +434,10 @@ class CampaignsView extends GetView<GeneralAdminController> {
 
   Widget _budgetRow(CampaignModel c) {
     final b = c.budget;
-    if (b == null) {
-      return const SizedBox.shrink();
-    }
+    if (b == null) return const SizedBox.shrink();
     final hasCap = b.maxPointsGlobal != null && b.maxPointsGlobal! > 0;
-    final pct = hasCap
-        ? (b.consumedPoints / b.maxPointsGlobal!).clamp(0.0, 1.0)
-        : 0.0;
+    final pct =
+        hasCap ? (b.consumedPoints / b.maxPointsGlobal!).clamp(0.0, 1.0) : 0.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -317,8 +463,8 @@ class CampaignsView extends GetView<GeneralAdminController> {
             value: hasCap ? pct : null,
             minHeight: 7,
             backgroundColor: _purpleLight,
-            valueColor: AlwaysStoppedAnimation(
-                b.exhausted ? Colors.red : _purple),
+            valueColor:
+                AlwaysStoppedAnimation(b.exhausted ? Colors.red : _purple),
           ),
         ),
       ],
@@ -340,37 +486,30 @@ class CampaignsView extends GetView<GeneralAdminController> {
     return '${d.day} ${m[d.month - 1]}';
   }
 
-  void _confirmDelete(BuildContext context, CampaignModel c) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Eliminar campaña'),
-        content: Text('¿Seguro que quieres eliminar "${c.name}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context);
-              controller.removeCampaign(c.id);
-            },
-            child: const Text('Eliminar'),
-          ),
-        ],
-      ),
-    );
+  void _confirmDelete(CampaignModel c) {
+    Get.dialog(AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Text('Eliminar campaña'),
+      content: Text('¿Seguro que quieres eliminar "${c.name}"?'),
+      actions: [
+        TextButton(onPressed: Get.back, child: const Text('Cancelar')),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+          onPressed: () {
+            Get.back();
+            controller.removeCampaign(c.id);
+          },
+          child: const Text('Eliminar'),
+        ),
+      ],
+    ));
   }
 
-  void _openForm(BuildContext context, {CampaignModel? campaign}) {
-    showModalBottomSheet(
-      context: context,
+  void _openForm({CampaignModel? campaign}) {
+    Get.bottomSheet(
+      _CampaignForm(controller: controller, campaign: campaign),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _CampaignForm(controller: controller, campaign: campaign),
     );
   }
 }
@@ -381,7 +520,6 @@ class CampaignsView extends GetView<GeneralAdminController> {
 
 class _CampaignForm extends StatefulWidget {
   const _CampaignForm({required this.controller, this.campaign});
-
   final GeneralAdminController controller;
   final CampaignModel? campaign;
 
@@ -401,7 +539,7 @@ class _CampaignFormState extends State<_CampaignForm> {
   String _startDate = '';
   String _endDate = '';
   XFile? _image;
-  Uint8List? _imageBytes; // preview compatible con web (Image.memory)
+  Uint8List? _imageBytes;
 
   bool get _isEdit => widget.campaign != null;
 
@@ -433,7 +571,6 @@ class _CampaignFormState extends State<_CampaignForm> {
       d == null ? '' : '${d.year}-${_two(d.month)}-${_two(d.day)}';
   static String _two(int n) => n.toString().padLeft(2, '0');
 
-  /// Genera un slug a partir del nombre: minúsculas, sin acentos, con guiones.
   static String _slugify(String s) {
     var out = s.toLowerCase().trim();
     const from = 'áàäâãéèëêíìïîóòöôõúùüûñç';
@@ -464,7 +601,7 @@ class _CampaignFormState extends State<_CampaignForm> {
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      final bytes = await picked.readAsBytes(); // funciona en web y móvil
+      final bytes = await picked.readAsBytes();
       setState(() {
         _image = picked;
         _imageBytes = bytes;
@@ -486,8 +623,6 @@ class _CampaignFormState extends State<_CampaignForm> {
     }
     final mult = _multiplier.text.trim();
     final budgetVal = int.tryParse(_budget.text.trim());
-    // El backend exige `slug`; en edición se conserva el existente (es estable),
-    // en creación se genera a partir del nombre.
     final slug = _isEdit && widget.campaign!.slug.isNotEmpty
         ? widget.campaign!.slug
         : _slugify(name);
@@ -498,11 +633,8 @@ class _CampaignFormState extends State<_CampaignForm> {
       if (mult.isNotEmpty && _affects == 'EARNING') 'earning_multiplier': mult,
       if (mult.isNotEmpty && _affects == 'REDEMPTION')
         'redemption_multiplier': mult,
-      // El backend usa starts_at/ends_at (no start_date/end_date).
       'starts_at': _startDate,
       'ends_at': _endDate,
-      // Solo se envía el tope si es un entero válido; texto como "sin límite"
-      // se ignora (= sin tope), en vez de mandar null y romper la validación.
       if (budgetVal != null) 'max_points_global': budgetVal,
     };
 
@@ -517,8 +649,8 @@ class _CampaignFormState extends State<_CampaignForm> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.92),
+      constraints:
+          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.92),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -565,8 +697,8 @@ class _CampaignFormState extends State<_CampaignForm> {
                   _label('Multiplicador'),
                   _input(_multiplier,
                       hint: 'Ej. 2',
-                      keyboard: const TextInputType.numberWithOptions(
-                          decimal: true),
+                      keyboard:
+                          const TextInputType.numberWithOptions(decimal: true),
                       prefix: '×'),
                   const SizedBox(height: 18),
                   Row(
@@ -615,8 +747,7 @@ class _CampaignFormState extends State<_CampaignForm> {
       preview = Image.memory(_imageBytes!, fit: BoxFit.cover);
     } else if (existing != null && existing.startsWith('http')) {
       preview = Image.network(existing,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _emptyBanner());
+          fit: BoxFit.cover, errorBuilder: (_, __, ___) => _emptyBanner());
     } else {
       preview = _emptyBanner();
     }
@@ -662,9 +793,7 @@ class _CampaignFormState extends State<_CampaignForm> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon,
-                    size: 18,
-                    color: selected ? Colors.white : _muted),
+                Icon(icon, size: 18, color: selected ? Colors.white : _muted),
                 const SizedBox(width: 8),
                 Text(label,
                     style: TextStyle(
@@ -756,8 +885,8 @@ class _CampaignFormState extends State<_CampaignForm> {
           child: FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: _purple,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: saving ? null : _submit,
             child: saving
