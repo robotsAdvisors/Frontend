@@ -74,9 +74,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
         const SizedBox(height: 8),
         _navItem(icon: Icons.dashboard_outlined, label: 'Dashboard',
             onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
-        _navItem(icon: Icons.store_outlined,     label: 'Tiendas',
-            onTap: () => Get.toNamed(Routes.STORE_CONFIG)),
-        _navItem(icon: Icons.people_outline,     label: 'Comercios', selected: true),
+        _navItem(icon: Icons.store_outlined,     label: 'Tiendas', selected: true),
         _navItem(icon: Icons.gavel_outlined,     label: 'Legal',
             onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
         _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
@@ -136,7 +134,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
           child: Row(children: [
-            const Expanded(child: Text('Comercios',
+            const Expanded(child: Text('Tiendas',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
                     color: Color(0xFF111827)))),
             Obx(() => Container(

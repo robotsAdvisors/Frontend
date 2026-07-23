@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,12 +7,18 @@ import 'package:image_picker/image_picker.dart';
 import '../../../data/models/campaign_model.dart';
 import '../controllers/general_admin_controller.dart';
 
-/// Pantalla de campañas promocionales del superadmin, cableada al backend
+/// Campañas promocionales del superadmin, cableada al backend
 /// (`/admin/campaigns/`): lista, crea, edita, elimina y sube el banner.
 class CampaignsView extends GetView<GeneralAdminController> {
   const CampaignsView({super.key});
 
+  // Paleta
   static const Color _purple = Color(0xFF7C3AED);
+  static const Color _purpleDark = Color(0xFF5B21B6);
+  static const Color _purpleLight = Color(0xFFEDE9FE);
+  static const Color _bg = Color(0xFFF6F5FB);
+  static const Color _ink = Color(0xFF1E1B4B);
+  static const Color _muted = Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
@@ -21,14 +27,18 @@ class CampaignsView extends GetView<GeneralAdminController> {
     });
 
     return Scaffold(
+      backgroundColor: _bg,
       appBar: AppBar(
-        title: const Text('Campañas Promocionales'),
+        elevation: 0,
         backgroundColor: _purple,
         foregroundColor: Colors.white,
+        title: const Text('Campañas Promocionales',
+            style: TextStyle(fontWeight: FontWeight.w700)),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: _purple,
         foregroundColor: Colors.white,
+        elevation: 2,
         icon: const Icon(Icons.add),
         label: const Text('Nueva campaña'),
         onPressed: () => _openForm(context),
@@ -37,99 +47,313 @@ class CampaignsView extends GetView<GeneralAdminController> {
         if (controller.isLoadingCampaigns.value && controller.campaigns.isEmpty) {
           return const Center(child: CircularProgressIndicator(color: _purple));
         }
-        if (controller.campaigns.isEmpty) {
-          return const Center(
-            child: Text('No hay campañas publicadas.',
-                style: TextStyle(color: Colors.grey)),
-          );
-        }
+        if (controller.campaigns.isEmpty) return _emptyState(context);
         return RefreshIndicator(
+          color: _purple,
           onRefresh: controller.loadCampaigns,
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-            itemCount: controller.campaigns.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) => _campaignCard(context, controller.campaigns[i]),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                itemCount: controller.campaigns.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 14),
+                itemBuilder: (_, i) => _campaignCard(context, controller.campaigns[i]),
+              ),
+            ),
           ),
         );
       }),
     );
   }
 
-  Widget _campaignCard(BuildContext context, CampaignModel c) {
-    final hasBanner =
-        c.bannerImage != null && c.bannerImage!.startsWith('http');
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFEEEEEE)),
-      ),
-      child: ListTile(
-        onTap: () => _openForm(context, campaign: c),
-        leading: hasBanner
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  c.bannerImage!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image_not_supported_outlined),
-                ),
-              )
-            : const CircleAvatar(
-                backgroundColor: Color(0xFFEDE9FE),
-                child: Icon(Icons.local_offer_outlined, color: _purple),
-              ),
-        title: Text(c.name.isNotEmpty ? c.name : 'Sin nombre',
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(_subtitle(c)),
-        trailing: PopupMenuButton<String>(
-          onSelected: (v) {
-            if (v == 'edit') _openForm(context, campaign: c);
-            if (v == 'delete') _confirmDelete(context, c);
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Editar')),
-            PopupMenuItem(value: 'delete', child: Text('Eliminar')),
-          ],
-        ),
+  // ── Empty state ─────────────────────────────────────────────────────────────
+  Widget _emptyState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: const BoxDecoration(
+                color: _purpleLight, shape: BoxShape.circle),
+            child: const Icon(Icons.campaign_outlined, size: 44, color: _purple),
+          ),
+          const SizedBox(height: 20),
+          const Text('Aún no hay campañas',
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.w700, color: _ink)),
+          const SizedBox(height: 6),
+          const Text('Crea tu primera campaña promocional de puntos.',
+              style: TextStyle(color: _muted)),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: _purple,
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+            ),
+            onPressed: () => _openForm(context),
+            icon: const Icon(Icons.add),
+            label: const Text('Crear campaña'),
+          ),
+        ],
       ),
     );
   }
 
-  String _subtitle(CampaignModel c) {
-    final parts = <String>[];
-    if (c.affects.isNotEmpty) parts.add(c.affects);
-    if (c.earningMultiplier.isNotEmpty) parts.add('×${c.earningMultiplier}');
-    if (c.redemptionMultiplier.isNotEmpty &&
-        c.redemptionMultiplier != c.earningMultiplier) {
-      parts.add('canje ×${c.redemptionMultiplier}');
-    }
-    if (c.discountPercent > 0) {
-      parts.add('${c.discountPercent.toStringAsFixed(0)}%');
-    }
+  // ── Card ────────────────────────────────────────────────────────────────────
+  Widget _campaignCard(BuildContext context, CampaignModel c) {
+    final hasBanner =
+        c.bannerImage != null && c.bannerImage!.startsWith('http');
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+              color: _ink.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: banner o gradiente, con nombre + estado
+          SizedBox(
+            height: 96,
+            width: double.infinity,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (hasBanner)
+                  Image.network(c.bannerImage!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _gradientHeader())
+                else
+                  _gradientHeader(),
+                // velo para legibilidad
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0x99000000)],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 12,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          c.name.isNotEmpty ? c.name : 'Sin nombre',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      _statusBadge(c.isActive),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // chips
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (c.affects.isNotEmpty) _affectsChip(c.affects),
+                    if (_multiplier(c).isNotEmpty)
+                      _chip(Icons.close, '×${_multiplier(c)}', _purple),
+                    if (c.discountPercent > 0)
+                      _chip(Icons.percent,
+                          '${c.discountPercent.toStringAsFixed(0)}%', Colors.teal),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _budgetRow(c),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.event_outlined, size: 16, color: _muted),
+                    const SizedBox(width: 6),
+                    Text('${_fmtDate(c.startDate)}  →  ${_fmtDate(c.endDate)}',
+                        style: const TextStyle(color: _muted, fontSize: 13)),
+                    const Spacer(),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: _purpleDark),
+                      onPressed: () => _openForm(context, campaign: c),
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      label: const Text('Editar'),
+                    ),
+                    IconButton(
+                      tooltip: 'Eliminar',
+                      color: Colors.red.shade400,
+                      onPressed: () => _confirmDelete(context, c),
+                      icon: const Icon(Icons.delete_outline),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _gradientHeader() => const DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_purple, _purpleDark],
+          ),
+        ),
+        child: Center(
+          child: Icon(Icons.local_offer_outlined,
+              color: Colors.white24, size: 48),
+        ),
+      );
+
+  Widget _statusBadge(bool active) {
+    final c = active ? const Color(0xFF16A34A) : Colors.grey;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
+          const SizedBox(width: 6),
+          Text(active ? 'Activa' : 'Inactiva',
+              style: TextStyle(
+                  color: c, fontSize: 11, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _affectsChip(String affects) {
+    final earning = affects.toUpperCase() == 'EARNING';
+    return _chip(
+      earning ? Icons.trending_up : Icons.redeem,
+      earning ? 'Ganar puntos' : 'Canje',
+      earning ? const Color(0xFF2563EB) : const Color(0xFFDB2777),
+    );
+  }
+
+  Widget _chip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(20)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(label,
+              style: TextStyle(
+                  color: color, fontSize: 12, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
+  }
+
+  Widget _budgetRow(CampaignModel c) {
     final b = c.budget;
-    if (b != null) parts.add('${b.consumedPoints} pts usados');
-    if (!c.isActive) parts.add('inactiva');
-    return parts.isEmpty ? '—' : parts.join('  ·  ');
+    if (b == null) {
+      return const SizedBox.shrink();
+    }
+    final hasCap = b.maxPointsGlobal != null && b.maxPointsGlobal! > 0;
+    final pct = hasCap
+        ? (b.consumedPoints / b.maxPointsGlobal!).clamp(0.0, 1.0)
+        : 0.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Text('Presupuesto',
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: _muted)),
+            const Spacer(),
+            Text(
+              hasCap
+                  ? '${b.consumedPoints} / ${b.maxPointsGlobal} pts'
+                  : '${b.consumedPoints} pts · sin tope',
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: _ink),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(6),
+          child: LinearProgressIndicator(
+            value: hasCap ? pct : null,
+            minHeight: 7,
+            backgroundColor: _purpleLight,
+            valueColor: AlwaysStoppedAnimation(
+                b.exhausted ? Colors.red : _purple),
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _multiplier(CampaignModel c) {
+    if (c.earningMultiplier.isNotEmpty) return c.earningMultiplier;
+    if (c.redemptionMultiplier.isNotEmpty) return c.redemptionMultiplier;
+    return '';
+  }
+
+  static String _fmtDate(DateTime? d) {
+    if (d == null) return '—';
+    const m = [
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic'
+    ];
+    return '${d.day} ${m[d.month - 1]}';
   }
 
   void _confirmDelete(BuildContext context, CampaignModel c) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Eliminar campaña'),
         content: Text('¿Seguro que quieres eliminar "${c.name}"?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Cancelar')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, foregroundColor: Colors.white),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               Navigator.pop(context);
               controller.removeCampaign(c.id);
@@ -145,16 +369,16 @@ class CampaignsView extends GetView<GeneralAdminController> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (_) => _CampaignForm(controller: controller, campaign: campaign),
     );
   }
 }
 
-/// Formulario de creación/edición de campaña, en un bottom sheet.
+// ══════════════════════════════════════════════════════════════════════════════
+// Formulario
+// ══════════════════════════════════════════════════════════════════════════════
+
 class _CampaignForm extends StatefulWidget {
   const _CampaignForm({required this.controller, this.campaign});
 
@@ -167,6 +391,8 @@ class _CampaignForm extends StatefulWidget {
 
 class _CampaignFormState extends State<_CampaignForm> {
   static const Color _purple = Color(0xFF7C3AED);
+  static const Color _ink = Color(0xFF1E1B4B);
+  static const Color _muted = Color(0xFF6B7280);
 
   late final TextEditingController _name;
   late final TextEditingController _multiplier;
@@ -175,6 +401,7 @@ class _CampaignFormState extends State<_CampaignForm> {
   String _startDate = '';
   String _endDate = '';
   XFile? _image;
+  Uint8List? _imageBytes; // preview compatible con web (Image.memory)
 
   bool get _isEdit => widget.campaign != null;
 
@@ -190,8 +417,8 @@ class _CampaignFormState extends State<_CampaignForm> {
     _multiplier = TextEditingController(text: mult);
     _budget = TextEditingController(
         text: c?.budget?.maxPointsGlobal?.toString() ?? '');
-    _startDate = _fmtOrEmpty(c?.startDate);
-    _endDate = _fmtOrEmpty(c?.endDate);
+    _startDate = _fmt(c?.startDate);
+    _endDate = _fmt(c?.endDate);
   }
 
   @override
@@ -202,12 +429,22 @@ class _CampaignFormState extends State<_CampaignForm> {
     super.dispose();
   }
 
-  static String _fmtOrEmpty(DateTime? d) {
-    if (d == null) return '';
-    return '${d.year}-${_two(d.month)}-${_two(d.day)}';
-  }
-
+  static String _fmt(DateTime? d) =>
+      d == null ? '' : '${d.year}-${_two(d.month)}-${_two(d.day)}';
   static String _two(int n) => n.toString().padLeft(2, '0');
+
+  /// Genera un slug a partir del nombre: minúsculas, sin acentos, con guiones.
+  static String _slugify(String s) {
+    var out = s.toLowerCase().trim();
+    const from = 'áàäâãéèëêíìïîóòöôõúùüûñç';
+    const to = 'aaaaaeeeeiiiiooooouuuunc';
+    for (var i = 0; i < from.length; i++) {
+      out = out.replaceAll(from[i], to[i]);
+    }
+    out = out.replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    out = out.replaceAll(RegExp(r'(^-+)|(-+$)'), '');
+    return out;
+  }
 
   Future<void> _pickDate(bool isStart) async {
     final picked = await showDatePicker(
@@ -219,37 +456,54 @@ class _CampaignFormState extends State<_CampaignForm> {
     if (picked != null) {
       setState(() {
         final v = '${picked.year}-${_two(picked.month)}-${_two(picked.day)}';
-        if (isStart) {
-          _startDate = v;
-        } else {
-          _endDate = v;
-        }
+        isStart ? _startDate = v : _endDate = v;
       });
     }
   }
 
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (picked != null) setState(() => _image = picked);
+    if (picked != null) {
+      final bytes = await picked.readAsBytes(); // funciona en web y móvil
+      setState(() {
+        _image = picked;
+        _imageBytes = bytes;
+      });
+    }
   }
 
   Future<void> _submit() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      Get.snackbar('Falta el nombre', 'El nombre de la campaña es obligatorio');
+      Get.snackbar('Falta el nombre', 'El nombre de la campaña es obligatorio',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    if (_startDate.isEmpty || _endDate.isEmpty) {
+      Get.snackbar('Faltan fechas', 'Selecciona la fecha de inicio y de fin',
+          snackPosition: SnackPosition.BOTTOM);
       return;
     }
     final mult = _multiplier.text.trim();
-    final budget = _budget.text.trim();
+    final budgetVal = int.tryParse(_budget.text.trim());
+    // El backend exige `slug`; en edición se conserva el existente (es estable),
+    // en creación se genera a partir del nombre.
+    final slug = _isEdit && widget.campaign!.slug.isNotEmpty
+        ? widget.campaign!.slug
+        : _slugify(name);
     final payload = <String, dynamic>{
       'name': name,
+      'slug': slug,
       'affects': _affects,
       if (mult.isNotEmpty && _affects == 'EARNING') 'earning_multiplier': mult,
       if (mult.isNotEmpty && _affects == 'REDEMPTION')
         'redemption_multiplier': mult,
-      if (_startDate.isNotEmpty) 'start_date': _startDate,
-      if (_endDate.isNotEmpty) 'end_date': _endDate,
-      if (budget.isNotEmpty) 'max_points_global': int.tryParse(budget),
+      // El backend usa starts_at/ends_at (no start_date/end_date).
+      'starts_at': _startDate,
+      'ends_at': _endDate,
+      // Solo se envía el tope si es un entero válido; texto como "sin límite"
+      // se ignora (= sin tope), en vez de mandar null y romper la validación.
+      if (budgetVal != null) 'max_points_global': budgetVal,
     };
 
     final ok = await widget.controller.submitCampaign(
@@ -262,144 +516,262 @@ class _CampaignFormState extends State<_CampaignForm> {
 
   @override
   Widget build(BuildContext context) {
-    final existingBanner = widget.campaign?.bannerImage;
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+    return Container(
+      constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.92),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(_isEdit ? 'Editar campaña' : 'Nueva campaña',
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _name,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de campaña',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _affects,
-              decoration: const InputDecoration(
-                labelText: 'Afecta a',
-                border: OutlineInputBorder(),
-              ),
-              items: const [
-                DropdownMenuItem(
-                    value: 'EARNING', child: Text('Ganar puntos (EARNING)')),
-                DropdownMenuItem(
-                    value: 'REDEMPTION', child: Text('Canjear (REDEMPTION)')),
-              ],
-              onChanged: (v) => setState(() => _affects = v ?? 'EARNING'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _multiplier,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Multiplicador (ej. 2)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 44,
+            height: 5,
+            decoration: BoxDecoration(
+                color: const Color(0xFFE5E7EB),
+                borderRadius: BorderRadius.circular(3)),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            child: Row(
               children: [
-                Expanded(
-                  child: _dateField(
-                      'Fecha inicio', _startDate, () => _pickDate(true)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child:
-                      _dateField('Fecha fin', _endDate, () => _pickDate(false)),
-                ),
+                Text(_isEdit ? 'Editar campaña' : 'Nueva campaña',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w800, color: _ink)),
+                const Spacer(),
+                IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close, color: _muted)),
               ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _budget,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Tope de puntos (opcional)',
-                border: OutlineInputBorder(),
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _bannerPicker(),
+                  const SizedBox(height: 20),
+                  _label('Nombre'),
+                  _input(_name, hint: 'Ej. Black Friday x2'),
+                  const SizedBox(height: 18),
+                  _label('¿A qué afecta?'),
+                  _affectsSelector(),
+                  const SizedBox(height: 18),
+                  _label('Multiplicador'),
+                  _input(_multiplier,
+                      hint: 'Ej. 2',
+                      keyboard: const TextInputType.numberWithOptions(
+                          decimal: true),
+                      prefix: '×'),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label('Fecha inicio'),
+                            _dateField(_startDate, () => _pickDate(true)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label('Fecha fin'),
+                            _dateField(_endDate, () => _pickDate(false)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  _label('Tope de puntos (opcional)'),
+                  _input(_budget,
+                      hint: 'Sin límite si se deja vacío',
+                      keyboard: TextInputType.number),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            _bannerPreview(existingBanner),
-            const SizedBox(height: 8),
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                  foregroundColor: _purple,
-                  side: const BorderSide(color: _purple)),
-              onPressed: _pickImage,
-              icon: const Icon(Icons.upload_outlined),
-              label: Text(_image != null ? 'Cambiar banner' : 'Subir banner'),
+          ),
+          _footer(),
+        ],
+      ),
+    );
+  }
+
+  Widget _bannerPicker() {
+    final existing = widget.campaign?.bannerImage;
+    Widget preview;
+    if (_imageBytes != null) {
+      preview = Image.memory(_imageBytes!, fit: BoxFit.cover);
+    } else if (existing != null && existing.startsWith('http')) {
+      preview = Image.network(existing,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _emptyBanner());
+    } else {
+      preview = _emptyBanner();
+    }
+    return GestureDetector(
+      onTap: _pickImage,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(height: 140, width: double.infinity, child: preview),
+      ),
+    );
+  }
+
+  Widget _emptyBanner() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F0FF),
+        border: Border.all(color: const Color(0xFFE5E0FA)),
+      ),
+      child: const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 30),
+          SizedBox(height: 6),
+          Text('Subir banner', style: TextStyle(color: _purple, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _affectsSelector() {
+    Widget seg(String value, IconData icon, String label) {
+      final selected = _affects == value;
+      return Expanded(
+        child: GestureDetector(
+          onTap: () => setState(() => _affects = value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: selected ? _purple : const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 20),
-            Obx(() => ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _purple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: widget.controller.isSavingCampaign.value
-                      ? null
-                      : _submit,
-                  child: widget.controller.isSavingCampaign.value
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : Text(_isEdit ? 'Guardar cambios' : 'Crear campaña'),
-                )),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon,
+                    size: 18,
+                    color: selected ? Colors.white : _muted),
+                const SizedBox(width: 8),
+                Text(label,
+                    style: TextStyle(
+                        color: selected ? Colors.white : _muted,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        seg('EARNING', Icons.trending_up, 'Ganar'),
+        const SizedBox(width: 10),
+        seg('REDEMPTION', Icons.redeem, 'Canje'),
+      ],
+    );
+  }
+
+  Widget _label(String text) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text,
+            style: const TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600, color: _ink)),
+      );
+
+  Widget _input(TextEditingController c,
+      {String? hint, TextInputType? keyboard, String? prefix}) {
+    return TextField(
+      controller: c,
+      keyboardType: keyboard,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixText: prefix,
+        filled: true,
+        fillColor: const Color(0xFFF9FAFB),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _purple, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _dateField(String value, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_today_outlined, size: 16, color: _muted),
+            const SizedBox(width: 10),
+            Text(value.isEmpty ? 'Seleccionar' : value,
+                style: TextStyle(
+                    color: value.isEmpty ? _muted : _ink,
+                    fontWeight: FontWeight.w500)),
           ],
         ),
       ),
     );
   }
 
-  Widget _dateField(String label, String value, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-        ),
-        child: Text(value.isEmpty ? 'Seleccionar' : value,
-            style: TextStyle(
-                color: value.isEmpty ? Colors.grey : Colors.black87)),
+  Widget _footer() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+          24, 12, 24, MediaQuery.of(context).viewInsets.bottom + 16),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFF1F1F5))),
       ),
+      child: Obx(() {
+        final saving = widget.controller.isSavingCampaign.value;
+        return SizedBox(
+          height: 52,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: _purple,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+            onPressed: saving ? null : _submit,
+            child: saving
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : Text(_isEdit ? 'Guardar cambios' : 'Crear campaña',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+          ),
+        );
+      }),
     );
-  }
-
-  Widget _bannerPreview(String? existingBanner) {
-    if (_image != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.file(File(_image!.path), height: 120, fit: BoxFit.cover),
-      );
-    }
-    if (existingBanner != null && existingBanner.startsWith('http')) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(existingBanner,
-            height: 120,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-      );
-    }
-    return const SizedBox.shrink();
   }
 }

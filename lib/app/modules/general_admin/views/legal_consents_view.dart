@@ -80,8 +80,6 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
           _navItem(icon: Icons.grid_view_outlined,    label: 'Dashboard',
               onTap: () => Get.offAllNamed(Routes.GENERAL_ADMIN)),
           _navItem(icon: Icons.store_outlined,         label: 'Tiendas',
-              onTap: () => Get.offAllNamed(Routes.GENERAL_ADMIN)),
-          _navItem(icon: Icons.people_outline,         label: 'Comercios',
               onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(icon: Icons.gavel_outlined,         label: 'Legal', selected: true),
           _navItem(icon: Icons.verified_user_outlined, label: 'KYBC',

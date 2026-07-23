@@ -360,17 +360,16 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
         child: Container(
           width: 320,
           height: 140,
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.circular(12),
-            image: bannerUrl.isNotEmpty
-                ? DecorationImage(
-                    image: NetworkImage(bannerUrl),
-                    fit: BoxFit.cover)
-                : null,
           ),
-          child: bannerUrl.isEmpty
-              ? Column(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (bannerUrl.isEmpty)
+                Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.add_photo_alternate_outlined,
@@ -381,7 +380,35 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                             fontSize: 12, color: Colors.grey.shade500)),
                   ],
                 )
-              : Align(
+              else
+                Image.network(
+                  bannerUrl,
+                  fit: BoxFit.cover,
+                  // Diagnóstico: si la imagen no carga, muestra la URL real que
+                  // se intentó cargar para saber por qué (relativa, 404, auth…).
+                  errorBuilder: (_, err, __) => Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.broken_image_outlined,
+                            color: Colors.grey),
+                        const SizedBox(height: 4),
+                        const Text('No se pudo cargar la imagen',
+                            style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        const SizedBox(height: 4),
+                        Text(bannerUrl,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                fontSize: 9, color: Colors.redAccent)),
+                      ],
+                    ),
+                  ),
+                ),
+              if (bannerUrl.isNotEmpty)
+                Align(
                   alignment: Alignment.bottomRight,
                   child: Padding(
                     padding: const EdgeInsets.all(8),
@@ -393,11 +420,12 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Text('Cambiar',
-                          style: TextStyle(
-                              color: Colors.white, fontSize: 11)),
+                          style: TextStyle(color: Colors.white, fontSize: 11)),
                     ),
                   ),
                 ),
+            ],
+          ),
         ),
       );
     });
@@ -1089,27 +1117,30 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
   }
 
   Future<void> _pickBanner() async {
-    if (widget.storeId.isEmpty) return;
+    if (widget.storeId.isEmpty) {
+      Get.snackbar('Selecciona una tienda',
+          'Abre una tienda desde Comercios para subir su banner',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
     if (file == null) return;
-    final url = await widget.controller.uploadSelectedStoreBanner(
-        widget.storeId, file);
-    if (url != null) {
-      await widget.controller.loadStoreDetail(widget.storeId);
-    }
+    // El controlador sube, recarga la ficha y refleja el banner.
+    await widget.controller.uploadSelectedStoreBanner(widget.storeId, file);
   }
 
   Future<void> _pickLogo() async {
-    if (widget.storeId.isEmpty) return;
+    if (widget.storeId.isEmpty) {
+      Get.snackbar('Selecciona una tienda',
+          'Abre una tienda desde Comercios para subir su logo',
+          snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
     if (file == null) return;
-    final url = await widget.controller.uploadSelectedStoreLogo(
-        widget.storeId, file);
-    if (url != null) {
-      await widget.controller.loadStoreDetail(widget.storeId);
-    }
+    await widget.controller.uploadSelectedStoreLogo(widget.storeId, file);
   }
 
   void _confirmRegeneratePin() {

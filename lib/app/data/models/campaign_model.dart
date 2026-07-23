@@ -1,3 +1,5 @@
+import '../../../utils/api_config.dart';
+
 /// Presupuesto de una campaña (aparece en el CRUD y en /impact/).
 class CampaignBudget {
   final int? maxPointsGlobal; // null = sin tope
@@ -72,17 +74,40 @@ class CampaignModel {
       earningMultiplier: (json['earning_multiplier'] ?? '').toString(),
       redemptionMultiplier: (json['redemption_multiplier'] ?? '').toString(),
       discountPercent: _toDouble(json['discount'] ?? json['discount_percent']),
-      startDate: DateTime.tryParse(
-          (json['start_date'] ?? json['valid_from'] ?? '').toString()),
+      startDate: DateTime.tryParse((json['starts_at'] ??
+              json['start_date'] ??
+              json['valid_from'] ??
+              '')
+          .toString()),
       endDate: DateTime.tryParse(
-          (json['end_date'] ?? json['valid_until'] ?? '').toString()),
-      bannerImage: (json['banner_image'] ?? json['banner'])?.toString(),
+          (json['ends_at'] ?? json['end_date'] ?? json['valid_until'] ?? '')
+              .toString()),
+      bannerImage: ApiConfig.absoluteMedia(
+          (json['banner_image'] ?? json['banner'] ?? json['image_url'])
+              ?.toString()),
       budget: budgetRaw is Map
           ? CampaignBudget.fromJson(Map<String, dynamic>.from(budgetRaw))
           : null,
       isActive: json['is_active'] as bool? ?? json['active'] as bool? ?? true,
     );
   }
+
+  CampaignModel copyWith({String? bannerImage, bool? isActive}) => CampaignModel(
+        id: id,
+        slug: slug,
+        storeId: storeId,
+        name: name,
+        product: product,
+        affects: affects,
+        earningMultiplier: earningMultiplier,
+        redemptionMultiplier: redemptionMultiplier,
+        discountPercent: discountPercent,
+        startDate: startDate,
+        endDate: endDate,
+        bannerImage: bannerImage ?? this.bannerImage,
+        budget: budget,
+        isActive: isActive ?? this.isActive,
+      );
 
   static double _toDouble(dynamic v) {
     if (v == null) return 0;

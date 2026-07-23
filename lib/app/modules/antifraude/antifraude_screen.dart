@@ -84,20 +84,25 @@ class AntifraudeScreen extends GetView<AntifraudeController> {
       height: 52,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       alignment: Alignment.centerLeft,
-      child: Obx(() => ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: opts.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (_, i) {
-              final selected = controller.statusFilter.value == opts[i][0];
-              return ChoiceChip(
-                label: Text(opts[i][1]),
-                selected: selected,
-                selectedColor: _purple.withValues(alpha: 0.15),
-                onSelected: (_) => controller.loadQueue(opts[i][0]),
-              );
-            },
-          )),
+      child: Obx(() {
+        // Lectura SÍNCRONA de la observable para que Obx registre la dependencia
+        // (dentro del itemBuilder se ejecuta más tarde y Obx no la detectaría).
+        final current = controller.statusFilter.value;
+        return ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: opts.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) {
+            final selected = current == opts[i][0];
+            return ChoiceChip(
+              label: Text(opts[i][1]),
+              selected: selected,
+              selectedColor: _purple.withValues(alpha: 0.15),
+              onSelected: (_) => controller.loadQueue(opts[i][0]),
+            );
+          },
+        );
+      }),
     );
   }
 

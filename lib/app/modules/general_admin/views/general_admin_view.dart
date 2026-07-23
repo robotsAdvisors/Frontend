@@ -76,8 +76,6 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
           const SizedBox(height: 8),
           _navItem(icon: Icons.grid_view_outlined,       label: 'Dashboard',      selected: true),
           _navItem(icon: Icons.store_outlined,            label: 'Tiendas',
-              onTap: () => Get.toNamed(Routes.STORE_CONFIG)),
-          _navItem(icon: Icons.people_outline,            label: 'Comercios',
               onTap: () => Get.toNamed(Routes.COMERCIOS)),
           _navItem(icon: Icons.gavel_outlined,            label: 'Legal',
               onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),

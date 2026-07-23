@@ -667,7 +667,13 @@ class MarketplaceRepository {
       final response = await _dio.post(
         ApiConfig.storeBannerUpload(storeId), data: formData);
       if (response.data is Map) {
-        return response.data['banner_url']?.toString();
+        final d = response.data as Map;
+        return ApiConfig.absoluteMedia((d['banner_url'] ??
+                d['banner'] ??
+                d['banner_image'] ??
+                d['image_url'] ??
+                d['url'])
+            ?.toString());
       }
     } catch (e) {
       throw toApiException(e);
@@ -686,7 +692,12 @@ class MarketplaceRepository {
       final response = await _dio.post(
         ApiConfig.storeLogoUpload(storeId), data: formData);
       if (response.data is Map) {
-        return response.data['logo_url']?.toString();
+        final d = response.data as Map;
+        return ApiConfig.absoluteMedia((d['logo_url'] ??
+                d['logo'] ??
+                d['image_url'] ??
+                d['url'])
+            ?.toString());
       }
     } catch (e) {
       throw toApiException(e);
@@ -1979,8 +1990,13 @@ class MarketplaceRepository {
         data: formData,
       );
       if (response.data is Map) {
-        return (response.data['banner_image'] ?? response.data['image_url'])
-            ?.toString();
+        final d = response.data as Map;
+        return ApiConfig.absoluteMedia((d['banner_image'] ??
+                d['image_url'] ??
+                d['image'] ??
+                d['banner'] ??
+                d['url'])
+            ?.toString());
       }
     } catch (e) {
       throw toApiException(e);

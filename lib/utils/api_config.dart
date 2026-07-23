@@ -20,6 +20,16 @@ class ApiConfig {
   /// URL completa base para las peticiones.
   static String get apiBaseUrl => '$baseUrl$apiPrefix';
 
+  /// Convierte una URL de media relativa (`/media/x.jpg`) en absoluta usando el
+  /// host del backend. Deja intactas las que ya son absolutas (`http...`).
+  /// Necesario en web: `NetworkImage('/media/x')` resolvería contra el origen
+  /// del navegador (localhost) en vez del backend → 404.
+  static String absoluteMedia(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url;
+    return url.startsWith('/') ? '$baseUrl$url' : '$baseUrl/$url';
+  }
+
   // ---- Endpoints ----
   // Auth
   // NOTE: the backend (DRF) defines all `/auth/...` routes WITH a trailing

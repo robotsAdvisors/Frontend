@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../../../../utils/api_config.dart';
 import '../../local/my_shared_pref.dart';
 
@@ -57,7 +58,10 @@ class ApiClient {
                 // Cae al reject genérico de abajo con la respuesta original.
               }
             } else {
+              // El refresh falló: la sesión caducó. Limpia y manda al login para
+              // no dejar al usuario en pantallas vacías con 401 en todo.
               await MySharedPref.clearTokens();
+              _redirectToLogin();
             }
           }
 
@@ -92,6 +96,28 @@ class ApiClient {
   late final Dio _dio;
 
   Dio get dio => _dio;
+
+  static bool _redirecting = false;
+
+  /// Lleva al login cuando la sesión caduca. DISPARO ÚNICO: ante la ráfaga de
+  /// 401s en paralelo solo redirige una vez (un latch que se libera tras unos
+  /// segundos), para no recrear/disponer el LoginController repetidamente y
+  /// provocar "TextEditingController used after disposed". No interfiere con el
+  /// arranque (splash) ni si ya estamos en login. Ruta literal para evitar un
+  /// import circular con app_pages.
+  void _redirectToLogin() {
+    if (_redirecting) return;
+    final route = Get.currentRoute;
+    if (route == '/login' || route == '/splash' || route.isEmpty) return;
+    _redirecting = true;
+    Get.offAllNamed('/login');
+    Get.snackbar('Sesión expirada', 'Inicia sesión de nuevo.',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3));
+    // Libera el latch pasado un margen: si la sesión vuelve a caducar mucho
+    // más tarde, podrá redirigir de nuevo; pero la ráfaga inicial no se repite.
+    Future.delayed(const Duration(seconds: 3), () => _redirecting = false);
+  }
 
   Future<bool> _tryRefreshToken() async {
     final refresh = MySharedPref.getRefreshToken();

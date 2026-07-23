@@ -1,3 +1,5 @@
+import '../../../utils/api_config.dart';
+
 class StoreModel {
   final String id;
   final String name;
@@ -118,7 +120,8 @@ class StoreModel {
       // Backend v2 uses 'cif'; keep 'fiscal_id'/'fiscalId' as fallback.
       fiscalId: (json['cif'] ?? json['fiscal_id'] ?? json['fiscalId'] ?? '').toString(),
       address: (json['address'] ?? '').toString(),
-      logoUrl: (json['logo'] ?? json['logo_url'] ?? json['image_url'] ?? '').toString(),
+      logoUrl: ApiConfig.absoluteMedia(
+          (json['logo'] ?? json['logo_url'] ?? json['image_url'])?.toString()),
       billingEmail: (json['billing_email'] ?? json['billingEmail'] ?? json['email'] ?? '').toString(),
       billingPhone: (json['phone_number'] ?? json['phoneNumber'] ?? json['phone'] ?? '').toString(),
       pin: (json['pin'] ?? '').toString(),
@@ -126,7 +129,8 @@ class StoreModel {
               (json['created_at'] ?? json['createdAt'] ?? json['created'] ?? '')
                   .toString()) ??
           DateTime.now(),
-      banner: (json['banner'] ?? '').toString(),
+      banner: ApiConfig.absoluteMedia(
+          (json['banner'] ?? json['banner_url'] ?? json['banner_image'])?.toString()),
       email: (json['email'] ?? '').toString(),
       website: (json['website'] ?? '').toString(),
       openingHours: hours is Map ? Map<String, dynamic>.from(hours) : const {},
@@ -161,6 +165,42 @@ class StoreModel {
     if (v is int) return v.toDouble();
     return double.tryParse(v.toString());
   }
+
+  /// Copia con banner/logo nuevos (para reflejar la subida al instante sin
+  /// depender de que el GET de la tienda devuelva la imagen actualizada).
+  StoreModel copyWith({String? banner, String? logoUrl}) => StoreModel(
+        id: id,
+        name: name,
+        description: description,
+        ownerId: ownerId,
+        ownerEmail: ownerEmail,
+        ownerName: ownerName,
+        adminUserIds: adminUserIds,
+        fiscalId: fiscalId,
+        address: address,
+        logoUrl: logoUrl ?? this.logoUrl,
+        billingEmail: billingEmail,
+        billingPhone: billingPhone,
+        pin: pin,
+        createdAt: createdAt,
+        banner: banner ?? this.banner,
+        email: email,
+        website: website,
+        openingHours: openingHours,
+        isPublished: isPublished,
+        categories: categories,
+        rating: rating,
+        reviewCount: reviewCount,
+        cardId: cardId,
+        latitude: latitude,
+        longitude: longitude,
+        billingAddress: billingAddress,
+        twoFactorEnabled: twoFactorEnabled,
+        subtitle: subtitle,
+        monthlyGoalTarget: monthlyGoalTarget,
+        monthlyGoalPrize: monthlyGoalPrize,
+        kycStatus: kycStatus,
+      );
 
   Map<String, dynamic> toJson() {
     return {

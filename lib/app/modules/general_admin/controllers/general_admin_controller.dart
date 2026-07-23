@@ -247,17 +247,29 @@ class GeneralAdminController extends GetxController {
           ? await _repo.updateCampaign(editId, payload)
           : await _repo.createCampaign(payload);
       final id = saved?.id.isNotEmpty == true ? saved!.id : (editId ?? '');
+      String? bannerUrl;
       if (image != null && id.isNotEmpty) {
-        await _repo.uploadCampaignImage(id, image);
+        bannerUrl = await _repo.uploadCampaignImage(id, image);
       }
       await loadCampaigns();
+      // Si se subió banner pero el listado no lo devolvió, aplícalo localmente
+      // para que se vea al instante.
+      if (bannerUrl != null && bannerUrl.isNotEmpty) {
+        final i = campaigns.indexWhere((c) => c.id == id);
+        if (i != -1 &&
+            (campaigns[i].bannerImage == null ||
+                campaigns[i].bannerImage!.isEmpty)) {
+          campaigns[i] = campaigns[i].copyWith(bannerImage: bannerUrl);
+        }
+      }
       CustomSnackBar.showCustomSnackBar(
         title: editId != null ? 'Campaña actualizada' : 'Campaña creada',
         message: 'Se guardó correctamente.',
       );
       return true;
     } on ApiException catch (e) {
-      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: e.message);
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'No se pudo guardar', message: _formatApiError(e));
     } catch (_) {
       CustomSnackBar.showCustomErrorSnackBar(
           title: 'Error', message: 'No se pudo guardar la campaña.');
@@ -265,6 +277,18 @@ class GeneralAdminController extends GetxController {
       isSavingCampaign.value = false;
     }
     return false;
+  }
+
+  /// Formatea el error del backend incluyendo los errores por campo del
+  /// contrato (`details`), para ver exactamente qué campo rechazó al probar.
+  String _formatApiError(ApiException e) {
+    if (e.details.isEmpty) return e.message;
+    final fields = e.details.entries.map((x) {
+      final v = x.value;
+      final val = v is List ? v.join(', ') : v.toString();
+      return '${x.key}: $val';
+    }).join('  ·  ');
+    return '${e.message}\n$fields';
   }
 
   /// Elimina una campaña (DELETE /admin/campaigns/{id}/) con update optimista.
@@ -1025,16 +1049,54 @@ class GeneralAdminController extends GetxController {
     } catch (_) {}
   }
 
-  Future<String?> uploadSelectedStoreBanner(String storeId, dynamic file) async {
+  Future<String?> uploadSelectedStoreBanner(String storeId, XFile file) async {
     try {
-      return await _repo.uploadStoreBanner(storeId, file);
-    } catch (_) { return null; }
+      final url = await _repo.uploadStoreBanner(storeId, file);
+      // Recarga la ficha para traer el estado real del backend.
+      await loadStoreDetail(storeId);
+      // Si el GET no devolvió el banner nuevo, aplícalo con la URL de la subida.
+      final s = selectedStore.value;
+      if (url != null && url.isNotEmpty && s != null && s.banner.isEmpty) {
+        selectedStore.value = s.copyWith(banner: url);
+      }
+      CustomSnackBar.showCustomSnackBar(
+          title: 'Banner actualizado',
+          message: (url != null && url.isNotEmpty)
+              ? 'La imagen se subió correctamente.'
+              : 'Subida OK, pero el servidor no devolvió la URL de la imagen.');
+      return url;
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error al subir banner', message: _formatApiError(e));
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo subir el banner.');
+    }
+    return null;
   }
 
-  Future<String?> uploadSelectedStoreLogo(String storeId, dynamic file) async {
+  Future<String?> uploadSelectedStoreLogo(String storeId, XFile file) async {
     try {
-      return await _repo.uploadStoreLogo(storeId, file);
-    } catch (_) { return null; }
+      final url = await _repo.uploadStoreLogo(storeId, file);
+      await loadStoreDetail(storeId);
+      final s = selectedStore.value;
+      if (url != null && url.isNotEmpty && s != null && s.logoUrl.isEmpty) {
+        selectedStore.value = s.copyWith(logoUrl: url);
+      }
+      CustomSnackBar.showCustomSnackBar(
+          title: 'Logo actualizado',
+          message: (url != null && url.isNotEmpty)
+              ? 'La imagen se subió correctamente.'
+              : 'Subida OK, pero el servidor no devolvió la URL de la imagen.');
+      return url;
+    } on ApiException catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error al subir logo', message: _formatApiError(e));
+    } catch (_) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: 'No se pudo subir el logo.');
+    }
+    return null;
   }
 
   // ──────────── KYBC COMPLIANCE ────────────
