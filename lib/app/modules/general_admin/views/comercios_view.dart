@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../data/models/store_model.dart';
 import '../../../data/models/store_user_model.dart';
-import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
+import 'backoffice_sidebar.dart';
 
 class ComerciosView extends GetView<GeneralAdminController> {
   const ComerciosView({super.key});
@@ -20,7 +20,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
     return Scaffold(
       backgroundColor: _bg,
       body: Row(children: [
-        _sidebar(),
+        BackofficeSidebar(current: 'tiendas'),
         _storeList(),
         const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFE5E7EB)),
         Expanded(child: _storeDetail()),
@@ -29,99 +29,6 @@ class ComerciosView extends GetView<GeneralAdminController> {
   }
 
   // ─── SIDEBAR ─────────────────────────────────────────────────────────────────
-
-  Widget _sidebar() {
-    return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Padding(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 4),
-          child: Row(children: [
-            Icon(Icons.rocket_launch_outlined, size: 18, color: _purple),
-            SizedBox(width: 8),
-            Text('Enterprise Portal',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1B4B))),
-          ]),
-        ),
-        const Padding(
-          padding: EdgeInsets.only(left: 46, bottom: 12),
-          child: Text('Gestión Global',
-              style: TextStyle(fontSize: 11, color: Colors.grey)),
-        ),
-        Obx(() => Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: Row(children: [
-            CircleAvatar(radius: 16, backgroundColor: _purpleLight,
-                child: Text(
-                  controller.currentUserInitials.value.isEmpty
-                      ? 'SA' : controller.currentUserInitials.value,
-                  style: const TextStyle(fontSize: 11,
-                      fontWeight: FontWeight.w700, color: _purple))),
-            const SizedBox(width: 10),
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(controller.currentUserName.value.isEmpty
-                  ? 'Super Admin' : controller.currentUserName.value,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                  overflow: TextOverflow.ellipsis),
-              const Text('Admin', style: TextStyle(fontSize: 10, color: Colors.grey)),
-            ])),
-          ]),
-        )),
-        const Divider(height: 1, color: Color(0xFFE5E7EB)),
-        const SizedBox(height: 8),
-        _navItem(icon: Icons.dashboard_outlined, label: 'Dashboard',
-            onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
-        _navItem(icon: Icons.store_outlined,     label: 'Tiendas', selected: true),
-        _navItem(icon: Icons.gavel_outlined,     label: 'Legal',
-            onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
-        _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
-            onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
-        _navItem(icon: Icons.verified_user_outlined, label: 'KYBC',
-            onTap: () => Get.toNamed(Routes.KYBC)),
-        _navItem(icon: Icons.policy_outlined,    label: 'Políticas',
-            onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
-        _navItem(icon: Icons.payments_outlined,  label: 'Pagos',
-            onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
-        _navItem(icon: Icons.support_agent_outlined, label: 'Soporte',
-            onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-        const Spacer(),
-        const Divider(height: 1, color: Color(0xFFE5E7EB)),
-        ListTile(dense: true,
-            leading: const Icon(Icons.logout, size: 16, color: Colors.grey),
-            title: const Text('Logout',
-                style: TextStyle(fontSize: 13, color: Colors.grey)),
-            onTap: () async {
-              await AuthService.signOut();
-              Get.offAllNamed(Routes.LOGIN);
-            }),
-        const SizedBox(height: 8),
-      ]),
-    );
-  }
-
-  Widget _navItem({required IconData icon, required String label,
-      bool selected = false, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        decoration: BoxDecoration(
-            color: selected ? _purpleLight : Colors.transparent,
-            borderRadius: BorderRadius.circular(10)),
-        child: Row(children: [
-          Icon(icon, size: 17, color: selected ? _purple : Colors.grey.shade500),
-          const SizedBox(width: 10),
-          Text(label, style: TextStyle(fontSize: 13,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              color: selected ? _purple : Colors.grey.shade700)),
-        ]),
-      ),
-    );
-  }
 
   void _openCreateStore() {
     Get.bottomSheet(

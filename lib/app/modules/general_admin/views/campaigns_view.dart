@@ -5,9 +5,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/campaign_model.dart';
-import '../../../data/services/auth_service.dart';
-import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
+import 'backoffice_sidebar.dart';
 
 /// Campañas promocionales del superadmin, cableada al backend
 /// (`/admin/campaigns/`). Mismo layout de backoffice que Tiendas: sidebar +
@@ -32,7 +31,7 @@ class CampaignsView extends GetView<GeneralAdminController> {
       backgroundColor: _bg,
       body: Row(
         children: [
-          _sidebar(),
+          BackofficeSidebar(current: 'campanias'),
           const VerticalDivider(width: 1, thickness: 1, color: _border),
           Expanded(child: _content()),
         ],
@@ -41,123 +40,6 @@ class CampaignsView extends GetView<GeneralAdminController> {
   }
 
   // ─── SIDEBAR (igual que Tiendas) ─────────────────────────────────────────────
-  Widget _sidebar() {
-    return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 24, 20, 4),
-            child: Row(children: [
-              Icon(Icons.rocket_launch_outlined, size: 18, color: _purple),
-              SizedBox(width: 8),
-              Text('Enterprise Portal',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: _ink)),
-            ]),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 46, bottom: 12),
-            child: Text('Gestión Global',
-                style: TextStyle(fontSize: 11, color: Colors.grey)),
-          ),
-          Obx(() => Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: Row(children: [
-                  CircleAvatar(
-                      radius: 16,
-                      backgroundColor: _purpleLight,
-                      child: Text(
-                          controller.currentUserInitials.value.isEmpty
-                              ? 'SA'
-                              : controller.currentUserInitials.value,
-                          style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: _purple))),
-                  const SizedBox(width: 10),
-                  Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Text(
-                            controller.currentUserName.value.isEmpty
-                                ? 'Super Admin'
-                                : controller.currentUserName.value,
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w700),
-                            overflow: TextOverflow.ellipsis),
-                        const Text('Admin',
-                            style:
-                                TextStyle(fontSize: 10, color: Colors.grey)),
-                      ])),
-                ]),
-              )),
-          const Divider(height: 1, color: _border),
-          const SizedBox(height: 8),
-          _navItem(Icons.dashboard_outlined, 'Dashboard',
-              onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
-          _navItem(Icons.store_outlined, 'Tiendas',
-              onTap: () => Get.toNamed(Routes.COMERCIOS)),
-          _navItem(Icons.campaign_outlined, 'Campañas', selected: true),
-          _navItem(Icons.shield_outlined, 'Antifraude',
-              onTap: () => Get.toNamed(Routes.ANTIFRAUDE)),
-          _navItem(Icons.gavel_outlined, 'Legal',
-              onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
-          _navItem(Icons.privacy_tip_outlined, 'GDPR',
-              onTap: () => Get.toNamed(Routes.GDPR_REQUESTS)),
-          _navItem(Icons.verified_user_outlined, 'KYBC',
-              onTap: () => Get.toNamed(Routes.KYBC)),
-          _navItem(Icons.policy_outlined, 'Políticas',
-              onTap: () => Get.toNamed(Routes.SENSITIVE_POLICIES)),
-          _navItem(Icons.payments_outlined, 'Pagos',
-              onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
-          _navItem(Icons.support_agent_outlined, 'Soporte',
-              onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
-          const Spacer(),
-          const Divider(height: 1, color: _border),
-          ListTile(
-              dense: true,
-              leading: const Icon(Icons.logout, size: 16, color: Colors.grey),
-              title: const Text('Logout',
-                  style: TextStyle(fontSize: 13, color: Colors.grey)),
-              onTap: () async {
-                await AuthService.signOut();
-                Get.offAllNamed(Routes.LOGIN);
-              }),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, String label,
-      {bool selected = false, VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        decoration: BoxDecoration(
-            color: selected ? _purpleLight : Colors.transparent,
-            borderRadius: BorderRadius.circular(10)),
-        child: Row(children: [
-          Icon(icon, size: 17, color: selected ? _purple : Colors.grey.shade500),
-          const SizedBox(width: 10),
-          Text(label,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? _purple : Colors.grey.shade700)),
-        ]),
-      ),
-    );
-  }
-
   // ─── CONTENIDO ───────────────────────────────────────────────────────────────
   Widget _content() {
     return Column(

@@ -3,12 +3,11 @@ import 'package:get/get.dart';
 
 import '../../../data/models/admin_user_model.dart';
 import '../../../data/models/audit_log_model.dart';
-import '../../../data/services/auth_service.dart';
-import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
+import 'backoffice_sidebar.dart';
 
 class UserDetailView extends GetView<GeneralAdminController> {
-  const UserDetailView({Key? key}) : super(key: key);
+  const UserDetailView({super.key});
 
   static const Color _purple = Color(0xFF7C3AED);
   static const Color _purpleLight = Color(0xFFEDE9FE);
@@ -33,7 +32,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
       backgroundColor: _bg,
       body: Row(
         children: [
-          _sidebar(context),
+          BackofficeSidebar(current: 'usuarios'),
           Expanded(child: _mainArea(context)),
         ],
       ),
@@ -41,83 +40,6 @@ class UserDetailView extends GetView<GeneralAdminController> {
   }
 
   // ─── SIDEBAR ─────────────────────────────────────────────────────────────────
-
-  Widget _sidebar(BuildContext context) {
-    return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
-            child: Text('Backoffice',
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF1E1B4B))),
-          ),
-          const Divider(height: 1),
-          const SizedBox(height: 8),
-          _navItem(icon: Icons.dashboard_outlined, label: 'Dashboard',
-              onTap: () => Get.offNamed(Routes.GENERAL_ADMIN)),
-          _navItem(icon: Icons.people_outline, label: 'Usuarios', selected: true),
-          _navItem(icon: Icons.privacy_tip_outlined, label: 'GDPR',
-              onTap: () => Get.toNamed(Routes.LEGAL_CONSENTS)),
-          _navItem(icon: Icons.gavel_outlined, label: 'Legal'),
-          _navItem(icon: Icons.flag_outlined, label: 'Moderación',
-              onTap: () => Get.toNamed(Routes.ANTIFRAUDE)),
-          _navItem(icon: Icons.payments_outlined, label: 'Pagos', onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
-          _navItem(icon: Icons.fact_check_outlined, label: 'Auditoría'),
-
-          const Spacer(),
-          const Divider(height: 1),
-          ListTile(
-            dense: true,
-            leading: const Icon(Icons.logout, size: 18, color: Colors.grey),
-            title: const Text('Logout',
-                style: TextStyle(fontSize: 13, color: Colors.grey)),
-            onTap: () async {
-              await AuthService.signOut();
-              Get.offAllNamed(Routes.LOGIN);
-            },
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _navItem({
-    required IconData icon,
-    required String label,
-    bool selected = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? _purpleLight : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: selected ? _purple : Colors.grey.shade500),
-            const SizedBox(width: 10),
-            Text(label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? _purple : Colors.grey.shade700,
-                )),
-          ],
-        ),
-      ),
-    );
-  }
 
   // ─── MAIN AREA ───────────────────────────────────────────────────────────────
 
@@ -643,7 +565,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFDC2626),
-                      side: const BorderSide(color: const Color(0xFFDC2626)),
+                      side: const BorderSide(color: Color(0xFFDC2626)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Text('Cancelar',
@@ -923,7 +845,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                   onPressed: () => _confirmKycAction(context, 'approve'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF059669),
-                    side: const BorderSide(color: const Color(0xFF059669)),
+                    side: const BorderSide(color: Color(0xFF059669)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -934,7 +856,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                   onPressed: () => _showKycRejectDialog(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFDC2626),
-                    side: const BorderSide(color: const Color(0xFFDC2626)),
+                    side: const BorderSide(color: Color(0xFFDC2626)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
@@ -1034,7 +956,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                 onPressed: () => _showDeactivationConfirmDialog(context),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFDC2626),
-                  side: const BorderSide(color: const Color(0xFFDC2626)),
+                  side: const BorderSide(color: Color(0xFFDC2626)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: const Text('Desactivar Cuenta',
@@ -1539,7 +1461,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                   Switch(
                     value: isStaff,
                     onChanged: (v) => setDlg(() => isStaff = v),
-                    activeColor: _purple,
+                    activeThumbColor: _purple,
                   ),
                   const SizedBox(width: 8),
                   const Text('Es Staff (is_staff)',
