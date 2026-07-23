@@ -633,19 +633,23 @@ class MarketplaceRepository {
   /// POST /marketplace/admin/products/upload-image/ (multipart/form-data)
   /// Campo: image (JPEG / PNG / WEBP / GIF)
   /// Respuesta: { "image_url": "https://..." }
-  Future<String> uploadProductImage(XFile file) async {
+  /// Sube la imagen de un producto. El backend exige `product_id` + `image`,
+  /// así que el producto debe existir antes (crear/editar → subir con su id).
+  Future<String> uploadProductImage(XFile file, {String? productId}) async {
     try {
       final bytes = await file.readAsBytes();
       final formData = FormData.fromMap({
         // Dio infers MIME type from filename; no need for http_parser.
         'image': MultipartFile.fromBytes(bytes, filename: file.name),
+        if (productId != null && productId.isNotEmpty) 'product_id': productId,
       });
       final response = await _dio.post(
         ApiConfig.adminProductUploadImage,
         data: formData,
       );
       if (response.data is Map) {
-        final url = response.data['image_url']?.toString() ?? '';
+        final url = ApiConfig.absoluteMedia(
+            (response.data['image_url'] ?? response.data['image'])?.toString());
         if (url.isNotEmpty) return url;
       }
       throw ApiException('El servidor no devolvió una URL de imagen.');

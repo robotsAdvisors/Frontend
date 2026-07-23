@@ -341,7 +341,9 @@ class AdminController extends GetxController {
     }
   }
 
-  Future<void> addProduct(ProductModel product) async {
+  /// Crea el producto en el backend y devuelve el modelo creado (con su id),
+  /// para poder subir después la imagen (que exige `product_id`).
+  Future<ProductModel?> addProduct(ProductModel product) async {
     products.add(product);
     _calculateStoreMetrics();
 
@@ -362,22 +364,30 @@ class AdminController extends GetxController {
 
       final created = await _repo.adminCreateProduct(payload);
       if (created != null) {
+        final createdModel = ProductModel.fromJson(created);
         final idx = products.indexOf(product);
         if (idx != -1) {
-          products[idx] = ProductModel.fromJson(created);
+          products[idx] = createdModel;
           _calculateStoreMetrics();
         }
         CustomSnackBar.showCustomSnackBar(
           title: 'Producto creado',
           message: 'El producto se guardó en el backend.',
         );
+        return createdModel;
       }
     } on ApiException catch (e) {
+      products.remove(product); // quita el optimista si falló
+      _calculateStoreMetrics();
       CustomSnackBar.showCustomErrorSnackBar(
         title: 'No se pudo persistir',
         message: e.message,
       );
-    } catch (_) {}
+    } catch (_) {
+      products.remove(product);
+      _calculateStoreMetrics();
+    }
+    return null;
   }
 
   Future<void> deleteProduct(ProductModel product) async {
@@ -403,19 +413,22 @@ class AdminController extends GetxController {
     }
   }
 
-  Future<void> updateProduct(String productId, Map<String, dynamic> payload) async {
+  Future<ProductModel?> updateProduct(
+      String productId, Map<String, dynamic> payload) async {
     try {
       final updated = await _repo.adminUpdateProduct(productId, payload);
       if (updated != null) {
+        final updatedModel = ProductModel.fromJson(updated);
         final idx = products.indexWhere((p) => p.id == productId);
         if (idx != -1) {
-          products[idx] = ProductModel.fromJson(updated);
+          products[idx] = updatedModel;
           _calculateStoreMetrics();
         }
         CustomSnackBar.showCustomSnackBar(
           title: 'Producto actualizado',
           message: 'Los cambios se guardaron correctamente.',
         );
+        return updatedModel;
       }
     } on ApiException catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
@@ -423,6 +436,7 @@ class AdminController extends GetxController {
         message: e.message,
       );
     } catch (_) {}
+    return null;
   }
 
   // ── Dashboard stats ──────────────────────────────────────────────────────
@@ -862,9 +876,9 @@ class AdminController extends GetxController {
 
   /// Sube una imagen al backend y devuelve la URL resultante.
   /// POST /marketplace/admin/products/upload-image/
-  Future<String?> uploadProductImage(XFile file) async {
+  Future<String?> uploadProductImage(XFile file, {String? productId}) async {
     try {
-      return await _repo.uploadProductImage(file);
+      return await _repo.uploadProductImage(file, productId: productId);
     } on ApiException catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
         title: 'Error al subir imagen',
