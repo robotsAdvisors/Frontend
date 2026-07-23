@@ -56,6 +56,10 @@ import '../modules/admin/views/incidencias_view.dart';
 import '../modules/admin/views/confirmar_entrega_view.dart';
 import '../modules/general_admin/views/comercios_view.dart';
 import '../modules/general_admin/views/campaigns_view.dart';
+import '../modules/antifraude/antifraude_screen.dart';
+import '../modules/antifraude/antifraude_detail.dart';
+import '../modules/antifraude/antifraude_actions.dart';
+import '../modules/antifraude/antifraude_settings.dart';
 import '../modules/withdrawals/bindings/withdrawals_binding.dart';
 import '../modules/withdrawals/views/withdrawals_view.dart';
 import '../modules/virtual_card/bindings/virtual_card_binding.dart';
@@ -236,6 +240,31 @@ class AppPages {
       name: _Paths.CAMPAIGNS,
       page: () => const CampaignsView(),
       binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    // Antifraude (mockup traído de Hernan; sin binding — pantallas estáticas).
+    GetPage(
+      name: _Paths.ANTIFRAUDE,
+      page: () => const AntifraudeScreen(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.ANTIFRAUDE_DETAIL,
+      page: () => const AntifraudeDetail(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.ANTIFRAUDE_ACTIONS,
+      page: () => const AntifraudeActions(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.ANTIFRAUDE_SETTINGS,
+      page: () => const AntifraudeSettings(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

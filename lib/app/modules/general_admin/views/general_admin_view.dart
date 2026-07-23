@@ -89,6 +89,8 @@ class GeneralAdminView extends GetView<GeneralAdminController> {
               onTap: () => Get.toNamed(Routes.STRIPE_DISPUTES)),
           _navItem(icon: Icons.campaign_outlined,         label: 'Campañas',
               onTap: () => Get.toNamed(Routes.CAMPAIGNS)),
+          _navItem(icon: Icons.shield_outlined,           label: 'Antifraude',
+              onTap: () => Get.toNamed(Routes.ANTIFRAUDE)),
           _navItem(icon: Icons.support_agent_outlined,    label: 'Tickets',
               onTap: () => Get.toNamed(Routes.SUPPORT_TICKETS)),
           const Spacer(),
