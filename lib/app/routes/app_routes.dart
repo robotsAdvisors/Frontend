@@ -34,7 +34,7 @@ abstract class Routes {
   static const REVIEWS          = _Paths.REVIEWS;
   static const SUPPORT_TICKETS  = _Paths.SUPPORT_TICKETS;
   static const STORE_CONFIG     = _Paths.STORE_CONFIG;
-  static const KYBC               = _Paths.KYBC;
+  static const KYBC             = _Paths.KYBC;
   static const SENSITIVE_POLICIES = _Paths.SENSITIVE_POLICIES;
   static const LEGAL_CONSENTS     = _Paths.LEGAL_CONSENTS;
   static const STRIPE_DISPUTES    = _Paths.STRIPE_DISPUTES;
@@ -47,6 +47,16 @@ abstract class Routes {
   static const ANTIFRAUDE          = _Paths.ANTIFRAUDE;
   static const ANTIFRAUDE_DETAIL   = _Paths.ANTIFRAUDE_DETAIL;
   static const ANTIFRAUDE_SETTINGS = _Paths.ANTIFRAUDE_SETTINGS;
+
+  // Nuevas rutas para publicaciones
+  static const PUBLICACIONES      = _Paths.PUBLICACIONES;
+  static const PUBLICACION_DETAIL = _Paths.PUBLICACION_DETAIL;
+
+  // Nueva ruta para Wallet de puntos
+  static const WALLET_POINTS      = _Paths.WALLET_POINTS;
+
+  // Nueva ruta para Historial de movimientos
+  static const MOVIMIENTOS        = _Paths.MOVIMIENTOS;
 }
 
 abstract class _Paths {
@@ -92,8 +102,17 @@ abstract class _Paths {
   static const CONFIRMAR_ENTREGA  = '/admin/confirmar-entrega';
   static const COMERCIOS          = '/backoffice/comercios';
   static const CAMPAIGNS          = '/backoffice/campaigns';
-  // Antifraude: las pantallas navegan con estas rutas literales (Navigator.pushNamed).
   static const ANTIFRAUDE          = '/antifraude';
   static const ANTIFRAUDE_DETAIL   = '/antifraude/detail';
   static const ANTIFRAUDE_SETTINGS = '/antifraude/settings';
+
+  // Nuevos paths para publicaciones
+  static const PUBLICACIONES      = '/backoffice/publicaciones';
+  static const PUBLICACION_DETAIL = '/backoffice/publicaciones/detail';
+
+  // Nuevo path para Wallet de puntos
+  static const WALLET_POINTS      = '/backoffice/wallet';
+
+  // Nuevo path para Historial de movimientos
+  static const MOVIMIENTOS        = '/backoffice/movimientos';
 }

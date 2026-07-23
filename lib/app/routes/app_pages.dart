@@ -65,6 +65,18 @@ import '../modules/withdrawals/views/withdrawals_view.dart';
 import '../modules/virtual_card/bindings/virtual_card_binding.dart';
 import '../modules/virtual_card/views/virtual_card_view.dart';
 
+// Import de la nueva vista
+import '../modules/general_admin/views/publicaciones_page.dart';
+import '../modules/general_admin/views/publicacion_detail_page.dart';
+
+// Import de Wallet de puntos
+import '../modules/general_admin/views/wallet_points_view.dart';
+import '../modules/general_admin/bindings/wallet_points_binding.dart';
+
+// Import de Historial de movimientos
+import '../modules/general_admin/views/movimientos_view.dart';
+import '../modules/general_admin/bindings/movimientos_binding.dart';
+
 part 'app_routes.dart';
 
 class AppPages {
@@ -73,185 +85,57 @@ class AppPages {
   static const INITIAL = Routes.SPLASH;
 
   static final routes = [
-    GetPage(
-      name: _Paths.SPLASH,
-      page: () => const SplashView(),
-      binding: SplashBinding(),
-    ),
-    GetPage(
-      name: _Paths.WELCOME,
-      page: () => const WelcomeView(),
-      binding: WelcomeBinding(),
-    ),
-    GetPage(
-      name: _Paths.LOGIN,
-      page: () => const LoginView(),
-      binding: LoginBinding(),
-    ),
-    GetPage(
-      name: _Paths.ADMIN,
-      page: () => const AdminView(),
-      binding: AdminBinding(),
-    ),
-    GetPage(
-      name: _Paths.REVIEWS,
-      page: () => const ReviewsView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.REDEMPTION_CODE_HISTORY,
-      page: () => const RedemptionCodeHistoryView(),
-      binding: AdminBinding(),
-    ),
-    GetPage(
-      name: _Paths.ADD_PRODUCT,
-      page: () => const AddProductView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.ANALYTICS,
-      page: () => const AnalyticsView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.ADMIN_SETTINGS,
-      page: () => const AdminSettingsView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.INVENTARIO,
-      page: () => const InventarioView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.PREMIOS,
-      page: () => const PremiosView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.GENERAL_ADMIN,
-      page: () => const GeneralAdminView(),
-      binding: GeneralAdminBinding(),
-    ),
-    GetPage(
-      name: _Paths.ADMIN_USER_DETAIL,
-      page: () => const UserDetailView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.GDPR_REQUESTS,
-      page: () => const GdprRequestsView(),
-      binding: GdprBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.SUPPORT_TICKETS,
-      page: () => const SupportTicketsView(),
-      binding: SupportBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.STORE_CONFIG,
-      page: () => const StoreConfigView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.KYBC,
-      page: () => const KybcView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.SENSITIVE_POLICIES,
-      page: () => const SensitivePoliciesView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.LEGAL_CONSENTS,
-      page: () => const LegalConsentsView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.STRIPE_DISPUTES,
-      page: () => const StripeDisputesView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.EMPLEADOS,
-      page: () => const EmpleadosView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.SEGURIDAD,
-      page: () => const SeguridadView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.INCIDENCIAS,
-      page: () => const IncidenciasView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.CONFIRMAR_ENTREGA,
-      page: () => const ConfirmarEntregaView(),
-      binding: AdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.COMERCIOS,
-      page: () => const ComerciosView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.CAMPAIGNS,
-      page: () => const CampaignsView(),
-      binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    // Antifraude (BG-06/BG-07) — cableado a AntifraudRepository vía AntifraudeController.
-    GetPage(
-      name: _Paths.ANTIFRAUDE,
-      page: () => const AntifraudeScreen(),
-      binding: AntifraudeBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
+    GetPage(name: _Paths.SPLASH, page: () => const SplashView(), binding: SplashBinding()),
+    GetPage(name: _Paths.WELCOME, page: () => const WelcomeView(), binding: WelcomeBinding()),
+    GetPage(name: _Paths.LOGIN, page: () => const LoginView(), binding: LoginBinding()),
+    GetPage(name: _Paths.ADMIN, page: () => const AdminView(), binding: AdminBinding()),
+    GetPage(name: _Paths.REVIEWS, page: () => const ReviewsView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.REDEMPTION_CODE_HISTORY, page: () => const RedemptionCodeHistoryView(), binding: AdminBinding()),
+    GetPage(name: _Paths.ADD_PRODUCT, page: () => const AddProductView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.ANALYTICS, page: () => const AnalyticsView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.ADMIN_SETTINGS, page: () => const AdminSettingsView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.INVENTARIO, page: () => const InventarioView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.PREMIOS, page: () => const PremiosView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.GENERAL_ADMIN, page: () => const GeneralAdminView(), binding: GeneralAdminBinding()),
+    GetPage(name: _Paths.ADMIN_USER_DETAIL, page: () => const UserDetailView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.GDPR_REQUESTS, page: () => const GdprRequestsView(), binding: GdprBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.SUPPORT_TICKETS, page: () => const SupportTicketsView(), binding: SupportBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.STORE_CONFIG, page: () => const StoreConfigView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.KYBC, page: () => const KybcView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.SENSITIVE_POLICIES, page: () => const SensitivePoliciesView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.LEGAL_CONSENTS, page: () => const LegalConsentsView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.STRIPE_DISPUTES, page: () => const StripeDisputesView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.EMPLEADOS, page: () => const EmpleadosView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.SEGURIDAD, page: () => const SeguridadView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.INCIDENCIAS, page: () => const IncidenciasView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.CONFIRMAR_ENTREGA, page: () => const ConfirmarEntregaView(), binding: AdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.COMERCIOS, page: () => const ComerciosView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+    GetPage(name: _Paths.CAMPAIGNS, page: () => const CampaignsView(), binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+
+    // Antifraude
+    GetPage(name: _Paths.ANTIFRAUDE, page: () => const AntifraudeScreen(), binding: AntifraudeBinding(),
+      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
+       GetPage(
       name: _Paths.ANTIFRAUDE_DETAIL,
       page: () => const AntifraudeDetail(),
       binding: AntifraudeBinding(),
@@ -265,6 +149,41 @@ class AppPages {
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),
+
+    // Nueva ruta: Publicaciones de aparcamiento
+    GetPage(
+      name: _Paths.PUBLICACIONES,
+      page: () => const PublicacionesPage(),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.PUBLICACION_DETAIL,
+      page: () => const PublicacionDetailPage(id: 'demo'),
+      binding: GeneralAdminBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+
+    // Nueva ruta: Wallet de puntos
+    GetPage(
+      name: _Paths.WALLET_POINTS,
+      page: () => const WalletPointsView(),
+      binding: WalletPointsBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+
+    // Nueva ruta: Historial de movimientos
+    GetPage(
+      name: _Paths.MOVIMIENTOS,
+      page: () => const MovimientosView(),
+      binding: MovimientosBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+
     GetPage(
       name: _Paths.BASE,
       page: () => const BaseView(),

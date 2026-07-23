@@ -14,7 +14,7 @@ class BackofficeSidebar extends StatelessWidget {
   const BackofficeSidebar({super.key, required this.current});
 
   /// Clave del ítem activo: dashboard | tiendas | usuarios | campanias |
-  /// moderacion | kybc | legal | gdpr | politicas | pagos | tickets.
+  /// moderacion | publicaciones | kybc | legal | gdpr | politicas | pagos | tickets | wallet.
   final String current;
 
   static const Color _purple = Color(0xFF7C3AED);
@@ -28,12 +28,14 @@ class BackofficeSidebar extends StatelessWidget {
     _Nav('usuarios', Icons.people_outline, 'Usuarios', Routes.ADMIN_USER_DETAIL),
     _Nav('campanias', Icons.campaign_outlined, 'Campañas', Routes.CAMPAIGNS),
     _Nav('moderacion', Icons.flag_outlined, 'Moderación', Routes.ANTIFRAUDE),
+    _Nav('publicaciones', Icons.local_parking, 'Publicaciones de aparcamiento', Routes.PUBLICACIONES),
     _Nav('kybc', Icons.verified_user_outlined, 'KYBC', Routes.KYBC),
     _Nav('legal', Icons.gavel_outlined, 'Legal', Routes.LEGAL_CONSENTS),
     _Nav('gdpr', Icons.privacy_tip_outlined, 'GDPR', Routes.GDPR_REQUESTS),
     _Nav('politicas', Icons.policy_outlined, 'Políticas', Routes.SENSITIVE_POLICIES),
     _Nav('pagos', Icons.payments_outlined, 'Pagos', Routes.STRIPE_DISPUTES),
     _Nav('tickets', Icons.support_agent_outlined, 'Tickets', Routes.SUPPORT_TICKETS),
+    _Nav('wallet', Icons.account_balance_wallet_outlined, 'Wallet de puntos', Routes.WALLET_POINTS),
   ];
 
   @override
