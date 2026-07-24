@@ -6,15 +6,12 @@ import '../../../routes/app_pages.dart';
 import '../controllers/general_admin_controller.dart';
 
 /// Sidebar única y consistente para TODO el backoffice del superadmin.
-///
-/// Reemplaza las ~11 sidebars hardcodeadas (cada una con distinto set de ítems
-/// y botones sin cablear). Cualquier cambio de navegación se hace aquí, en un
-/// solo sitio. Uso: `const BackofficeSidebar(current: 'tiendas')`.
+/// Uso: `const BackofficeSidebar(current: 'tiendas')`.
 class BackofficeSidebar extends StatelessWidget {
   const BackofficeSidebar({super.key, required this.current});
 
   /// Clave del ítem activo: dashboard | tiendas | usuarios | campanias |
-  /// moderacion | publicaciones | kybc | legal | gdpr | politicas | pagos | tickets | wallet.
+  /// moderacion | publicaciones | kybc | legal | gdpr | politicas | pagos | tickets | wallet | configuracion_puntos.
   final String current;
 
   static const Color _purple = Color(0xFF7C3AED);
@@ -36,6 +33,7 @@ class BackofficeSidebar extends StatelessWidget {
     _Nav('pagos', Icons.payments_outlined, 'Pagos', Routes.STRIPE_DISPUTES),
     _Nav('tickets', Icons.support_agent_outlined, 'Tickets', Routes.SUPPORT_TICKETS),
     _Nav('wallet', Icons.account_balance_wallet_outlined, 'Wallet de puntos', Routes.WALLET_POINTS),
+    _Nav('configuracion_puntos', Icons.settings_outlined, 'Configuración de puntos', Routes.CONFIGURACION_PUNTOS),
   ];
 
   @override
@@ -114,7 +112,6 @@ class BackofficeSidebar extends StatelessWidget {
           ]),
         );
 
-    // El controlador puede no estar registrado en todas las pantallas.
     if (!Get.isRegistered<GeneralAdminController>()) {
       return row('Super Admin', 'SA');
     }

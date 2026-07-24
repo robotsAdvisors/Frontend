@@ -57,6 +57,9 @@ abstract class Routes {
 
   // Nueva ruta para Historial de movimientos
   static const MOVIMIENTOS        = _Paths.MOVIMIENTOS;
+
+  // Nueva ruta para Configuración del programa de puntos
+  static const CONFIGURACION_PUNTOS = _Paths.CONFIGURACION_PUNTOS;
 }
 
 abstract class _Paths {
@@ -115,4 +118,7 @@ abstract class _Paths {
 
   // Nuevo path para Historial de movimientos
   static const MOVIMIENTOS        = '/backoffice/movimientos';
+
+  // Nuevo path para Configuración del programa de puntos
+  static const CONFIGURACION_PUNTOS = '/backoffice/configuracion-puntos';
 }

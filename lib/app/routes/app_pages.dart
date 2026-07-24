@@ -69,13 +69,17 @@ import '../modules/virtual_card/views/virtual_card_view.dart';
 import '../modules/general_admin/views/publicaciones_page.dart';
 import '../modules/general_admin/views/publicacion_detail_page.dart';
 
-// Import de Wallet de puntos
+// Wallet de puntos
 import '../modules/general_admin/views/wallet_points_view.dart';
 import '../modules/general_admin/bindings/wallet_points_binding.dart';
 
-// Import de Historial de movimientos
+// Historial de movimientos
 import '../modules/general_admin/views/movimientos_view.dart';
 import '../modules/general_admin/bindings/movimientos_binding.dart';
+
+// Configuración del programa de puntos
+import '../modules/general_admin/views/configuracion_puntos_view.dart';
+import '../modules/general_admin/bindings/configuracion_puntos_binding.dart';
 
 part 'app_routes.dart';
 
@@ -132,10 +136,15 @@ class AppPages {
     GetPage(name: _Paths.CAMPAIGNS, page: () => const CampaignsView(), binding: GeneralAdminBinding(),
       transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
 
-    // Antifraude
-    GetPage(name: _Paths.ANTIFRAUDE, page: () => const AntifraudeScreen(), binding: AntifraudeBinding(),
-      transition: Transition.rightToLeft, transitionDuration: const Duration(milliseconds: 250)),
-       GetPage(
+       // Antifraude
+    GetPage(
+      name: _Paths.ANTIFRAUDE,
+      page: () => const AntifraudeScreen(),
+      binding: AntifraudeBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
       name: _Paths.ANTIFRAUDE_DETAIL,
       page: () => const AntifraudeDetail(),
       binding: AntifraudeBinding(),
@@ -184,87 +193,11 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 250),
     ),
 
+    // Nueva ruta: Configuración del programa de puntos
     GetPage(
-      name: _Paths.BASE,
-      page: () => const BaseView(),
-      binding: BaseBinding(),
-    ),
-    GetPage(
-      name: _Paths.HOME,
-      page: () => const HomeView(),
-      binding: HomeBinding(),
-    ),
-    GetPage(
-      name: _Paths.CART,
-      page: () => const CartView(),
-      binding: CartBinding(),
-    ),
-    GetPage(
-      name: _Paths.PRODUCT_DETAILS,
-      page: () => const ProductDetailsView(),
-      binding: ProductDetailsBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.CATEGORY,
-      page: () => const CategoryView(),
-      binding: CategoryBinding(),
-    ),
-    GetPage(
-      name: _Paths.CALENDAR,
-      page: () => const CalendarView(),
-      binding: CalendarBinding(),
-    ),
-    GetPage(
-      name: _Paths.PROFILE,
-      page: () => const ProfileView(),
-      binding: ProfileBinding(),
-    ),
-    GetPage(
-      name: _Paths.PRODUCTS,
-      page: () => const ProductsView(),
-      binding: ProductsBinding(),
-    ),
-    GetPage(
-      name: _Paths.CUSTOMER_HISTORY,
-      page: () => const CustomerHistoryView(),
-      binding: CustomerHistoryBinding(),
-    ),
-    GetPage(
-      name: _Paths.STORES,
-      page: () => const StoresView(),
-      binding: StoresBinding(),
-    ),
-    GetPage(
-      name: _Paths.PREFERENCES,
-      page: () => const PreferencesView(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.CHANGE_PASSWORD,
-      page: () => const ChangePasswordView(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.FORGOT_PASSWORD,
-      page: () => const ForgotPasswordView(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.WITHDRAWALS,
-      page: () => const WithdrawalsView(),
-      binding: WithdrawalsBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-    GetPage(
-      name: _Paths.VIRTUAL_CARD,
-      page: () => const VirtualCardView(),
-      binding: VirtualCardBinding(),
+      name: _Paths.CONFIGURACION_PUNTOS,
+      page: () => const ConfiguracionPuntosView(),
+      binding: ConfiguracionPuntosBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),
