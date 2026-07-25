@@ -169,18 +169,28 @@ class _ConfigFormState extends State<_ConfigForm> {
         ),
 
         const SizedBox(height: 24),
-        Obx(() => ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C3AED),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-              ),
-              onPressed: widget.controller.isSaving.value ? null : _save,
-              child: widget.controller.isSaving.value
-                  ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Guardar configuración'),
-            )),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Obx(() => FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: widget.controller.isSaving.value ? null : _save,
+                icon: widget.controller.isSaving.value
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.save_outlined, size: 18),
+                label: const Text('Guardar configuración',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+              )),
+        ),
       ],
     );
   }

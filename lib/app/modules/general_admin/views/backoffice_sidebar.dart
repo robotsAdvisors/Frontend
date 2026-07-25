@@ -25,7 +25,7 @@ class BackofficeSidebar extends StatelessWidget {
     _Nav('usuarios', Icons.people_outline, 'Usuarios', Routes.ADMIN_USER_DETAIL),
     _Nav('campanias', Icons.campaign_outlined, 'Campañas', Routes.CAMPAIGNS),
     _Nav('moderacion', Icons.flag_outlined, 'Moderación', Routes.ANTIFRAUDE),
-    _Nav('publicaciones', Icons.local_parking, 'Publicaciones de aparcamiento', Routes.PUBLICACIONES),
+    _Nav('publicaciones', Icons.local_parking, 'Publicaciones', Routes.PUBLICACIONES),
     _Nav('kybc', Icons.verified_user_outlined, 'KYBC', Routes.KYBC),
     _Nav('legal', Icons.gavel_outlined, 'Legal', Routes.LEGAL_CONSENTS),
     _Nav('gdpr', Icons.privacy_tip_outlined, 'GDPR', Routes.GDPR_REQUESTS),
@@ -135,11 +135,15 @@ class BackofficeSidebar extends StatelessWidget {
         child: Row(children: [
           Icon(it.icon, size: 17, color: selected ? _purple : Colors.grey.shade500),
           const SizedBox(width: 10),
-          Text(it.label,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected ? _purple : Colors.grey.shade700)),
+          Expanded(
+            child: Text(it.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                    color: selected ? _purple : Colors.grey.shade700)),
+          ),
         ]),
       ),
     );

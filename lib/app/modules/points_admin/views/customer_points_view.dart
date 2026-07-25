@@ -71,13 +71,16 @@ class CustomerPointsView extends GetView<CustomerPointsController> {
               ],
             ),
           ),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
               backgroundColor: _purple,
-              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
             icon: const Icon(Icons.tune, size: 18),
-            label: const Text('Ajustar puntos'),
+            label: const Text('Ajustar puntos',
+                style: TextStyle(fontWeight: FontWeight.w600)),
             onPressed: () => _openAdjustDialog(context),
           ),
         ],
@@ -303,6 +306,62 @@ class _AdjustDialogState extends State<_AdjustDialog> {
       return;
     }
     setState(() => _error = null);
+
+    // Paso de confirmación: mover puntos es una acción sensible y auditada.
+    final retira = amount < 0;
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Confirmar ajuste'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(color: Colors.black87, fontSize: 14),
+                children: [
+                  TextSpan(
+                      text: retira ? 'Vas a RETIRAR ' : 'Vas a ACREDITAR ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: retira ? Colors.red : Colors.green)),
+                  TextSpan(
+                      text: '${amount.abs()} puntos',
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  TextSpan(text: ' a ${widget.controller.email}.'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text('Motivo: ${_reason.text.trim()}'),
+            Text('Referencia: ${_ticket.text.trim()}'),
+            const SizedBox(height: 12),
+            const Text('Esta acción queda registrada en la auditoría y no se puede deshacer sin una reversión.',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Get.back(result: false),
+              style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+              child: const Text('Volver')),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: retira ? Colors.red : Colors.green,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Get.back(result: true),
+            child: Text(retira ? 'Confirmar retiro' : 'Confirmar',
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
     final ok = await widget.controller.adjust(
       amount: amount,
       reasonText: _reason.text.trim(),
@@ -315,6 +374,7 @@ class _AdjustDialogState extends State<_AdjustDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Text('Ajustar puntos'),
       content: SizedBox(
         width: 420,
@@ -360,13 +420,26 @@ class _AdjustDialogState extends State<_AdjustDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-        Obx(() => ElevatedButton(
+        TextButton(
+            onPressed: () => Get.back(),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+            child: const Text('Cancelar')),
+        Obx(() => FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+              ),
               onPressed: widget.controller.isAdjusting.value ? null : _submit,
               child: widget.controller.isAdjusting.value
                   ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Aplicar'),
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Text('Aplicar',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
             )),
       ],
     );
