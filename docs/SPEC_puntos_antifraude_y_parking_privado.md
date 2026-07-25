@@ -29,6 +29,8 @@ Dos módulos:
 
 # MÓDULO A — Puntos (Super Admin)
 
+> ✅ **IMPLEMENTADO EN BACKEND (2026-07-25).** Los endpoints de este módulo ya están en vivo. Esta sección refleja la implementación real; las diferencias con el borrador previo se han incorporado (source_type en inglés + `TRANSFER`/`REFUND`, campo `description` en movimientos, config con forma `{settings, rules}`, `409` con `details:{needed, available}`). Pendiente: **cablear el frontend** (pantallas de Hernan) a estos endpoints.
+
 ## A.1 Modelo de datos
 
 Sigue **§8.1 del documento de puntos** (campos y nomenclatura autoritativos). Clave: `direction` (tipo de movimiento) y `status` (estado) son **campos separados** — no mezclarlos en uno solo, como sí hace el prototipo actual.
@@ -44,9 +46,9 @@ class PointsMovement(models.Model):
               ("CONSUMIDO","Consumido"), ("LIBERADO","Liberado"), ("RECHAZADO","Rechazado"),
               ("EXPIRADO","Expirado"), ("AJUSTADO","Ajustado")]          # §3.1
 
-    SOURCE = [("REGISTRO","Registro"), ("PERFIL","Perfil"), ("COMPRA","Compra"),
-              ("CANJE","Canje"), ("ALERTA","Alerta vial"), ("INFORMACION","Info aparcamiento"),
-              ("REFERIDO","Referido"), ("SOPORTE","Soporte"), ("CAMPANA","Campaña")]   # §8.1
+    SOURCE = [("SPACE","Plaza"), ("EVENT","Alerta vial"), ("TRANSFER","Transferencia"),
+              ("REFUND","Reembolso"), ("ADJUSTMENT","Ajuste"), ("REGISTRATION","Registro"),
+              ("PROFILE","Perfil"), ("PURCHASE","Compra"), ("REFERRAL","Referido")]   # real backend
 
     user             = FK(User, related_name="points_movements", db_index=True)  # user_id
     amount           = IntegerField()                 # con signo: +50 / -100
@@ -81,24 +83,26 @@ class PointsWallet(models.Model):
     updated_at = DateTimeField(auto_now=True)
 ```
 
-```python
-class PointsConfig(models.Model):
-    """Reglas globales del programa (ADM-PT-01). Singleton versionado.
-    Defaults = valores recomendados en las historias GP-01..GP-12, CP-06, CP-11."""
-    puntos_registro          = IntegerField(default=50)    # GP-01
-    puntos_perfil            = IntegerField(default=25)    # GP-02
-    puntos_primera_compra    = IntegerField(default=100)   # GP-03
-    puntos_por_eur           = IntegerField(default=1)     # GP-04
-    limite_puntos_por_pedido = IntegerField(default=300)   # GP-04
-    multiplicador_campana    = IntegerField(default=2)     # GP-05
-    limite_por_campana       = IntegerField(default=1000)  # GP-05
-    puntos_referido          = IntegerField(default=150)   # GP-12
-    max_referidos_mes        = IntegerField(default=5)     # GP-12
-    caducidad_meses          = IntegerField(default=12)    # CP-11
-    canje_expira_horas       = IntegerField(default=48)    # CP-06
-    validar_duplicados       = BooleanField(default=True)
-    validar_referidos        = BooleanField(default=True)
-    version, updated_by, updated_at
+La configuración real tiene **dos partes**: `settings` (parámetros globales) y `rules` (una regla por acción que genera puntos):
+
+```jsonc
+// GET /admin/points/config/  y respuesta del PUT
+{
+  "settings": {
+    "max_points_per_order": 300,          // GP-04
+    "points_per_eur": 1,                  // GP-04
+    "max_referrals_per_month": 5,         // GP-12
+    "redemption_code_validity_days": 7,   // CP-06
+    "modified": "..."
+  },
+  "rules": [
+    { "id": 1, "action": "REGISTRATION", "label_es": "Completar el registro",
+      "label_en": "Complete sign-up", "is_active": true, "base_points": 50,
+      "lifetime_days": 365, "requires_validation": false,
+      "validations_needed": 0, "unvalidated_points": 0, "modified": "..." }
+    // + PROFILE_COMPLETED, FIRST_PURCHASE, REFERRAL, SPACE_PUBLISHED, EVENT_PUBLISHED
+  ]
+}
 ```
 
 **Migración de datos:** al desplegar, generar un `PointsMovement` histórico por cada acreditación existente para que el saldo derivado cuadre con el actual. Un saldo que no se reconstruya desde el libro es un bug.
@@ -129,8 +133,10 @@ GET /api/v1/admin/users/{user_id}/points/movements/
       ?direction=AJUSTE&status=RECHAZADO&source_type=INFORMACION&from=&to=&page=
 → 200 {count, next, previous, results:[
     {id, created_at, amount, direction, status, source_type, source:{id},
-     reason, validated_at, validated_by, actor:{id,email}, audit_reference, reverses}]}
+     reason, description, validated_at, validated_by, actor:{id,email},
+     audit_reference, reverses}]}
 ```
+`source_type` real: `SPACE · EVENT · TRANSFER · REFUND · ADJUSTMENT · REGISTRATION · PROFILE · PURCHASE · REFERRAL`.
 
 ### A.3.3 Ajuste manual de puntos — endpoint crítico (ADM-PT-03)
 ```http
@@ -165,10 +171,16 @@ El canje (flujo de la app, CP-04) **no se permite si el usuario no tiene puntos 
 
 ### A.3.6 Configuración del programa — pantalla *Configuración de puntos* (ADM-PT-01)
 ```http
-GET /api/v1/admin/points/config/          → 200 {…campos de PointsConfig…}
-PUT /api/v1/admin/points/config/          → 200 (guarda version, updated_by, updated_at)
+GET /api/v1/admin/points/config/    → 200 {settings:{…}, rules:[{action, base_points, …}]}
+PUT /api/v1/admin/points/config/    → 200 (mismo shape; parcial)
 ```
-Cada cambio registra **valor anterior y nuevo** y **no aplica retroactivamente**. Requisito imprescindible: la lógica de ganancia (GP-01…GP-12) debe **leer estos valores**, no tenerlos hardcodeados.
+El `PUT` es **parcial**: solo se toca lo que envíes; se audita `old/new`; **no retroactivo**.
+```jsonc
+PUT body:
+{ "settings": { "points_per_eur": 2 },
+  "rules": [ { "action": "REGISTRATION", "base_points": 75 } ] }
+```
+**Ojo de cableado:** la pantalla de Hernan tiene campos planos (limitePorPedido, caducidadMeses, puntosRegistro…). Hay que remapearlos: los globales van a `settings`; los puntos-por-acción (registro, perfil, referido…) van a `rules[action].base_points`. Los campos de Hernan `maximoPorCampania`, `validarDuplicados` y `validarReferidos` **no existen** en la config real → se quitan o se dejan como no-op hasta que negocio los defina.
 
 ## A.4 Errores (Módulo A)
 
@@ -177,7 +189,7 @@ Cada cambio registra **valor anterior y nuevo** y **no aplica retroactivamente**
 | 400 | `VALIDATION_ERROR` | `amount`=0, `reason_text`/`audit_reference` vacío, bucket inválido |
 | 403 | `PERMISSION_DENIED` | No es Super Admin |
 | 404 | `USER_NOT_FOUND` / `MOVEMENT_NOT_FOUND` | — |
-| 409 | `INSUFFICIENT_POINTS` | Si D1 = "no permitir negativo" |
+| 409 | `INSUFFICIENT_POINTS` | Dejaría negativo → `details:{needed, available}` (mostrar "faltan N") |
 | 409 | `ALREADY_REVERSED` | El ajuste ya tiene reversión |
 | 428 | `IDEMPOTENCY_KEY_REQUIRED` | Falta la cabecera en el ajuste |
 
@@ -357,10 +369,24 @@ No es un endpoint del backoffice pero **es imprescindible**: los webhooks firmad
 
 ## 10. Plan de entrega
 
-1. **Fase 1 (ya):** `PointsMovement` + `PointsWallet` + migración histórica + `GET` saldo y movimientos → cierra Wallet y Movimientos.
-2. **Fase 2 (ya):** ajuste manual + reversión + auditoría + `revoke_points` en moderación → cierra ADM-PT-03. Requiere D1, D2.
-3. **Fase 3 (ya):** `PointsConfig` + `GET/PUT` + que la lógica de ganancia lo consuma → cierra Configuración de puntos. Requiere D4; depende del job de caducidad (D3).
-4. **Fase 4 (bloqueada):** Módulo B completo. Requiere D5, D6, D7.
+1. **Fase 1 — Backend ✅ HECHO:** saldo, movimientos, ajuste+reversión, config, `revoke_points`. En vivo desde 2026-07-25.
+2. **Fase 2 — Frontend (pendiente):** cablear las pantallas de Hernan a los endpoints (modelos + repositorio + controllers). Ver §12.
+3. **Fase 3 — Verificar:** D3 (job de caducidad) y D4 (lógica de ganancia lee config) las confirma backend.
+4. **Fase 4 — Bloqueada:** Módulo B (aparcamiento). Requiere D5, D6, D7.
+
+## 12. Cableado del frontend (pendiente)
+
+| Pieza | Trabajo |
+|---|---|
+| `ApiConfig` | Añadir rutas: `adminUserPoints(id)`, `adminUserPointsMovements(id)`, `adminUserPointsAdjust(id)`, `adminPointsAdjustReverse(mid)`, `adminPointsConfig` |
+| Modelos | `PointsBalance`, `PointsMovement`, `PointsConfig` (settings + rules) |
+| Repositorio | `PointsAdminRepository` (o métodos en marketplace_repository): fetchBalance, fetchMovements (paginado+filtros), adjust (con Idempotency-Key), reverse, getConfig, putConfig |
+| Wallet + Movimientos | Reemplazar mocks. **Requiere un `user_id`** → ver decisión de UX abajo |
+| Modal de ajuste | Crear la UI (importe, motivo, ticket) + manejo de `409 INSUFFICIENT_POINTS` (`needed/available`) e idempotencia |
+| Configuración de puntos | Remapear campos planos → `{settings, rules}` |
+| Moderación | Añadir `revoke_points:true` al `reject` |
+
+**Decisión de UX pendiente:** las pantallas Wallet y Movimientos son **por usuario**, pero la maqueta de Hernan no tiene selector. Hay que decidir cómo llega el superadmin a la wallet de un usuario: (a) desde la **ficha de usuario** existente (`/admin/users/detail`) con pestañas de Puntos/Movimientos, o (b) un **buscador de usuario** al entrar en la pantalla Wallet.
 
 ## 11. Ubicación
 
