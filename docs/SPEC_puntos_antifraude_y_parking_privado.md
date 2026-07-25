@@ -388,6 +388,36 @@ No es un endpoint del backoffice pero **es imprescindible**: los webhooks firmad
 
 **Decisión de UX pendiente:** las pantallas Wallet y Movimientos son **por usuario**, pero la maqueta de Hernan no tiene selector. Hay que decidir cómo llega el superadmin a la wallet de un usuario: (a) desde la **ficha de usuario** existente (`/admin/users/detail`) con pestañas de Puntos/Movimientos, o (b) un **buscador de usuario** al entrar en la pantalla Wallet.
 
+## 13. Peticiones al backend (pendientes) — para cerrar el flujo de puntos
+
+Decidido: el superadmin llega a los puntos de un cliente **buscándolo por email** (clave de cara al usuario). Los registros y la auditoría siguen apuntando al **`id` interno estable** (el email es mutable). → **No hay que rehacer** los endpoints de puntos ya existentes; solo añadir el buscador.
+
+### Petición 1 (imprescindible) — Buscador de clientes de la app · NUEVO
+```http
+GET /api/v1/admin/customers/?search=<email>&page=&page_size=
+Permiso: IsSuperAdmin (403 en caso contrario)   ·   Paginado DRF   ·   error {error_code,message,details}
+```
+- **Población:** SOLO clientes de la app. Excluir staff de tienda (usuarios con membresía OWNER/ADMIN/MEMBER).
+- **`search`:** por **email** (`icontains`), mínimo 2 caracteres.
+- **`search` vacío o < 2 chars:** devolver `{count:0, results:[]}` (no listar a todos).
+- **Sin saldo de puntos** en la respuesta (el saldo es la llamada aparte `GET …/points/`).
+```jsonc
+200:
+{ "count": 1, "next": null, "previous": null,
+  "results": [
+    { "id": 5, "email": "cliente@correo.com", "name": "Ana García",
+      "is_active": true, "date_joined": "2026-01-10T09:00:00Z" }
+  ]
+}
+```
+> El `id` viaja en la respuesta pero es de **uso interno del front** (para llamar a `/admin/users/{id}/points/`). El superadmin nunca lo ve; busca y opera por email.
+
+### Petición 2 (recomendada, pequeña) — `user_id` en la cola de moderación
+Que cada fila de `GET /admin/moderation/contributions/` incluya **`user_id`** además del `user` (email). Permite saltar de un fraude directo a la wallet del cliente sin volver a buscarlo.
+
+### Petición 3 (verificar) — `/points/` acepta ids de cliente
+Confirmar que `GET /admin/users/{id}/points/` (y movimientos/ajustes) funciona con el `id` de un **cliente de la app**, no solo de staff. Si devuelve `USER_NOT_FOUND` para clientes, revisarlo.
+
 ## 11. Ubicación
 
 Este documento vive en el repo **Frontend** (= backoffice, `d:\Frontend`), junto a `PRD_panel_admin.md` y `docs/screens/06-general-admin-backoffice.md`.
