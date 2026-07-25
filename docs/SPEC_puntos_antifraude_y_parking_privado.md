@@ -142,6 +142,8 @@ Idempotency-Key: <uuid>        ← obligatorio
 ```
 `amount≠0`; `reason_text` y `audit_reference` (ticket/incidencia) obligatorios; `select_for_update()` sobre el wallet dentro de `transaction.atomic()`; escribe en el audit-log del usuario. No se presenta como pago ni reembolso (CP-12).
 
+**Saldo no negativo (decisión D1):** el saldo **nunca puede quedar negativo**. Si un ajuste dejaría un bucket por debajo de 0, se **rechaza** con `409 INSUFFICIENT_POINTS`, indicando cuántos puntos hay disponibles para que el Super Admin reintente con una cantidad menor. Consecuencia a tener en cuenta: si el defraudador **ya gastó** los puntos, la retirada se limita a lo que quede en el saldo; la pérdida ya materializada queda **registrada y auditada**, pero no se recupera del wallet.
+
 ### A.3.4 Reversión de un ajuste
 ```http
 POST /api/v1/admin/points/adjustments/{movement_id}/reverse/   {"reason_text": "..."}
@@ -156,6 +158,10 @@ POST /api/v1/admin/moderation/contributions/{kind}/{id}/
      {decision: "validate|reject|observe", reason, revoke_points: true}
 ```
 Con `revoke_points:true`, rechazar una contribución fraudulenta genera automáticamente el `PointsMovement` de retirada (`direction=AJUSTE`, `source_type=INFORMACION`), visible en el historial del usuario (ADM-PT-02).
+
+### A.3.6bis Regla de canje con saldo insuficiente (decisión D1)
+
+El canje (flujo de la app, CP-04) **no se permite si el usuario no tiene puntos disponibles suficientes**. El backend debe rechazar la generación del canje con `409 INSUFFICIENT_POINTS` y un mensaje tipo *"Te faltan N puntos"*, sin bloquear puntos ni crear el código. Nunca debe dejar el bucket `disponible` negativo.
 
 ### A.3.6 Configuración del programa — pantalla *Configuración de puntos* (ADM-PT-01)
 ```http
@@ -340,10 +346,10 @@ No es un endpoint del backoffice pero **es imprescindible**: los webhooks firmad
 
 | ID | Decisión | Impacto |
 |---|---|---|
-| **D1** | ¿El saldo puede quedar negativo al retirar puntos ya gastados? | Recomendado: permitir negativo + bloquear canjes. Alt.: `409 INSUFFICIENT_POINTS` |
+| ~~**D1**~~ | ~~¿El saldo puede quedar negativo?~~ | **RESUELTO:** el saldo **no** puede quedar negativo. Ajuste que lo dejaría negativo → `409 INSUFFICIENT_POINTS`; canje sin saldo suficiente → bloqueado con *"Te faltan N puntos"*. |
 | **D2** | ¿Qué buckets admiten ajuste (`disponible`/`pendiente`/`bloqueado`)? | Define el parámetro `bucket` |
-| **D3** | ¿Existe ya un job de caducidad (`EXPIRACION`)? | Sin él, `expirado` siempre será 0 (CP-11) |
-| **D4** | ¿La lógica de ganancia ya lee de config o está hardcodeada? | Determina si ADM-PT-01 es "cablear" o "refactor" |
+| **D3** ⚠️ | **A verificar por backend:** ¿existe ya un job/cron de caducidad de puntos? | Sin él, `expirado` siempre será 0 (CP-11). Si no existe, hay que crearlo |
+| **D4** ⚠️ | **A verificar por backend:** ¿la lógica de ganancia de puntos ya existe y lee de config, o está hardcodeada / no existe? | Determina si ADM-PT-01 es "cablear", "refactor" o "construir desde cero" |
 | **D5** | **Módulo B:** aprobación de negocio de PN-01…PN-16 | Bloquea todo el parking |
 | **D6** | **Módulo B:** arquitectura de Stripe Connect (quién cobra, comisiones, chargebacks) | Bloquea PA-02/PA-03 |
 | **D7** | **Módulo B:** validación legal del objeto de la compensación | Bloquea el lanzamiento |
