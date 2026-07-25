@@ -166,6 +166,16 @@ class ApiConfig {
   static const String antifraudRules = '/admin/antifraud-rules/';
   static String antifraudRuleDetail(int id) => '/admin/antifraud-rules/$id/';
 
+  // Backoffice — Puntos del cliente (points_admin) — SPEC Módulo A.
+  // El superadmin busca al cliente por email y consulta/ajusta sus puntos.
+  static const String adminCustomers = '/admin/customers/';                      // buscador por email
+  static String adminUserPoints(String id)          => '/admin/users/$id/points/';
+  static String adminUserPointsMovements(String id) => '/admin/users/$id/points/movements/';
+  static String adminUserPointsAdjust(String id)    => '/admin/users/$id/points/adjustments/';
+  static String adminPointsAdjustReverse(String movementId) =>
+      '/admin/points/adjustments/$movementId/reverse/';
+  static const String adminPointsConfig = '/admin/points/config/';
+
   // Backoffice — Admin Store Management
   static String adminStoreDetail(String id) => '/marketplace/admin/stores/$id/';
 

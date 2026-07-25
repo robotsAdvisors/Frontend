@@ -46,6 +46,7 @@ class AntifraudRepository {
     required String id,
     required String decision,
     String reason = '',
+    bool revokePoints = false,
   }) async {
     try {
       final response = await _dio.post(
@@ -53,6 +54,9 @@ class AntifraudRepository {
         data: {
           'decision': decision,
           if (reason.isNotEmpty) 'reason': reason,
+          // Con reject + revoke_points, el backend retira los puntos ya
+          // consolidados de esa contribución (con tope no-negativo).
+          if (revokePoints) 'revoke_points': true,
         },
       );
       if (response.data is Map) {

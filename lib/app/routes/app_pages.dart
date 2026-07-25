@@ -80,6 +80,9 @@ import '../modules/general_admin/bindings/movimientos_binding.dart';
 // Configuración del programa de puntos
 import '../modules/general_admin/views/configuracion_puntos_view.dart';
 import '../modules/general_admin/bindings/configuracion_puntos_binding.dart';
+import '../modules/points_admin/views/customer_search_view.dart';
+import '../modules/points_admin/views/customer_points_view.dart';
+import '../modules/points_admin/bindings/points_admin_binding.dart';
 
 part 'app_routes.dart';
 
@@ -198,6 +201,22 @@ class AppPages {
       name: _Paths.CONFIGURACION_PUNTOS,
       page: () => const ConfiguracionPuntosView(),
       binding: ConfiguracionPuntosBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+
+    // Puntos del cliente (Módulo A): buscador → ficha del cliente
+    GetPage(
+      name: _Paths.CUSTOMERS_POINTS,
+      page: () => const CustomerSearchView(),
+      binding: PointsSearchBinding(),
+      transition: Transition.rightToLeft,
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    GetPage(
+      name: _Paths.CUSTOMER_POINTS_DETAIL,
+      page: () => const CustomerPointsView(),
+      binding: PointsDetailBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),

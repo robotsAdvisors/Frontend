@@ -53,7 +53,9 @@ class AntifraudeController extends GetxController {
   void select(AntifraudReportModel report) => selected.value = report;
 
   /// Decisión del moderador: 'validate' | 'reject' | 'observe'.
-  Future<bool> decide(String decision, {String reason = ''}) async {
+  /// `revokePoints` (solo con reject) retira además los puntos ya consolidados.
+  Future<bool> decide(String decision,
+      {String reason = '', bool revokePoints = false}) async {
     final r = selected.value;
     if (r == null || isDeciding.value) return false;
     isDeciding.value = true;
@@ -63,6 +65,7 @@ class AntifraudeController extends GetxController {
         id: r.id,
         decision: decision,
         reason: reason,
+        revokePoints: revokePoints,
       );
       if (updated != null) {
         selected.value = updated;

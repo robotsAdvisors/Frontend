@@ -60,6 +60,10 @@ abstract class Routes {
 
   // Nueva ruta para Configuración del programa de puntos
   static const CONFIGURACION_PUNTOS = _Paths.CONFIGURACION_PUNTOS;
+
+  // Puntos del cliente (Módulo A): buscador + ficha del cliente
+  static const CUSTOMERS_POINTS       = _Paths.CUSTOMERS_POINTS;
+  static const CUSTOMER_POINTS_DETAIL = _Paths.CUSTOMER_POINTS_DETAIL;
 }
 
 abstract class _Paths {
@@ -121,4 +125,8 @@ abstract class _Paths {
 
   // Nuevo path para Configuración del programa de puntos
   static const CONFIGURACION_PUNTOS = '/backoffice/configuracion-puntos';
+
+  // Puntos del cliente (Módulo A)
+  static const CUSTOMERS_POINTS       = '/backoffice/clientes-puntos';
+  static const CUSTOMER_POINTS_DETAIL = '/backoffice/clientes-puntos/detalle';
 }

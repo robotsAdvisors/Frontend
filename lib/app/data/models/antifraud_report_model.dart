@@ -30,6 +30,7 @@ class AntifraudReportModel {
   final String id; // pk: UUID (hex) para space, entero-como-string para event
   final String kind; // "space" | "event"
   final String? user; // email del autor, puede venir null
+  final String? userId; // id interno estable del autor (para saltar a /points/)
   final String? type; // tipo de la contribución (WHITE/BLUE/... o tipo de evento)
   final String zone; // geohash aproximado de la zona
   final String streetName;
@@ -41,6 +42,7 @@ class AntifraudReportModel {
     this.id = '',
     this.kind = '',
     this.user,
+    this.userId,
     this.type,
     this.zone = '',
     this.streetName = '',
@@ -60,6 +62,9 @@ class AntifraudReportModel {
       user: (json['user'] ?? '').toString().isEmpty
           ? null
           : (json['user']).toString(),
+      userId: (json['user_id'] ?? '').toString().isEmpty
+          ? null
+          : (json['user_id']).toString(),
       type: (json['type'] ?? '').toString().isEmpty
           ? null
           : (json['type']).toString(),

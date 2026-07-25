@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/models/antifraud_report_model.dart';
+import '../../routes/app_pages.dart';
 import 'antifraude_screen.dart' show antifraudStatusLabel;
 import 'controllers/antifraude_controller.dart';
 
@@ -32,6 +33,21 @@ class AntifraudeDetail extends GetView<AntifraudeController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _field('Usuario', r.user ?? '—'),
+              if (r.userId != null && r.userId!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 120, top: 2, bottom: 6),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.account_balance_wallet_outlined, size: 16),
+                      label: const Text('Ver puntos del cliente'),
+                      onPressed: () => Get.toNamed(
+                        Routes.CUSTOMER_POINTS_DETAIL,
+                        arguments: {'id': r.userId, 'email': r.user ?? '', 'name': ''},
+                      ),
+                    ),
+                  ),
+                ),
               _field('Tipo', (r.type ?? '—').toString()),
               _field('Modalidad', r.kind),
               _field('Zona (geohash)', r.zone.isEmpty ? '—' : r.zone),
@@ -136,30 +152,51 @@ class AntifraudeDetail extends GetView<AntifraudeController> {
   Future<void> _confirm(
       BuildContext context, String label, String decision) async {
     final reasonCtrl = TextEditingController();
+    final isReject = decision == 'reject';
+    bool revoke = false;
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(label),
-        content: TextField(
-          controller: reasonCtrl,
-          maxLines: 2,
-          decoration: const InputDecoration(
-            labelText: 'Motivo (opcional)',
-            border: OutlineInputBorder(),
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(label),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: reasonCtrl,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Motivo (opcional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              if (isReject)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  value: revoke,
+                  onChanged: (v) => setState(() => revoke = v ?? false),
+                  title: const Text('Retirar los puntos de esta contribución',
+                      style: TextStyle(fontSize: 13)),
+                  subtitle: const Text('Genera un ajuste negativo (tope no-negativo).',
+                      style: TextStyle(fontSize: 11)),
+                ),
+            ],
           ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar')),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Confirmar')),
+          ],
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirmar')),
-        ],
       ),
     );
     if (ok != true) return;
-    final done = await controller.decide(decision, reason: reasonCtrl.text.trim());
+    final done = await controller.decide(decision,
+        reason: reasonCtrl.text.trim(), revokePoints: isReject && revoke);
     if (done) Get.back(); // vuelve a la cola
   }
 }
