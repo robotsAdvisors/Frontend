@@ -52,12 +52,6 @@ abstract class Routes {
   static const PUBLICACIONES      = _Paths.PUBLICACIONES;
   static const PUBLICACION_DETAIL = _Paths.PUBLICACION_DETAIL;
 
-  // Nueva ruta para Wallet de puntos
-  static const WALLET_POINTS      = _Paths.WALLET_POINTS;
-
-  // Nueva ruta para Historial de movimientos
-  static const MOVIMIENTOS        = _Paths.MOVIMIENTOS;
-
   // Nueva ruta para Configuración del programa de puntos
   static const CONFIGURACION_PUNTOS = _Paths.CONFIGURACION_PUNTOS;
 
@@ -116,12 +110,6 @@ abstract class _Paths {
   // Nuevos paths para publicaciones
   static const PUBLICACIONES      = '/backoffice/publicaciones';
   static const PUBLICACION_DETAIL = '/backoffice/publicaciones/detail';
-
-  // Nuevo path para Wallet de puntos
-  static const WALLET_POINTS      = '/backoffice/wallet';
-
-  // Nuevo path para Historial de movimientos
-  static const MOVIMIENTOS        = '/backoffice/movimientos';
 
   // Nuevo path para Configuración del programa de puntos
   static const CONFIGURACION_PUNTOS = '/backoffice/configuracion-puntos';

@@ -69,14 +69,6 @@ import '../modules/virtual_card/views/virtual_card_view.dart';
 import '../modules/general_admin/views/publicaciones_page.dart';
 import '../modules/general_admin/views/publicacion_detail_page.dart';
 
-// Wallet de puntos
-import '../modules/general_admin/views/wallet_points_view.dart';
-import '../modules/general_admin/bindings/wallet_points_binding.dart';
-
-// Historial de movimientos
-import '../modules/general_admin/views/movimientos_view.dart';
-import '../modules/general_admin/bindings/movimientos_binding.dart';
-
 // Configuración del programa de puntos
 import '../modules/general_admin/views/configuracion_puntos_view.dart';
 import '../modules/general_admin/bindings/configuracion_puntos_binding.dart';
@@ -174,24 +166,6 @@ class AppPages {
       name: _Paths.PUBLICACION_DETAIL,
       page: () => const PublicacionDetailPage(id: 'demo'),
       binding: GeneralAdminBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-
-    // Nueva ruta: Wallet de puntos
-    GetPage(
-      name: _Paths.WALLET_POINTS,
-      page: () => const WalletPointsView(),
-      binding: WalletPointsBinding(),
-      transition: Transition.rightToLeft,
-      transitionDuration: const Duration(milliseconds: 250),
-    ),
-
-    // Nueva ruta: Historial de movimientos
-    GetPage(
-      name: _Paths.MOVIMIENTOS,
-      page: () => const MovimientosView(),
-      binding: MovimientosBinding(),
       transition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 250),
     ),
