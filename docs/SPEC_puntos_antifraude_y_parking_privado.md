@@ -180,7 +180,7 @@ PUT body:
 { "settings": { "points_per_eur": 2 },
   "rules": [ { "action": "REGISTRATION", "base_points": 75 } ] }
 ```
-**Ojo de cableado:** la pantalla de Hernan tiene campos planos (limitePorPedido, caducidadMeses, puntosRegistro…). Hay que remapearlos: los globales van a `settings`; los puntos-por-acción (registro, perfil, referido…) van a `rules[action].base_points`. Los campos de Hernan `maximoPorCampania`, `validarDuplicados` y `validarReferidos` **no existen** en la config real → se quitan o se dejan como no-op hasta que negocio los defina.
+**Ojo de cableado:** la pantalla de Hernan tiene campos planos (limitePorPedido, caducidadMeses, puntosRegistro…). Hay que remapearlos: los globales van a `settings`; los puntos-por-acción (registro, perfil, referido…) van a `rules[action].base_points`. Los campos `maximoPorCampania`, `validarDuplicados` y `validarReferidos` **aún no existen** en la config real → **se piden al backend** (Petición 4, §13). No se quitan de la pantalla: son funcionalidad pendiente de exponer.
 
 ## A.4 Errores (Módulo A)
 
@@ -417,6 +417,17 @@ Que cada fila de `GET /admin/moderation/contributions/` incluya **`user_id`** ad
 
 ### Petición 3 (verificar) — `/points/` acepta ids de cliente
 Confirmar que `GET /admin/users/{id}/points/` (y movimientos/ajustes) funciona con el `id` de un **cliente de la app**, no solo de staff. Si devuelve `USER_NOT_FOUND` para clientes, revisarlo.
+
+### Petición 4 — 3 campos de config que faltan en el backend
+La pantalla *Configuración de puntos* tiene 3 controles que hoy **no tienen contraparte** en `GET/PUT /admin/points/config/`. Son funcionalidad real de las historias; hay que exponerlos (y que la lógica los consuma). Decidir **dónde vive cada uno**:
+
+| Campo del front | Qué es | Historia | Dónde debería vivir (a decidir backend) |
+|---|---|---|---|
+| `maximoPorCampania` | Tope de puntos que puede repartir una campaña | GP-05 | `settings.max_points_per_campaign` (tope global) **o** por campaña en `CampaignBudget` |
+| `validarDuplicados` | Antifraude: rechazar contribuciones duplicadas | GP-08/09, IC-07 | Regla en `/admin/antifraud-rules/` (≈ `CROSS_USER_DUPLICATE`) **o** flag en `settings` |
+| `validarReferidos` | Antifraude: validar referidos antes de dar puntos | GP-12 | Regla antifraude **o** flag en `settings` |
+
+**Recomendación:** los dos flags antifraude encajan mejor como **reglas activables en `/admin/antifraud-rules/`** (que ya existe, BG-07); el `maximoPorCampania` como `settings.max_points_per_campaign`. Backend confirma la ubicación y el front cablea a donde queden.
 
 ## 11. Ubicación
 
