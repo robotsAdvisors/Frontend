@@ -418,7 +418,18 @@ Que cada fila de `GET /admin/moderation/contributions/` incluya **`user_id`** ad
 ### Petición 3 (verificar) — `/points/` acepta ids de cliente
 Confirmar que `GET /admin/users/{id}/points/` (y movimientos/ajustes) funciona con el `id` de un **cliente de la app**, no solo de staff. Si devuelve `USER_NOT_FOUND` para clientes, revisarlo.
 
-### Petición 4 — 3 campos de config que faltan en el backend
+### Petición 4 — ✅ RESUELTA (2026-07-25): 3 campos expuestos y consumidos
+Ubicación final en el payload `GET/PUT /admin/points/config/`:
+- `maximoPorCampania` → `settings.max_points_per_campaign` (default global; se aplica si la campaña no fija su propio `max_points_global`).
+- `validarReferidos` → `settings.validate_referrals` (bool; si ON el referido verifica antes de pagar).
+- `validarDuplicados` → `antifraud.validar_duplicados` (bool; togglea la regla `CROSS_USER_DUPLICATE`, BG-07).
+
+El payload trae un tercer bloque `antifraud`: `{settings:{…}, rules:[…], antifraud:{validar_duplicados}}`. Frontend cableado.
+
+---
+
+<details><summary>Petición 4 (histórico) — planteamiento original</summary>
+
 La pantalla *Configuración de puntos* tiene 3 controles que hoy **no tienen contraparte** en `GET/PUT /admin/points/config/`. Son funcionalidad real de las historias; hay que exponerlos (y que la lógica los consuma). Decidir **dónde vive cada uno**:
 
 | Campo del front | Qué es | Historia | Dónde debería vivir (a decidir backend) |
@@ -428,6 +439,8 @@ La pantalla *Configuración de puntos* tiene 3 controles que hoy **no tienen con
 | `validarReferidos` | Antifraude: validar referidos antes de dar puntos | GP-12 | Regla antifraude **o** flag en `settings` |
 
 **Recomendación:** los dos flags antifraude encajan mejor como **reglas activables en `/admin/antifraud-rules/`** (que ya existe, BG-07); el `maximoPorCampania` como `settings.max_points_per_campaign`. Backend confirma la ubicación y el front cablea a donde queden.
+
+</details>
 
 ## 11. Ubicación
 

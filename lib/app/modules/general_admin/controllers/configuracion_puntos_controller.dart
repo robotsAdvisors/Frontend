@@ -35,15 +35,20 @@ class ConfiguracionPuntosController extends GetxController {
     }
   }
 
-  /// PUT parcial. Enviamos settings + rules; el backend audita old/new.
+  /// PUT parcial. Enviamos settings + rules + antifraud; el backend audita old/new.
   Future<bool> save({
     required Map<String, dynamic> settings,
     required List<Map<String, dynamic>> rules,
+    Map<String, dynamic>? antifraud,
   }) async {
     if (isSaving.value) return false;
     isSaving.value = true;
     try {
-      config.value = await _repo.putConfig({'settings': settings, 'rules': rules});
+      config.value = await _repo.putConfig({
+        'settings': settings,
+        'rules': rules,
+        if (antifraud != null) 'antifraud': antifraud,
+      });
       CustomSnackBar.showCustomSnackBar(
           title: 'Guardado', message: 'Configuración actualizada.');
       return true;

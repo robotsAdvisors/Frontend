@@ -57,8 +57,11 @@ class _ConfigFormState extends State<_ConfigForm> {
   late final TextEditingController _pointsPerEur;
   late final TextEditingController _maxReferrals;
   late final TextEditingController _validityDays;
+  late final TextEditingController _maxPerCampaign;
   late final Map<String, TextEditingController> _rulePoints;
   late final Map<String, bool> _ruleActive;
+  late bool _validateReferrals;
+  late bool _validarDuplicados;
 
   @override
   void initState() {
@@ -69,6 +72,10 @@ class _ConfigFormState extends State<_ConfigForm> {
     _maxReferrals = TextEditingController(text: s.maxReferralsPerMonth.toString());
     _validityDays =
         TextEditingController(text: s.redemptionCodeValidityDays.toString());
+    _maxPerCampaign =
+        TextEditingController(text: s.maxPointsPerCampaign.toString());
+    _validateReferrals = s.validateReferrals;
+    _validarDuplicados = widget.config.validarDuplicados;
     _rulePoints = {
       for (final r in widget.config.rules)
         r.action: TextEditingController(text: r.basePoints.toString())
@@ -82,6 +89,7 @@ class _ConfigFormState extends State<_ConfigForm> {
     _pointsPerEur.dispose();
     _maxReferrals.dispose();
     _validityDays.dispose();
+    _maxPerCampaign.dispose();
     for (final c in _rulePoints.values) {
       c.dispose();
     }
@@ -99,6 +107,8 @@ class _ConfigFormState extends State<_ConfigForm> {
       'max_referrals_per_month': _int(_maxReferrals, s.maxReferralsPerMonth),
       'redemption_code_validity_days':
           _int(_validityDays, s.redemptionCodeValidityDays),
+      'max_points_per_campaign': _int(_maxPerCampaign, s.maxPointsPerCampaign),
+      'validate_referrals': _validateReferrals,
     };
     final rules = widget.config.rules
         .map((r) => {
@@ -107,7 +117,11 @@ class _ConfigFormState extends State<_ConfigForm> {
               'is_active': _ruleActive[r.action] ?? r.isActive,
             })
         .toList();
-    widget.controller.save(settings: settings, rules: rules);
+    widget.controller.save(
+      settings: settings,
+      rules: rules,
+      antifraud: {'validar_duplicados': _validarDuplicados},
+    );
   }
 
   @override
@@ -133,10 +147,26 @@ class _ConfigFormState extends State<_ConfigForm> {
         ...widget.config.rules.map(_ruleRow),
 
         const SizedBox(height: 20),
-        _sectionTitle('Pendiente de backend (Petición 4)'),
-        _pending('Máximo de puntos por campaña'),
-        _pendingSwitch('Validar duplicados (antifraude)'),
-        _pendingSwitch('Validar referidos (antifraude)'),
+        _sectionTitle('Campañas y antifraude'),
+        _num('Máximo de puntos por campaña (default global)', _maxPerCampaign),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Validar referidos antes de pagar'),
+          subtitle: const Text(
+              'Si está activo, el referido debe verificar su cuenta antes de conceder los puntos.',
+              style: TextStyle(fontSize: 11)),
+          value: _validateReferrals,
+          onChanged: (v) => setState(() => _validateReferrals = v),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text('Validar duplicados (antifraude)'),
+          subtitle: const Text(
+              'Activa/desactiva la regla CROSS_USER_DUPLICATE del motor antifraude.',
+              style: TextStyle(fontSize: 11)),
+          value: _validarDuplicados,
+          onChanged: (v) => setState(() => _validarDuplicados = v),
+        ),
 
         const SizedBox(height: 24),
         Obx(() => ElevatedButton(
@@ -212,27 +242,4 @@ class _ConfigFormState extends State<_ConfigForm> {
         ),
       );
 
-  Widget _pending(String label) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: TextField(
-            enabled: false,
-            decoration: InputDecoration(
-              labelText: '$label (pendiente de backend)',
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ),
-      );
-
-  Widget _pendingSwitch(String label) => Opacity(
-        opacity: 0.5,
-        child: SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text('$label (pendiente de backend)'),
-          value: false,
-          onChanged: null,
-        ),
-      );
 }

@@ -124,14 +124,18 @@ class PointsMovement {
 class PointsConfig {
   final PointsConfigSettings settings;
   final List<PointsConfigRule> rules;
+  // Vive en el objeto `antifraud` (togglea la regla CROSS_USER_DUPLICATE, BG-07).
+  final bool validarDuplicados;
 
   const PointsConfig({
     this.settings = const PointsConfigSettings(),
     this.rules = const [],
+    this.validarDuplicados = true,
   });
 
   factory PointsConfig.fromJson(Map<String, dynamic> json) {
     final rawRules = json['rules'];
+    final antifraud = (json['antifraud'] as Map?) ?? const {};
     return PointsConfig(
       settings: PointsConfigSettings.fromJson(
           Map<String, dynamic>.from((json['settings'] as Map?) ?? const {})),
@@ -141,6 +145,7 @@ class PointsConfig {
               .map((e) => PointsConfigRule.fromJson(Map<String, dynamic>.from(e)))
               .toList()
           : const [],
+      validarDuplicados: antifraud['validar_duplicados'] != false,
     );
   }
 }
@@ -150,12 +155,16 @@ class PointsConfigSettings {
   final int pointsPerEur;
   final int maxReferralsPerMonth;
   final int redemptionCodeValidityDays;
+  final int maxPointsPerCampaign; // default global (GP-05)
+  final bool validateReferrals; // GP-12: exigir verificación del referido antes de pagar
 
   const PointsConfigSettings({
     this.maxPointsPerOrder = 0,
     this.pointsPerEur = 0,
     this.maxReferralsPerMonth = 0,
     this.redemptionCodeValidityDays = 0,
+    this.maxPointsPerCampaign = 0,
+    this.validateReferrals = true,
   });
 
   factory PointsConfigSettings.fromJson(Map<String, dynamic> json) =>
@@ -164,6 +173,8 @@ class PointsConfigSettings {
         pointsPerEur: _toInt(json['points_per_eur']),
         maxReferralsPerMonth: _toInt(json['max_referrals_per_month']),
         redemptionCodeValidityDays: _toInt(json['redemption_code_validity_days']),
+        maxPointsPerCampaign: _toInt(json['max_points_per_campaign']),
+        validateReferrals: json['validate_referrals'] != false,
       );
 }
 
