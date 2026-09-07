@@ -1,10 +1,15 @@
 /// Configuracion centralizada de la API del backend Django (Letdem).
 ///
-/// Cambiar [baseUrl] segun el entorno:
-/// - Desarrollo local (web):     http://127.0.0.1:8000
-/// - Emulador Android:           http://10.0.2.2:8000
-/// - Dispositivo fisico LAN:     http://<IP-de-tu-PC>:8000
-/// - Produccion:                 https://api.letdem.com
+/// El valor por defecto ya apunta al servidor real, asi que no hay que tocar
+/// este fichero para compilar. Para otro entorno se pasa en tiempo de
+/// compilacion, sin modificar codigo:
+///
+///   flutter build web --dart-define=LETDEM_API_BASE_URL=http://127.0.0.1:8000
+///
+/// - Servidor (valor por defecto):  https://api.letdem.net
+/// - Desarrollo local (web):        http://127.0.0.1:8000
+/// - Emulador Android:              http://10.0.2.2:8000
+/// - Dispositivo fisico en la LAN:  http://<IP-de-tu-PC>:8000
 class ApiConfig {
   ApiConfig._();
 

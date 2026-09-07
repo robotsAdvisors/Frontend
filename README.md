@@ -1,6 +1,7 @@
 # Letdem Marketplace (Flutter)
 
-Aplicacion Flutter multiplataforma (Android, iOS, Web) para Letdem Marketplace.
+Backoffice de Letdem construido con Flutter. **Se despliega como aplicacion web**;
+los targets Android/iOS existen por la plantilla base pero no se publican.
 
 El proyecto evoluciono desde una base UI de grocery a un marketplace con identidad Letdem, soporte de perfiles, autenticacion, panel de tienda y panel general de administracion.
 
@@ -15,7 +16,8 @@ El proyecto evoluciono desde una base UI de grocery a un marketplace con identid
 - Selector de idioma en ajustes (espanol e ingles) y persistencia local.
 - Modo oscuro con persistencia local.
 - Avatar de perfil web-safe en base64 (sin dependencia de rutas de archivo locales).
-- Integracion inicial con Firebase Auth.
+- Autenticacion con Firebase Auth contra el proyecto `letdem-953ed`.
+- Consume la API del backend Django en `https://api.letdem.net`.
 
 ## Funcionalidades
 
@@ -33,11 +35,11 @@ El proyecto evoluciono desde una base UI de grocery a un marketplace con identid
 
 - Panel de tienda con metricas.
 - Gestion visual de productos.
-- Dashboard de vouchers.
-- Vista de vouchers responsive:
+- Dashboard de codigos de canje.
+- Vista de codigos de canje responsive:
 	- Mobile: cards.
 	- Desktop: DataTable.
-- Historial de vouchers.
+- Historial de codigos de canje.
 
 ### Administracion general
 
@@ -115,6 +117,23 @@ El client OAuth web necesita ademas `https://admin.letdem.net` dado de alta en
 *Authorized JavaScript origins* de Google Cloud Console, o el login fallara en
 produccion aunque compile sin errores.
 
+### Backend
+
+Por defecto apunta al servidor real, sin necesidad de tocar codigo:
+
+```
+https://api.letdem.net/api/v1
+```
+
+Para otro entorno se pasa en tiempo de compilacion:
+
+```bash
+flutter run -d chrome --dart-define=LETDEM_API_BASE_URL=http://127.0.0.1:8000
+flutter build web --dart-define=LETDEM_API_BASE_URL=https://otro.host
+```
+
+La constante vive en `lib/utils/api_config.dart`.
+
 ## Puesta en marcha
 
 1. Clonar el repositorio.
@@ -154,7 +173,6 @@ flutter build web
 
 ## Roadmap
 
-- Integracion backend Django para datos reales.
 - Deep-linking y navegacion por URL completa en web.
 - Hardening de capa de repositorios y servicios.
 - Pruebas de integracion end-to-end.
