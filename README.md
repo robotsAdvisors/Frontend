@@ -94,6 +94,27 @@ lib/
 - (Opcional) Xcode para iOS
 - Cuenta Firebase configurada para autenticacion
 
+### Firebase
+
+El backoffice usa el proyecto `letdem-953ed` (numero `591264474291`). La
+configuracion vive en dos sitios:
+
+| Fichero | Contiene |
+|---|---|
+| `lib/firebase_options.dart` | Credenciales que lee `Firebase.initializeApp` |
+| `web/index.html` | `google-signin-client_id`, el client OAuth web |
+
+**Ojo:** `lib/firebase_options.dart` esta en el `.gitignore`, asi que no viaja en
+el repositorio. Al clonar hay que regenerarlo:
+
+```bash
+flutterfire configure --project=letdem-953ed --platforms=web
+```
+
+El client OAuth web necesita ademas `https://admin.letdem.net` dado de alta en
+*Authorized JavaScript origins* de Google Cloud Console, o el login fallara en
+produccion aunque compile sin errores.
+
 ## Puesta en marcha
 
 1. Clonar el repositorio.
