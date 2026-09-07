@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../../../../utils/api_config.dart';
 import '../../local/my_shared_pref.dart';
+import 'error_messages.dart';
 
 /// Cliente HTTP centralizado que se comunica con el backend Django de Letdem.
 ///
@@ -215,12 +216,17 @@ ApiException toApiException(Object error) {
     String message = error.message ?? 'Error de red';
 
     if (data is Map && data['error_code'] != null) {
-      message = data['message']?.toString() ?? message;
+      final code = data['error_code'].toString();
+      // El backend responde en inglés y la interfaz está en español: se traduce
+      // aquí, en el único punto por el que pasan todos los errores de API. Si el
+      // código no está traducido se conserva el mensaje del servidor, así que
+      // nunca se pierde información.
+      message = ErrorMessages.of(code) ?? data['message']?.toString() ?? message;
       return ApiException(
         message,
         statusCode: status,
         data: data,
-        errorCode: data['error_code'].toString(),
+        errorCode: code,
         details: data['details'] is Map
             ? Map<String, dynamic>.from(data['details'] as Map)
             : const {},

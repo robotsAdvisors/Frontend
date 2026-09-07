@@ -129,7 +129,10 @@ void main() {
         () => repo.fetchProducts(),
         throwsA(isA<ApiException>()
             .having((e) => e.errorCode, 'errorCode', 'VALIDATION_ERROR')
-            .having((e) => e.message, 'message', 'Parámetros inválidos')
+            // El mensaje se traduce a partir del `error_code`; el del servidor
+            // viene en inglés y la interfaz está en español.
+            .having((e) => e.message, 'message',
+                'Algunos de los datos introducidos no son válidos.')
             .having((e) => e.statusCode, 'statusCode', 400)),
       );
     });

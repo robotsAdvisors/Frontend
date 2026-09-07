@@ -36,7 +36,9 @@ void main() {
         ),
       );
 
-      expect(ex.message, 'No tienes suficientes puntos');
+      // El mensaje ya no llega crudo: se traduce a partir del `error_code`,
+      // porque el backend responde en inglés y la interfaz está en español.
+      expect(ex.message, 'No hay suficientes puntos.');
       expect(ex.errorCode, 'INSUFFICIENT_POINTS');
       expect(ex.details, {'needed': 500, 'available': 120});
       // Lo que la UI necesita para decir "te faltan 380".

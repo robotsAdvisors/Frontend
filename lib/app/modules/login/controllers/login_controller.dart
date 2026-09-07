@@ -47,11 +47,20 @@ class LoginController extends GetxController {
   }
 
   /// Traduce los fallos de autenticación a un mensaje claro y localizado.
-  /// El backend (DRF/SimpleJWT) devuelve 401/400 con textos en inglés como
-  /// "No active account found with the given credentials"; para credenciales
-  /// inválidas mostramos siempre el mismo mensaje en español.
+  ///
+  /// DRF/SimpleJWT puede responder 401/400 con textos en inglés y sin
+  /// `error_code` ("No active account found with the given credentials"). Solo
+  /// en ese caso se sustituye por un mensaje en español.
+  ///
+  /// Cuando sí viene `error_code`, el mensaje ya llega traducido desde
+  /// `ErrorMessages` y se respeta. Antes se pisaba cualquier 400 con "correo o
+  /// contraseña incorrectos", lo que era engañoso si el fallo era otro: una
+  /// cuenta bloqueada o unos datos inválidos se anunciaban como contraseña mal
+  /// escrita, y el administrador no tenía forma de saberlo.
   String _authErrorMessage(ApiException exception) {
-    if (exception.statusCode == 401 || exception.statusCode == 400) {
+    final esFalloDeAutenticacion =
+        exception.statusCode == 401 || exception.statusCode == 400;
+    if (esFalloDeAutenticacion && exception.errorCode.isEmpty) {
       return 'Correo o contraseña incorrectos.';
     }
     return exception.message;
