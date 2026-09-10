@@ -299,29 +299,6 @@ class MarketplaceRepository {
     return null;
   }
 
-  /// Inicia un pago Stripe para un código de canje con precio monetario.
-  /// POST /marketplace/redemption-codes/{code}/initiate-payment/
-  /// Body opcional: { "payment_method_id": "pm_xxx" }
-  /// Respuesta: { client_secret, payment_intent_id, amount_eur, status }
-  Future<Map<String, dynamic>> initiateRedemptionCodePayment(String code,
-      {String? paymentMethodId}) async {
-    try {
-      final response = await _dio.post(
-        ApiConfig.redemptionCodeInitiatePayment(code),
-        data: {
-          if (paymentMethodId != null && paymentMethodId.isNotEmpty)
-            'payment_method_id': paymentMethodId,
-        },
-      );
-      if (response.data is Map) {
-        return Map<String, dynamic>.from(response.data as Map);
-      }
-      return const {};
-    } catch (e) {
-      throw toApiException(e);
-    }
-  }
-
   /// Valida un código en el mostrador (ST-CJ-02): el código pasa a IN_PROGRESS.
   /// No consume puntos todavía; eso es la entrega.
   /// POST /marketplace/stores/redemption-codes/validation/  body: {code, pin?}
@@ -414,41 +391,20 @@ class MarketplaceRepository {
 
   // ---------- PURCHASE ----------
 
-  /// Compra con canje de puntos (30% off por 500 puntos).
-  Future<Map<String, dynamic>> purchaseWithRedeem({
-    required String productId,
-    int quantity = 1,
-    String? paymentIntentId,
+  /// Crea un pedido en el backend. Nace en estado PENDING: reserva stock y
+  /// puntos, pero NO esta pagado hasta que Stripe confirma el cobro.
+  ///
+  /// Sustituye a `purchaseWithRedeem` / `purchaseWithoutRedeem`, eliminados del
+  /// backend: creaban el pedido como PAID aceptando un `payment_intent_id` que
+  /// nadie verificaba, y cobraban a la plataforma en vez de al comerciante.
+  Future<Map<String, dynamic>> createOrder({
+    required List<Map<String, dynamic>> items,
+    bool usePoints = false,
   }) async {
     try {
       final response = await _dio.post(
-        ApiConfig.purchaseWithRedeem,
-        data: {
-          'product_id': productId,
-          'quantity': quantity,
-          if (paymentIntentId != null) 'payment_intent_id': paymentIntentId,
-        },
-      );
-      return Map<String, dynamic>.from(response.data as Map);
-    } catch (e) {
-      throw toApiException(e);
-    }
-  }
-
-  /// Compra a precio completo, sin uso de puntos.
-  Future<Map<String, dynamic>> purchaseWithoutRedeem({
-    required String productId,
-    int quantity = 1,
-    String? paymentIntentId,
-  }) async {
-    try {
-      final response = await _dio.post(
-        ApiConfig.purchaseWithoutRedeem,
-        data: {
-          'product_id': productId,
-          'quantity': quantity,
-          if (paymentIntentId != null) 'payment_intent_id': paymentIntentId,
-        },
+        ApiConfig.orders,
+        data: {'items': items, 'use_points': usePoints},
       );
       return Map<String, dynamic>.from(response.data as Map);
     } catch (e) {

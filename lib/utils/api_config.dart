@@ -75,11 +75,8 @@ class ApiConfig {
   // La incidencia del mostrador cuelga de `stores/`: es la tienda quien la
   // registra sobre un canje suyo (DG-07), no el usuario sobre el propio.
   static String redemptionCodeIncident(String id)        => '/marketplace/stores/redemption-codes/$id/incident/';
-  static String redemptionCodeInitiatePayment(String code) => '/marketplace/redemption-codes/$code/payment-intent/';
   static const String orders      = '/marketplace/orders/';
   static const String storeOrders = '/marketplace/stores/orders/';
-  static const String purchaseWithRedeem = '/marketplace/purchases/with-redemption/';
-  static const String purchaseWithoutRedeem = '/marketplace/purchases/without-redemption/';
 
   // Marketplace - admin
   static const String adminCategories    = '/marketplace/admin/categories/';

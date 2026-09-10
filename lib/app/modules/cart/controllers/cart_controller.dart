@@ -20,11 +20,18 @@ class CartController extends GetxController {
     super.onInit();
   }
 
-  /// Compra los productos del carrito. Si el carrito tiene un solo producto se
-  /// dispara directamente la compra contra el backend Letdem
-  /// (POST /marketplace/purchase/without-redeem/). Si hay varios se hace una
-  /// secuencia de llamadas, una por producto, ya que el endpoint actual del
-  /// backend acepta `product_id` + `quantity`.
+  /// Crea UN pedido con todo el carrito (POST /marketplace/orders/).
+  ///
+  /// El pedido nace PENDING: reserva stock y puntos, pero no esta pagado. El
+  /// cobro se hace despues contra su PaymentIntent, y de eso todavia no hay
+  /// pantalla en el backoffice, asi que aqui solo se registra el pedido y se
+  /// dice tal cual.
+  ///
+  /// Antes se llamaba una vez por producto a `purchaseWithRedeem` /
+  /// `purchaseWithoutRedeem` (eliminados del backend: creaban el pedido como
+  /// PAID sin verificar pago alguno) y se anunciaba "Compra realizada" sin
+  /// mirar la respuesta, asi que un `requires_payment` pasaba por exito
+  /// habiendo creado cero pedidos.
   Future<void> onPurchaseNowPressed({bool useRedeem = false}) async {
     if (products.isEmpty) {
       CustomSnackBar.showCustomErrorSnackBar(
@@ -36,25 +43,20 @@ class CartController extends GetxController {
 
     isProcessing.value = true;
     try {
-      for (final product in products) {
-        if (useRedeem) {
-          await MarketplaceRepository.instance.purchaseWithRedeem(
-            productId: product.id,
-            quantity: product.quantity,
-          );
-        } else {
-          await MarketplaceRepository.instance.purchaseWithoutRedeem(
-            productId: product.id,
-            quantity: product.quantity,
-          );
-        }
-      }
+      // Un pedido = un comercio: el backend rechaza el carrito mezclado, porque
+      // el cobro va con destino a la cuenta Connect de la tienda.
+      await MarketplaceRepository.instance.createOrder(
+        items: products
+            .map((p) => {'product_id': p.id, 'quantity': p.quantity})
+            .toList(),
+        usePoints: useRedeem,
+      );
 
       clearCart();
       Get.back();
       CustomSnackBar.showCustomSnackBar(
-        title: 'Compra realizada',
-        message: 'Tu pedido se ha registrado correctamente',
+        title: 'Pedido creado',
+        message: 'Queda pendiente de pago',
       );
     } on ApiException catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
