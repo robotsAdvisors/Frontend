@@ -1079,29 +1079,6 @@ class AdminController extends GetxController {
 
   void clearRegeneratedPin() => regeneratedPin.value = '';
 
-  final RxBool isInitiatingPayment = false.obs;
-
-  /// POST /marketplace/redemptionCodes/{code}/initiate-payment/
-  /// Devuelve { client_secret, payment_intent_id, amount_eur, status } o lanza ApiException.
-  Future<Map<String, dynamic>?> initiateRedemptionCodePayment(String code,
-      {String? paymentMethodId}) async {
-    if (isInitiatingPayment.value) return null;
-    isInitiatingPayment.value = true;
-    try {
-      return await _repo.initiateRedemptionCodePayment(code,
-          paymentMethodId: paymentMethodId);
-    } on ApiException catch (e) {
-      CustomSnackBar.showCustomErrorSnackBar(
-        title: 'Error al iniciar pago', message: e.message);
-      return null;
-    } catch (_) {
-      CustomSnackBar.showCustomErrorSnackBar(
-        title: 'Error', message: 'No se pudo iniciar el pago.');
-      return null;
-    } finally {
-      isInitiatingPayment.value = false;
-    }
-  }
 
   Future<Map<String, dynamic>?> reportRedemptionCodeIncident(String redemptionCodeId,
       {required String reason, String notes = ''}) async {

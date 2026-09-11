@@ -22,6 +22,8 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   late final AdminController _ctrl;
 
   final _nameCtrl           = TextEditingController();
+  /// Céntimos de descuento por punto (1 = 100 puntos por euro).
+  final _pointsValueCtrl    = TextEditingController();
   final _addressCtrl        = TextEditingController();
   final _billingAddressCtrl = TextEditingController();
   final _fiscalIdCtrl       = TextEditingController();
@@ -44,6 +46,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   void _populateForm() {
     final s = _ctrl.currentStore;
     _nameCtrl.text           = s.name;
+    _pointsValueCtrl.text    = '${s.pointsValue}';
     _addressCtrl.text        = s.address;
     _billingAddressCtrl.text =
         s.billingAddress.isNotEmpty ? s.billingAddress : s.address;
@@ -58,6 +61,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _pointsValueCtrl.dispose();
     _addressCtrl.dispose();
     _billingAddressCtrl.dispose();
     _fiscalIdCtrl.dispose();
@@ -364,6 +368,15 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
             fontWeight: FontWeight.w800, color: _purple)));
   }
 
+  /// Cuántos puntos hacen falta para un euro, a partir de los céntimos por
+  /// punto que guarda la tienda. Es lo que entiende quien rellena el formulario.
+  String get _equivalenciaEnPuntos {
+    final centimos = int.tryParse(_pointsValueCtrl.text.trim()) ?? 0;
+    if (centimos <= 0) return 'Indica cuántos céntimos vale cada punto';
+    return '${(100 / centimos).toStringAsFixed(centimos > 100 ? 2 : 0)} '
+        'puntos = 1 €';
+  }
+
   Widget _storeFormFields(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
@@ -382,6 +395,19 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                 items: cats,
                 onChanged: (v) => setState(() => _selectedCategory = v));
             }))),
+      ]),
+      const SizedBox(height: 16),
+      Row(children: [
+        Expanded(child: _labeledField('Valor del punto (céntimos)',
+            child: _textField(_pointsValueCtrl))),
+        const SizedBox(width: 16),
+        Expanded(child: Padding(
+          padding: const EdgeInsets.only(top: 22),
+          child: Text(
+            _equivalenciaEnPuntos,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        )),
       ]),
       const SizedBox(height: 16),
       _labeledField('Dirección Física', child: _textField(_addressCtrl)),
@@ -918,6 +944,12 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
             : _billingAddressCtrl.text.trim(),
         if (_selectedCategory != null) 'category': _selectedCategory,
       };
+
+      // Solo se manda si es un número válido: un campo vacío o con letras no
+      // puede dejar la tienda con un valor del punto de 0, que haría que los
+      // puntos no descontaran nada.
+      final centimos = int.tryParse(_pointsValueCtrl.text.trim());
+      if (centimos != null && centimos > 0) payload['points_value'] = centimos;
       await _ctrl.saveStoreSettings(payload);
     } finally {
       if (mounted) setState(() => _isSaving = false);

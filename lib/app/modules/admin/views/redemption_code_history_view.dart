@@ -431,34 +431,13 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Obx(() => OutlinedButton.icon(
-                onPressed: _ctrl.isInitiatingPayment.value
-                    ? null
-                    : () {
-                        final code = _codeCtrl.text.trim();
-                        if (code.isEmpty) {
-                          Get.snackbar('Código requerido',
-                              'Introduce primero el código de canje.',
-                              snackPosition: SnackPosition.BOTTOM);
-                          return;
-                        }
-                        _showInitiatePaymentDialog(context, code);
-                      },
-                icon: _ctrl.isInitiatingPayment.value
-                    ? const SizedBox(
-                        width: 14, height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.credit_card_outlined, size: 16),
-                label: const Text('Pagar Código',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _purple, side: const BorderSide(color: _purple),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-              )),
-            ),
+            // El boton "Pagar Codigo" se retiro (2026-09-11). Su endpoint,
+            // `redemption-codes/<code>/payment-intent/`, creaba un PaymentIntent
+            // contra la PLATAFORMA, sin metadata que lo atara al canje, y esta
+            // pantalla se limitaba a enseñar el id del intento: nunca llego a
+            // cobrar nada ni a marcar el canje como pagado. Si el mostrador
+            // tiene que poder cobrar, hay que montarlo sobre el flujo real de
+            // pedidos (cargo con destino al comercio), no resucitar aquello.
           ]),
           const SizedBox(height: 28),
           // ── Identidad del Cliente (cuando hay preview) ───────────────────
@@ -852,84 +831,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
     );
   }
 
-  void _showInitiatePaymentDialog(BuildContext context, String code) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(children: [
-          Icon(Icons.credit_card_outlined, color: _purple, size: 20),
-          SizedBox(width: 8),
-          Text('Iniciar Pago del Canje'),
-        ]),
-        content: Column(mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Código: $code',
-              style: const TextStyle(fontSize: 13, color: Colors.grey)),
-          const SizedBox(height: 8),
-          const Text(
-            'Se generará un Payment Intent en Stripe por el importe monetario del redemptionCode.',
-            style: TextStyle(fontSize: 13)),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _purple, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10))),
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              final result = await _ctrl.initiateRedemptionCodePayment(code);
-              if (result != null && context.mounted) {
-                _showPaymentResultDialog(context, result);
-              }
-            },
-            child: const Text('Confirmar Pago')),
-        ],
-      ),
-    );
-  }
 
-  void _showPaymentResultDialog(
-      BuildContext context, Map<String, dynamic> result) {
-    final amountEur  = (result['amount_eur'] as num?)?.toDouble() ?? 0.0;
-    final status     = result['status']?.toString() ?? '';
-    final intentId   = result['payment_intent_id']?.toString() ?? '';
-
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(children: [
-          Icon(Icons.check_circle_outline, color: Color(0xFF059669), size: 20),
-          SizedBox(width: 8),
-          Text('Pago Iniciado'),
-        ]),
-        content: Column(mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _payResultRow('Importe', '${amountEur.toStringAsFixed(2)} €'),
-          _payResultRow('Estado', status),
-          if (intentId.isNotEmpty)
-            _payResultRow('Intent ID', intentId),
-          const SizedBox(height: 8),
-          const Text(
-            'Utiliza el client_secret con Stripe SDK para completar el pago.',
-            style: TextStyle(fontSize: 11, color: Colors.grey)),
-        ]),
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _purple, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10))),
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Entendido')),
-        ],
-      ),
-    );
-  }
 
   Widget _payResultRow(String label, String value) {
     return Padding(

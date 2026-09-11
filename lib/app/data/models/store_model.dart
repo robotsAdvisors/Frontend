@@ -34,6 +34,10 @@ class StoreModel {
   final String monthlyGoalPrize;  // de monthly_goal_prize en StoreSerializer
   final String kycStatus;         // kyc_status from backend: pending|in_review|approved|rejected|suspended|''
 
+  /// Cuánto descuenta un punto en esta tienda, en CÉNTIMOS.
+  /// 1 = 100 puntos por euro, la equivalencia base del negocio.
+  final int pointsValue;
+
   StoreModel({
     required this.id,
     required this.name,
@@ -66,6 +70,7 @@ class StoreModel {
     this.monthlyGoalTarget = 500000,
     this.monthlyGoalPrize = '',
     this.kycStatus = '',
+    this.pointsValue = 1,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -151,6 +156,9 @@ class StoreModel {
       billingAddress: (json['billing_address'] ?? json['billingAddress'] ?? '').toString(),
       twoFactorEnabled: json['two_factor_enabled'] as bool? ?? json['twoFactorEnabled'] as bool? ?? false,
       subtitle: (json['subtitle'] ?? json['description'] ?? '').toString(),
+      pointsValue: json['points_value'] is num
+          ? (json['points_value'] as num).toInt()
+          : int.tryParse('${json['points_value'] ?? 1}') ?? 1,
       monthlyGoalTarget: json['monthly_goal_target'] is num
           ? (json['monthly_goal_target'] as num).toInt()
           : int.tryParse('${json['monthly_goal_target'] ?? 500000}') ?? 500000,
@@ -232,6 +240,7 @@ class StoreModel {
       'longitude': longitude,
       'billing_address': billingAddress,
       'two_factor_enabled': twoFactorEnabled,
+      'points_value': pointsValue,
     };
   }
 }
