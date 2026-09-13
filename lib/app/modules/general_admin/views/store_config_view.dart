@@ -69,6 +69,8 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
   static const Color _purpleLight = Color(0xFFEDE9FE);
 
   late final TextEditingController _nameCtrl;
+
+  late final TextEditingController _pointsValueCtrl;
   late final TextEditingController _addressCtrl;
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
@@ -84,6 +86,9 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController();
+    // Céntimos que descuenta un punto en esta tienda. Solo el Super Admin
+    // puede tocarlo: la tienda lo ve, pero no lo cambia.
+    _pointsValueCtrl = TextEditingController();
     _addressCtrl = TextEditingController();
     _latCtrl = TextEditingController();
     _lngCtrl = TextEditingController();
@@ -100,6 +105,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
     if (!mounted) return;
     setState(() {
       _nameCtrl.text = s.name;
+      _pointsValueCtrl.text = '${s.pointsValue}';
       _addressCtrl.text = s.address;
       _latCtrl.text = s.latitude?.toString() ?? '';
       _lngCtrl.text = s.longitude?.toString() ?? '';
@@ -115,6 +121,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _pointsValueCtrl.dispose();
     _addressCtrl.dispose();
     _latCtrl.dispose();
     _lngCtrl.dispose();
@@ -384,6 +391,9 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
         const SizedBox(height: 16),
         _field('Dirección Física', _addressCtrl,
             hint: 'Calle, número, ciudad'),
+        const SizedBox(height: 16),
+        _field('Valor del punto (céntimos)', _pointsValueCtrl,
+            hint: '1 = 100 puntos por euro'),
         const SizedBox(height: 16),
         _gpsFields(),
       ],
@@ -1028,6 +1038,9 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
     final lng = double.tryParse(_lngCtrl.text);
     if (lat != null) payload['latitude'] = lat;
     if (lng != null) payload['longitude'] = lng;
+    // Solo si es un número positivo: un 0 dejaría los puntos sin descontar nada.
+    final centimos = int.tryParse(_pointsValueCtrl.text.trim());
+    if (centimos != null && centimos > 0) payload['points_value'] = centimos;
     widget.controller.saveStoreChanges(widget.storeId, payload);
   }
 

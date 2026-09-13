@@ -369,7 +369,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   }
 
   /// Cuántos puntos hacen falta para un euro, a partir de los céntimos por
-  /// punto que guarda la tienda. Es lo que entiende quien rellena el formulario.
+  /// punto que tiene asignados la tienda. Informativo: aquí no se edita.
   String get _equivalenciaEnPuntos {
     final centimos = int.tryParse(_pointsValueCtrl.text.trim()) ?? 0;
     if (centimos <= 0) return 'Indica cuántos céntimos vale cada punto';
@@ -397,14 +397,16 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
             }))),
       ]),
       const SizedBox(height: 16),
+      // Solo lectura: la equivalencia de puntos la fija el Super Admin, no la
+      // tienda. Se enseña aquí porque a la tienda le interesa saberla.
       Row(children: [
-        Expanded(child: _labeledField('Valor del punto (céntimos)',
-            child: _textField(_pointsValueCtrl))),
+        Expanded(child: _labeledField('Valor del punto',
+            child: _textField(_pointsValueCtrl, enabled: false))),
         const SizedBox(width: 16),
         Expanded(child: Padding(
           padding: const EdgeInsets.only(top: 22),
           child: Text(
-            _equivalenciaEnPuntos,
+            '$_equivalenciaEnPuntos · lo cambia el Super Admin',
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         )),
@@ -945,11 +947,6 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         if (_selectedCategory != null) 'category': _selectedCategory,
       };
 
-      // Solo se manda si es un número válido: un campo vacío o con letras no
-      // puede dejar la tienda con un valor del punto de 0, que haría que los
-      // puntos no descontaran nada.
-      final centimos = int.tryParse(_pointsValueCtrl.text.trim());
-      if (centimos != null && centimos > 0) payload['points_value'] = centimos;
       await _ctrl.saveStoreSettings(payload);
     } finally {
       if (mounted) setState(() => _isSaving = false);
