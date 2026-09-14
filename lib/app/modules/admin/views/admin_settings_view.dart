@@ -982,48 +982,131 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
     final currentCtrl = TextEditingController();
     final newCtrl     = TextEditingController();
     final confirmCtrl = TextEditingController();
+    final errorText   = ValueNotifier<String?>(null);
+
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Cambiar PIN'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          _pinField(currentCtrl, 'PIN actual'),
-          const SizedBox(height: 12),
-          _pinField(newCtrl, 'Nuevo PIN'),
-          const SizedBox(height: 12),
-          _pinField(confirmCtrl, 'Confirmar nuevo PIN'),
-        ]),
+        // Ancho fijo y comodo: por defecto el dialogo se encoge al contenido y
+        // los campos salian estrechos y apretados contra los bordes.
+        contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Cambiar PIN'),
+            const SizedBox(height: 6),
+            Text(
+              'El PIN autoriza la validación de canjes en el mostrador. '
+              'Son 4 a 6 dígitos.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.4, color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w400),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 380,
+          child: ValueListenableBuilder<String?>(
+            valueListenable: errorText,
+            builder: (ctx, error, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                _pinField(currentCtrl, 'PIN actual'),
+                const SizedBox(height: 16),
+                _pinField(newCtrl, 'Nuevo PIN'),
+                const SizedBox(height: 16),
+                _pinField(confirmCtrl, 'Repite el nuevo PIN'),
+                // El error, junto a los campos: en un aviso flotante se leia
+                // lejos de donde estaba el problema.
+                if (error != null) ...[
+                  const SizedBox(height: 14),
+                  Row(children: [
+                    const Icon(Icons.error_outline,
+                        size: 16, color: Color(0xFFDC2626)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(error,
+                          style: const TextStyle(
+                              fontSize: 13, color: Color(0xFFDC2626))),
+                    ),
+                  ]),
+                ],
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(),
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('Cancelar')),
+          const SizedBox(width: 4),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: _purple, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12))),
+              backgroundColor: _purple, foregroundColor: Colors.white),
             onPressed: () async {
-              if (newCtrl.text != confirmCtrl.text) {
-                CustomSnackBar.showCustomErrorSnackBar(
-      title: 'Error',
-      message: 'Los PINs no coinciden',
-    );
+              final actual = currentCtrl.text.trim();
+              final nuevo = newCtrl.text.trim();
+              if (actual.isEmpty || nuevo.isEmpty) {
+                errorText.value = 'Rellena el PIN actual y el nuevo.';
+                return;
+              }
+              if (nuevo.length < 4) {
+                errorText.value = 'El PIN nuevo necesita al menos 4 dígitos.';
+                return;
+              }
+              if (nuevo != confirmCtrl.text.trim()) {
+                errorText.value = 'El PIN nuevo y su repetición no coinciden.';
                 return;
               }
               Navigator.of(ctx).pop();
-              await _ctrl.changePin(currentCtrl.text, newCtrl.text);
+              await _ctrl.changePin(actual, nuevo);
             },
-            child: const Text('Cambiar PIN'))]));
+            child: const Text('Guardar PIN')),
+        ],
+      ),
+    );
   }
 
   Widget _pinField(TextEditingController ctrl, String label) {
-    return TextField(
-      controller: ctrl, obscureText: true,
-      keyboardType: TextInputType.number, maxLength: 6,
-      decoration: InputDecoration(
-        labelText: label, counterText: '',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10)));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Etiqueta encima y en gris: el `labelText` flotante de Material,
+        // con el tema de esta app, salia en negrita y del tamano del contenido.
+        Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade600)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: ctrl,
+          obscureText: true,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          style: const TextStyle(
+              fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 4),
+          decoration: InputDecoration(
+            counterText: '',
+            hintText: '••••',
+            hintStyle: TextStyle(
+                color: Colors.grey.shade400,
+                letterSpacing: 4,
+                fontWeight: FontWeight.w400),
+            isDense: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
   }
 
   void _showInviteDialog(BuildContext context) {

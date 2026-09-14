@@ -532,11 +532,29 @@ class _SeguridadViewState extends State<SeguridadView> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setS) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Cambiar PIN',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Cambiar PIN'),
+              const SizedBox(height: 6),
+              Text(
+                'El PIN autoriza la validación de canjes en el mostrador.',
+                style: TextStyle(
+                    fontSize: 13, height: 1.4, fontWeight: FontWeight.w400,
+                    color: Colors.grey.shade600),
+              ),
+            ],
+          ),
           content: SizedBox(
-            width: 360,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
+            width: 380,
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+              const SizedBox(height: 8),
               TextField(
                 controller: currentCtrl,
                 keyboardType: TextInputType.number,
@@ -547,6 +565,12 @@ class _SeguridadViewState extends State<SeguridadView> {
                 obscureText: obscure,
                 decoration: InputDecoration(
                   labelText: 'PIN actual',
+                  labelStyle: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 16),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10)),
                   suffixIcon: IconButton(
@@ -557,7 +581,7 @@ class _SeguridadViewState extends State<SeguridadView> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: newCtrl,
                 keyboardType: TextInputType.number,
@@ -568,11 +592,17 @@ class _SeguridadViewState extends State<SeguridadView> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'PIN nuevo',
+                  labelStyle: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 16),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
                 controller: confirmCtrl,
                 keyboardType: TextInputType.number,
@@ -583,6 +613,12 @@ class _SeguridadViewState extends State<SeguridadView> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Confirmar PIN nuevo',
+                  labelStyle: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 16),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
@@ -592,8 +628,7 @@ class _SeguridadViewState extends State<SeguridadView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar',
-                  style: TextStyle(color: Colors.grey)),
+              child: const Text('Cancelar'),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(

@@ -152,7 +152,29 @@ class MyTheme {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: isLight ? Colors.white : DarkThemeColors.primaryColorDark,
+          // Sin densidad ni relleno definidos, Material da a los campos una
+          // altura pensada para movil: en los dialogos del panel salian como
+          // bloques enormes, y con el texto del tema encima quedaban ademas en
+          // negrita. Lo de abajo los deja a una altura de formulario de
+          // escritorio y devuelve el peso normal a etiquetas y pistas.
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          labelStyle: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: isLight
+                ? LightThemeColors.hintTextColor
+                : DarkThemeColors.hintTextColor,
+          ),
+          floatingLabelStyle: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: primary,
+          ),
           hintStyle: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
             color: isLight ? LightThemeColors.hintTextColor : DarkThemeColors.hintTextColor,
           ),
           enabledBorder: OutlineInputBorder(
