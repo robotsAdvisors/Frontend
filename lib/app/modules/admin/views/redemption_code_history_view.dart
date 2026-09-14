@@ -35,6 +35,9 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
 
   // Validar state
   final _codeCtrl    = TextEditingController();
+  // El PIN del mostrador. Esta pantalla validaba SIN pedirlo, asi que en una
+  // tienda con PIN siempre respondia "PIN de tienda incorrecto".
+  final _pinCtrl     = TextEditingController();
   bool _verifiedIdentity = false;
 
   @override
@@ -42,6 +45,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
     _searchCtrl.dispose();
     _dateCtrl.dispose();
     _codeCtrl.dispose();
+    _pinCtrl.dispose();
     super.dispose();
   }
 
@@ -674,8 +678,23 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                               ? const Color(0xFF059669)
                               : const Color(0xFFDC2626))),
                   ]),
-                // Stripe section
-                if (payAmt != null && payAmt > 0) ...[
+                // Como pago el cliente. Un pedido cubierto entero con
+                // puntos se anunciaba como "pago verificado de 24,99 EUR" sin
+                // que se hubiera movido un euro.
+                if (redemptionCode.paidWithPoints) ...[
+                  const SizedBox(height: 16),
+                  const Divider(height: 1),
+                  const SizedBox(height: 12),
+                  const Text('Pagado con puntos',
+                      style: TextStyle(fontSize: 12,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  Text(
+                    'El cliente cubrio el pedido entero con ${_fmtNum(pts)} puntos. '
+                    'No hay cobro por Stripe.',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                ]
+                else if (payAmt != null && payAmt > 0) ...[
                   const SizedBox(height: 16),
                   const Divider(height: 1),
                   const SizedBox(height: 12),
@@ -710,6 +729,25 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                   ],
                 ],
                 const SizedBox(height: 20),
+                // El PIN acredita que la validacion se hace en el mostrador.
+                // Solo se pide si esta tienda lo exige.
+                if (redemptionCode.storeRequiresPin) ...[
+                  TextField(
+                    controller: _pinCtrl,
+                    obscureText: true,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'PIN de la tienda',
+                      helperText:
+                          'Tu tienda exige PIN para validar en el mostrador.',
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 // ── Confirmar canje button ──────────────────────────
                 Obx(() => SizedBox(
                   width: double.infinity,
@@ -717,8 +755,12 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                     onPressed: isAvailable && !_ctrl.isLoading.value
                         ? () async {
                             final ok = await _ctrl.validateRedemptionCodeCode(
-                                redemptionCode.code);
-                            if (ok) _ctrl.clearRedemptionCodePreview();
+                                redemptionCode.code,
+                                pin: _pinCtrl.text.trim());
+                            if (ok) {
+                              _pinCtrl.clear();
+                              _ctrl.clearRedemptionCodePreview();
+                            }
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -744,7 +786,8 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                 const SizedBox(height: 8),
                 // ── Footer disclaimer ──────────────────────────────
                 const Text(
-                  'Al confirmar, los puntos se descontarán permanentemente de la cuenta del cliente.',
+                  'Al validar, el canje queda en proceso. Los puntos se '
+                    'descuentan al entregar, cuando lo confirmen la tienda y el cliente.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 10, color: Colors.grey)),
                 const SizedBox(height: 12),
@@ -1209,8 +1252,12 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                       borderRadius: BorderRadius.circular(10))),
               onPressed: () async {
                 Navigator.of(ctx).pop();
-                final ok = await _ctrl.validateRedemptionCodeCode(v.code);
-                if (ok) _ctrl.clearRedemptionCodePreview();
+                final ok = await _ctrl.validateRedemptionCodeCode(
+                    v.code, pin: _pinCtrl.text.trim());
+                if (ok) {
+                  _pinCtrl.clear();
+                  _ctrl.clearRedemptionCodePreview();
+                }
               },
               child: const Text('Confirmar entrega')),
         ],

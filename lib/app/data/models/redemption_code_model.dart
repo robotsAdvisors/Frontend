@@ -38,6 +38,9 @@ class RedemptionCodeModel {
   /// sin saberlo, el formulario invitaba a dejarlo vacio y la validacion
   /// fallaba con "PIN de tienda incorrecto".
   final bool storeRequiresPin;
+
+  /// Cubierto entero con puntos: no hubo cobro por Stripe que verificar.
+  final bool paidWithPoints;
   final String? customerName;
   final String? customerEmail;
   final String? customerAlias;   // @JuanPuntos77
@@ -67,6 +70,7 @@ class RedemptionCodeModel {
     this.productImageUrl,
     this.storeName,
     this.storeRequiresPin = false,
+    this.paidWithPoints = false,
     this.customerName,
     this.customerEmail,
     this.customerAlias,
@@ -108,6 +112,7 @@ class RedemptionCodeModel {
       productImageUrl: productImageUrl,
       storeName: storeName,
       storeRequiresPin: storeRequiresPin,
+      paidWithPoints: paidWithPoints,
       customerName: customerName,
       customerEmail: customerEmail,
       customerAlias: customerAlias,
@@ -197,6 +202,7 @@ class RedemptionCodeModel {
           ?.toString(),
       storeRequiresPin:
           store is Map ? store['requires_pin'] == true : false,
+      paidWithPoints: json['paid_with_points'] == true,
       customerName: (json['user_name'] ??
               json['customer_name'] ??
               (user is Map
