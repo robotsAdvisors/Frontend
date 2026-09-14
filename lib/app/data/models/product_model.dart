@@ -104,7 +104,11 @@ class ProductModel {
       expiryDate: _parseDate(json['expiry_date'] ?? json['expires_at']),
       isPublished: json['is_published'] as bool? ?? true,
       isRedeemable: json['is_redeemable'] as bool? ?? true,
-      monetaryPrice: _toDouble(json['monetary_price'] ?? json['stripe_price']),
+      // El backend llama a esto `price`. Leyendo `monetary_price` -que no
+      // existe en su contrato- el campo salia siempre a 0,00 en el
+      // formulario de edicion aunque el producto tuviera precio.
+      monetaryPrice: _toDouble(
+          json['price'] ?? json['monetary_price'] ?? json['stripe_price']),
       type: (json['type'] ?? 'descuento').toString(),
       salesCount: json['sales_count'] is int
           ? json['sales_count'] as int
@@ -132,7 +136,8 @@ class ProductModel {
         'store_name': storeName,
         'is_published': isPublished,
         'is_redeemable': isRedeemable,
-        'monetary_price': monetaryPrice,
+        // `price` es el campo que acepta el backend al crear y editar.
+        'price': monetaryPrice,
         'type': type,
         if (expiryDate != null) 'expiry_date': expiryDate!.toIso8601String(),
       };

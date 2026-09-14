@@ -100,6 +100,7 @@ class _PremiosViewState extends State<PremiosView> {
     _descCtrl.text = p.description;
     _stockCtrl.text = '${p.quantity}';
     _ptsCtrl.text = '${p.pointsRequired}';
+    // `monetaryPrice` sale ahora de `price`, el campo de verdad.
     _priceCtrl.text = p.monetaryPrice.toStringAsFixed(2);
     _imageUrlCtrl.text = p.image;
     _panelCategory = p.category.isNotEmpty ? p.category : null;
@@ -152,16 +153,18 @@ class _PremiosViewState extends State<PremiosView> {
       final price = double.tryParse(_priceCtrl.text) ?? 0.0;
 
       if (_editingProduct != null) {
+        // Los nombres son los del backend. `monetary_price` e `is_redeemable`
+        // no existen en su contrato: se ignoraban en silencio, asi que cambiar
+        // el precio desde aqui no hacia nada y el formulario lo mostraba
+        // siempre a 0,00.
         final payload = <String, dynamic>{
           'name': name,
           'description': _descCtrl.text.trim(),
           'stock': stock,
           'points_required': pts,
-          'monetary_price': price > 0 ? price : null,
-          'is_redeemable': _isCanjeable,
-          if (_panelCategory != null) 'category': _panelCategory,
+          if (price > 0) 'price': price,
           if (imageUrl.isNotEmpty) 'image_url': imageUrl,
-        }..removeWhere((_, v) => v == null);
+        };
         await _ctrl.updateProduct(_editingProduct!.id, payload);
       } else {
         final product = ProductModel(
