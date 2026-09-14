@@ -33,6 +33,11 @@ class RedemptionCodeModel {
   final String? productSku;
   final String? productImageUrl;
   final String? storeName;
+
+  /// Si la tienda de este canje exige PIN en el mostrador. Lo dice el backend;
+  /// sin saberlo, el formulario invitaba a dejarlo vacio y la validacion
+  /// fallaba con "PIN de tienda incorrecto".
+  final bool storeRequiresPin;
   final String? customerName;
   final String? customerEmail;
   final String? customerAlias;   // @JuanPuntos77
@@ -61,6 +66,7 @@ class RedemptionCodeModel {
     this.productSku,
     this.productImageUrl,
     this.storeName,
+    this.storeRequiresPin = false,
     this.customerName,
     this.customerEmail,
     this.customerAlias,
@@ -101,6 +107,7 @@ class RedemptionCodeModel {
       productSku: productSku,
       productImageUrl: productImageUrl,
       storeName: storeName,
+      storeRequiresPin: storeRequiresPin,
       customerName: customerName,
       customerEmail: customerEmail,
       customerAlias: customerAlias,
@@ -188,6 +195,8 @@ class RedemptionCodeModel {
       storeName: (json['store_name'] ??
               (store is Map ? store['name'] : null))
           ?.toString(),
+      storeRequiresPin:
+          store is Map ? store['requires_pin'] == true : false,
       customerName: (json['user_name'] ??
               json['customer_name'] ??
               (user is Map

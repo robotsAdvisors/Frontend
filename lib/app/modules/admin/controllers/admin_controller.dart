@@ -965,8 +965,11 @@ class AdminController extends GetxController {
         return true;
       }
     } on ApiException catch (e) {
+      // El codigo suele estar bien: lo que falla es el PIN, o es de otra
+      // tienda. Llamarlo todo "codigo invalido" mandaba al dependiente a
+      // buscar un problema donde no estaba.
       CustomSnackBar.showCustomErrorSnackBar(
-        title: 'Código de canje inválido',
+        title: _tituloDelFalloAlValidar(e.message),
         message: e.message,
       );
     } catch (_) {
@@ -976,6 +979,20 @@ class AdminController extends GetxController {
       );
     }
     return false;
+  }
+
+  /// Qué falló de verdad, a partir de lo que responde el backend.
+  String _tituloDelFalloAlValidar(String mensaje) {
+    final m = mensaje.toLowerCase();
+    if (m.contains('pin')) return 'PIN de tienda incorrecto';
+    if (m.contains('no es de tu tienda')) return 'Ese canje es de otra tienda';
+    if (m.contains('expirado') || m.contains('caducado')) {
+      return 'El código ha caducado';
+    }
+    if (m.contains('ya usado') || m.contains('anulado')) {
+      return 'Ese canje ya está cerrado';
+    }
+    return 'Código de canje inválido';
   }
 
   /// Paso 2 del mostrador (ST-CJ-03): entregar. El código pasa a DELIVERED y el

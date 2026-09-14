@@ -641,14 +641,21 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
 
           // ── Paso 1: validar ─────────────────────────────────────────────
           if (canValidate) ...[
+            // El backend dice si ESTA tienda exige PIN. Antes el formulario
+            // invitaba a dejarlo vacio ("solo si tu tienda tiene PIN"), y
+            // quien si tenia lo dejaba vacio y recibia "PIN de tienda
+            // incorrecto" sin entender por que.
             TextField(
               controller: _pinCtrl,
               obscureText: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'PIN de la tienda (si aplica)',
-                helperText:
-                    'Solo si tu tienda tiene PIN. Déjalo vacío si no.',
+                labelText: v.storeRequiresPin
+                    ? 'PIN de la tienda'
+                    : 'PIN de la tienda (si aplica)',
+                helperText: v.storeRequiresPin
+                    ? 'Tu tienda exige PIN para validar en el mostrador.'
+                    : 'Esta tienda no tiene PIN: déjalo vacío.',
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12)),
                 contentPadding: const EdgeInsets.symmetric(
