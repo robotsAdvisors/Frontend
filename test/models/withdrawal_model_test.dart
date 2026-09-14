@@ -67,6 +67,37 @@ void main() {
       final w = WithdrawalModel.fromJson({'method': 'm-plain'});
       expect(w.payoutMethodId, 'm-plain');
     });
+
+    test('lee destino, fecha y resolución de las claves del backend', () {
+      final w = WithdrawalModel.fromJson({
+        'id': 'w2',
+        'amount': '25.00',
+        'status': 'COMPLETED',
+        'destination_label': 'ES •••• 4321',
+        'created_at': '2026-09-01T10:00:00Z',
+        'processed_at': '2026-09-02T11:30:00Z',
+      });
+      expect(w.destinationLabel, 'ES •••• 4321');
+      expect(w.createdAt.toUtc().day, 1);
+      expect(w.processedAt?.toUtc().day, 2);
+    });
+
+    test('una retirada fallida conserva el motivo', () {
+      final w = WithdrawalModel.fromJson({
+        'status': 'FAILED',
+        'failure_reason': 'La cuenta bancaria fue rechazada',
+      });
+      expect(w.status, WithdrawalStatus.failed);
+      expect(w.failureReason, 'La cuenta bancaria fue rechazada');
+    });
+
+    test('motivo vacío o ausente no se pinta', () {
+      // El backend manda '' cuando Stripe no dio explicación, y null en las
+      // que no fallaron: ninguno de los dos debe salir en pantalla.
+      expect(WithdrawalModel.fromJson({'failure_reason': ''}).failureReason,
+          isNull);
+      expect(WithdrawalModel.fromJson({}).failureReason, isNull);
+    });
   });
 
   group('WithdrawalConfig', () {

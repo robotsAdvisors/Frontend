@@ -48,6 +48,8 @@ class WithdrawalModel {
   final String? destinationLabel; // enmascarado del method, ej. "****1234"
   final DateTime createdAt;
   final DateTime? processedAt;
+  /// Por que fallo. Solo viene relleno cuando el estado es `failed`.
+  final String? failureReason;
 
   const WithdrawalModel({
     required this.id,
@@ -57,6 +59,7 @@ class WithdrawalModel {
     this.destinationLabel,
     required this.createdAt,
     this.processedAt,
+    this.failureReason,
   });
 
   factory WithdrawalModel.fromJson(Map<String, dynamic> json) {
@@ -82,6 +85,9 @@ class WithdrawalModel {
           DateTime.now(),
       processedAt: json['processed_at'] != null
           ? DateTime.tryParse(json['processed_at'].toString())
+          : null,
+      failureReason: (json['failure_reason']?.toString().isNotEmpty ?? false)
+          ? json['failure_reason'].toString()
           : null,
     );
   }

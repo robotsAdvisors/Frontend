@@ -105,20 +105,22 @@ class WithdrawalsController extends GetxController {
     }
 
     isRequesting.value = true;
+    // Se anota antes de recargar: al retirar todo, `amount` es null y el saldo
+    // que lo sustituye ya vale 0 cuando vuelve la respuesta del servidor.
+    final displayAmount =
+        (amount ?? availableBalance).toStringAsFixed(2);
     try {
-      final result = await _repo.requestWithdrawal(
+      await _repo.requestWithdrawal(
         payoutMethodId: method.id,
         amount: amount,
       );
-      withdrawals.insert(0, result);
 
-      // Actualizar saldo localmente
-      final deducted = amount ?? availableBalance;
-      config.value = config.value.copyWithBalance(availableBalance - deducted);
       selectedAmount.value = 0;
       withdrawAll.value = false;
+      // El POST no devuelve la retirada, solo un mensaje: hay que volver a
+      // pedir historial y saldo al servidor para verla de verdad.
+      await _loadAll();
 
-      final displayAmount = amount?.toStringAsFixed(2) ?? availableBalance.toStringAsFixed(2);
       CustomSnackBar.showCustomSnackBar(
         title: 'Solicitud enviada',
         message: 'Tu retiro de €$displayAmount está siendo procesado.',

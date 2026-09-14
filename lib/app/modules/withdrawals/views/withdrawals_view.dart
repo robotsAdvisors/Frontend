@@ -731,15 +731,19 @@ class WithdrawalsView extends GetView<WithdrawalsController> {
                       const Text(' · ',
                           style: TextStyle(fontSize: 11, color: _textSoft)),
                       Text(
-                        knownMethod?.accountNumber ??
-                            (w.destinationLabel != null
-                                ? '···· ${w.destinationLabel}'
-                                : ''),
+                        knownMethod?.accountNumber ?? w.destinationLabel!,
                         style: const TextStyle(fontSize: 11, color: _textSoft),
                       ),
                     ],
                   ],
                 ),
+                if (w.failureReason != null) ...[
+                  SizedBox(height: 4.h),
+                  Text(
+                    w.failureReason!,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFD32F2F)),
+                  ),
+                ],
               ],
             ),
           ),

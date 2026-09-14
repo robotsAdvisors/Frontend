@@ -47,7 +47,9 @@ class WithdrawalRepository {
   /// POST /wallet/withdrawals/
   /// [payoutMethodId] — UUID del método de cobro seleccionado.
   /// [amount]         — importe a retirar; null → el backend retira todo el saldo.
-  Future<WithdrawalModel> requestWithdrawal({
+  /// El backend responde solo `{'message': 'Withdrawal Created'}`, no la
+  /// retirada: por eso no devuelve nada y quien llama recarga el historial.
+  Future<void> requestWithdrawal({
     required String payoutMethodId,
     double? amount,
   }) async {
@@ -56,12 +58,7 @@ class WithdrawalRepository {
         'method': payoutMethodId,
         if (amount != null) 'amount': amount,
       };
-      final response = await _dio.post(ApiConfig.withdrawals, data: data);
-      if (response.data is Map) {
-        return WithdrawalModel.fromJson(
-            Map<String, dynamic>.from(response.data as Map));
-      }
-      throw ApiException('Respuesta inválida del servidor.');
+      await _dio.post(ApiConfig.withdrawals, data: data);
     } catch (e) {
       throw toApiException(e);
     }
