@@ -119,7 +119,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
     return Obx(() {
       final stats = controller.legalStats.value;
       final gdprPending = controller.dataSubjectRequests
-          .where((r) => r.status == 'pending' || r.status == 'in_progress')
+          .where((r) => r.status.toUpperCase() == 'PENDING')
           .length;
       return Row(children: [
         Expanded(child: _statCard(
@@ -230,7 +230,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
 
   Widget _consentRow(BuildContext context, LegalConsentModel c, bool even) {
     final (label, color, bg) = _statusBadge(c.status);
-    final isPending = c.status == 'pending';
+    final estaActivo = c.status.toLowerCase() == 'active';
     return Container(
       color: even ? Colors.white : const Color(0xFFFAFAFB),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -256,8 +256,8 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
           width: 100,
           child: Center(
             child: _actionBtn(
-              isPending ? 'Resolver' : 'Historial',
-              isPending ? _purple : Colors.grey.shade600,
+              estaActivo ? 'Gestionar' : 'Historial',
+              estaActivo ? _purple : Colors.grey.shade600,
               () => _showConsentDialog(context, c),
             ),
           ),
@@ -449,8 +449,8 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
   // ─── DIALOGS ────────────────────────────────────────────────────────────────
 
   void _showConsentDialog(BuildContext context, LegalConsentModel c) {
-    final canWithdraw = c.status == 'accepted';
-    final canRestore  = c.status == 'rejected' || c.status == 'expired';
+    final canWithdraw = c.status == 'active';
+    final canRestore  = c.status == 'withdrawn';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -469,6 +469,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
               _detailRow('Estado', _getStatusLabel(c.status)),
               _detailRow('Fecha', _formatDate(c.acceptedAt)),
               if (c.ipAddress.isNotEmpty) _detailRow('IP', c.ipAddress),
+              if (c.userAgent.isNotEmpty) _detailRow('Navegador', c.userAgent),
               if (c.rejectionReason != null)
                 _detailRow('Motivo', c.rejectionReason!),
             ],
@@ -703,6 +704,8 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
 
   (String, Color, Color) _statusBadge(String status) {
     return switch (status.toLowerCase()) {
+      'active'      => ('Aceptado',   _green,  const Color(0xFFECFDF5)),
+      'withdrawn'   => ('Retirado',   _red,    const Color(0xFFFEF2F2)),
       'accepted'    => ('Aceptado',   _green,  const Color(0xFFECFDF5)),
       'rejected'    => ('Rechazado',  _red,    const Color(0xFFFEF2F2)),
       'expired'     => ('Expirado',   Colors.grey, const Color(0xFFF5F5F5)),
@@ -738,6 +741,8 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
 
   String _getStatusLabel(String s) {
     return switch (s.toLowerCase()) {
+      'active'      => 'Aceptado',
+      'withdrawn'   => 'Retirado',
       'accepted'    => 'Aceptado',
       'rejected'    => 'Rechazado',
       'pending'     => 'Pendiente',

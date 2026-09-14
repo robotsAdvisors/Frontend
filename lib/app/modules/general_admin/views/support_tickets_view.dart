@@ -126,13 +126,10 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               value: _ctrl.statusFilter.value.isEmpty
                   ? 'all' : _ctrl.statusFilter.value,
               items: const {
-                'all':        'Estado',
-                'open':       'Abierto',
-                'pending':    'Pendiente',
-                'prioritized':'Priorizado',
-                'escalated':  'Escalado',
-                'resolved':   'Resuelto',
-                'closed':     'Cerrado',
+                'all':         'Estado',
+                'OPEN':        'Abierto',
+                'IN_PROGRESS': 'En proceso',
+                'CLOSED':      'Cerrado',
               },
               onChanged: (v) {
                 _ctrl.statusFilter.value = v == 'all' ? '' : (v ?? '');
@@ -536,7 +533,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
   }
 
   Widget _composeArea(SupportTicketModel ticket) {
-    final isClosed = ticket.status == 'closed' || ticket.status == 'resolved';
+    final isClosed = ticket.status.toUpperCase() == 'CLOSED';
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       decoration: const BoxDecoration(
@@ -962,14 +959,8 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
     switch (status.toLowerCase()) {
       case 'open':
         bg = const Color(0xFFEFF6FF); fg = const Color(0xFF2563EB); label = 'Abierto'; break;
-      case 'pending':
-        bg = const Color(0xFFFFF7ED); fg = const Color(0xFFD97706); label = 'Pendiente'; break;
-      case 'prioritized':
-        bg = const Color(0xFFF5F3FF); fg = _purple;                 label = 'Priorizando'; break;
-      case 'escalated':
-        bg = const Color(0xFFFEE2E2); fg = const Color(0xFFDC2626); label = 'Escalado'; break;
-      case 'resolved':
-        bg = const Color(0xFFECFDF5); fg = const Color(0xFF059669); label = 'Resuelto'; break;
+      case 'in_progress':
+        bg = const Color(0xFFFFF7ED); fg = const Color(0xFFD97706); label = 'En proceso'; break;
       case 'closed':
         bg = const Color(0xFFF3F4F6); fg = const Color(0xFF6B7280); label = 'Cerrado'; break;
       default:

@@ -243,17 +243,18 @@ class SupportController extends GetxController {
       if (resp.data is Map) {
         final msg = TicketMessageModel.fromJson(
             Map<String, dynamic>.from(resp.data as Map));
-        selectedTicket.value =
-            ticket.copyWith(messages: [...ticket.messages, msg]);
+        final actualizado = ticket.copyWith(
+          messages: [...ticket.messages, msg],
+          status: (!isInternal && ticket.status.toUpperCase() == 'OPEN')
+              ? 'IN_PROGRESS'
+              : ticket.status,
+        );
+        selectedTicket.value = actualizado;
+        _syncStatus(ticket.id, actualizado.status);
       }
     } catch (e) {
       final ex = toApiException(e);
-      CustomSnackBar.showCustomErrorSnackBar(
-        title: 'Error',
-        message: ex.isUnavailable
-            ? 'El envío de mensajes aún no está disponible.'
-            : ex.message,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(title: 'Error', message: ex.message);
     } finally {
       isSending.value = false;
     }
@@ -264,6 +265,8 @@ class SupportController extends GetxController {
   // Las rutas de acción dedicadas (/escalate/, /close/, /reassign/) no existen en
   // el backend; el cambio de estado y de asignación se hace vía el PATCH del
   // detalle (`AdminTicketDetailView`), que sí está expuesto.
+  /// Escalar es subir la prioridad a ALTA: el backend solo conoce los estados
+  /// OPEN / IN_PROGRESS / CLOSED, y mandarle 'escalated' daba siempre un 400.
   Future<void> escalateTicket() async {
     final ticket = selectedTicket.value;
     if (ticket == null || isActing.value) return;
@@ -271,12 +274,14 @@ class SupportController extends GetxController {
     try {
       await _dio.patch(
         ApiConfig.adminTicketDetail(ticket.id),
-        data: {'status': 'escalated'},
+        data: {'priority': 'HIGH', 'status': 'IN_PROGRESS'},
       );
-      selectedTicket.value = ticket.copyWith(status: 'escalated');
-      _syncStatus(ticket.id, 'escalated');
+      selectedTicket.value =
+          ticket.copyWith(priority: 'HIGH', status: 'IN_PROGRESS');
+      _syncStatus(ticket.id, 'IN_PROGRESS');
       CustomSnackBar.showCustomSnackBar(
-          title: 'Escalado', message: 'Ticket escalado correctamente.');
+          title: 'Escalado',
+          message: 'Ticket marcado como prioridad alta.');
     } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(
           title: 'Error', message: toApiException(e).message);
@@ -292,10 +297,10 @@ class SupportController extends GetxController {
     try {
       await _dio.patch(
         ApiConfig.adminTicketDetail(ticket.id),
-        data: {'status': 'closed'},
+        data: {'status': 'CLOSED'},
       );
-      selectedTicket.value = ticket.copyWith(status: 'closed');
-      _syncStatus(ticket.id, 'closed');
+      selectedTicket.value = ticket.copyWith(status: 'CLOSED');
+      _syncStatus(ticket.id, 'CLOSED');
       CustomSnackBar.showCustomSnackBar(title: 'Cerrado', message: 'Ticket cerrado.');
     } catch (e) {
       CustomSnackBar.showCustomErrorSnackBar(

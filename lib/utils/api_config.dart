@@ -195,7 +195,6 @@ class ApiConfig {
 
   // Backoffice — Legal & Consents
   static const String adminLegalConsents = '/admin/legal/consents/';
-  static String adminLegalConsentDetail(String id) => '/admin/legal/consents/$id/';
   static const String adminLegalDocuments = '/admin/legal/documents/';
   static const String adminLegalStats = '/admin/legal/consents/stats/';
   static String adminLegalConsentAction(String id) => '/admin/legal/consents/$id/action/';

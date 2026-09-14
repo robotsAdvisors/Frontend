@@ -99,8 +99,18 @@ class SupportTicketModel {
 
     final assignedRaw = json['assigned_to'];
     final String? assignedTo = assignedRaw is Map
-        ? (assignedRaw['name'] ?? assignedRaw['username'])?.toString()
+        ? (assignedRaw['name'] ??
+                assignedRaw['full_name'] ??
+                assignedRaw['email'])
+            ?.toString()
         : assignedRaw?.toString();
+
+    // La categoria llega como objeto {id, name, color}: pasarla por toString()
+    // pintaba el diccionario entero en la celda.
+    final categoryRaw = json['category'];
+    final String category = categoryRaw is Map
+        ? (categoryRaw['name'] ?? '').toString()
+        : (json['category_name'] ?? categoryRaw ?? 'otro').toString();
 
     return SupportTicketModel(
       id: (json['id'] ?? '').toString(),
@@ -108,7 +118,7 @@ class SupportTicketModel {
       title: (json['title'] ?? json['subject'] ?? '').toString(),
       description: (json['description'] ?? json['body'] ?? '').toString(),
       status: (json['status'] ?? 'open').toString(),
-      category: (json['category'] ?? 'otro').toString(),
+      category: category.isEmpty ? 'otro' : category,
       priority: (json['priority'] ?? 'normal').toString(),
       userId: userId,
       userName: userName,
@@ -125,10 +135,15 @@ class SupportTicketModel {
     );
   }
 
-  SupportTicketModel copyWith({List<TicketMessageModel>? messages, String? status}) {
+  SupportTicketModel copyWith({
+    List<TicketMessageModel>? messages,
+    String? status,
+    String? priority,
+  }) {
     return SupportTicketModel(
       id: id, code: code, title: title, description: description,
-      status: status ?? this.status, category: category, priority: priority,
+      status: status ?? this.status, category: category,
+      priority: priority ?? this.priority,
       userId: userId, userName: userName, userEmail: userEmail,
       userExternalId: userExternalId, assignedTo: assignedTo,
       createdAt: createdAt, updatedAt: updatedAt,
