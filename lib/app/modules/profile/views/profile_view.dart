@@ -182,7 +182,7 @@ class ProfileView extends GetView<ProfileController> {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                     textStyle: const TextStyle(
                         fontSize: 12, fontWeight: FontWeight.w600),

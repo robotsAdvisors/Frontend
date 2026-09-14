@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/http/api_client.dart';
 
@@ -27,15 +29,10 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
   Future<void> _send() async {
     final email = _emailCtrl.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      Get.snackbar(
-        'Email inválido',
-        'Ingresa un email válido.',
-        backgroundColor: Colors.red.shade400,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Email inválido',
+      message: 'Ingresa un email válido.',
+    );
       return;
     }
 
@@ -43,28 +40,17 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     try {
       await AuthRepository.instance.resetPassword(email: email);
       setState(() => _sent = true);
-      Get.snackbar(
-        'Enlace enviado',
-        'Revisa tu bandeja de entrada.',
-        backgroundColor: const Color(0xFF16A34A),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-        duration: const Duration(seconds: 4),
-      );
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Enlace enviado',
+      message: 'Revisa tu bandeja de entrada.',
+    );
     } catch (e) {
       final msg =
           e is ApiException ? e.message : 'No se pudo enviar el enlace.';
-      Get.snackbar(
-        'Error',
-        msg,
-        backgroundColor: Colors.red.shade400,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: msg,
+    );
     } finally {
       setState(() => _sending = false);
     }
@@ -189,7 +175,7 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _sending
                     ? const SizedBox(

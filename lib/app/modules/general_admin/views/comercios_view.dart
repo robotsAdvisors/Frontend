@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/store_model.dart';
 import '../../../data/models/store_user_model.dart';
 import '../../../routes/app_pages.dart';
@@ -246,7 +248,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
         style: OutlinedButton.styleFrom(
           foregroundColor: _purple,
           side: const BorderSide(color: _purple),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         ),
       ),
@@ -314,7 +316,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
               style: OutlinedButton.styleFrom(
                 foregroundColor: _purple,
                 side: const BorderSide(color: _purple),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
             ),
@@ -458,7 +460,7 @@ class ComerciosView extends GetView<GeneralAdminController> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: _purple,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               onPressed: () async {
                 final email = emailCtrl.text.trim();
                 if (email.isEmpty) return;
@@ -523,8 +525,10 @@ class _CreateStoreFormState extends State<_CreateStoreForm> {
   Future<void> _submit() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      Get.snackbar('Falta el nombre', 'El nombre de la tienda es obligatorio',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Falta el nombre',
+      message: 'El nombre de la tienda es obligatorio',
+    );
       return;
     }
     String? v(TextEditingController c) => c.text.trim().isEmpty ? null : c.text.trim();
@@ -596,7 +600,7 @@ class _CreateStoreFormState extends State<_CreateStoreForm> {
               child: Obx(() => FilledButton(
                     style: FilledButton.styleFrom(
                         backgroundColor: _purple,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     onPressed: widget.controller.isCreatingStore.value ? null : _submit,
                     child: widget.controller.isCreatingStore.value
                         ? const SizedBox(height: 22, width: 22,

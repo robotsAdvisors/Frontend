@@ -201,7 +201,7 @@ class _EmpleadosViewState extends State<EmpleadosView> {
         style: ElevatedButton.styleFrom(
           backgroundColor: _purple, foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         icon: const Icon(Icons.person_add_outlined, size: 18),
         label: const Text('Invitar usuario',

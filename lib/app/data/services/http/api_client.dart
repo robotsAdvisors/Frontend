@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' hide Response, FormData, MultipartFile;
 import '../../../../utils/api_config.dart';
 import '../../local/my_shared_pref.dart';
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import 'error_messages.dart';
 
 /// Cliente HTTP centralizado que se comunica con el backend Django de Letdem.
@@ -112,9 +114,10 @@ class ApiClient {
     if (route == '/login' || route == '/splash' || route.isEmpty) return;
     _redirecting = true;
     Get.offAllNamed('/login');
-    Get.snackbar('Sesión expirada', 'Inicia sesión de nuevo.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3));
+    CustomSnackBar.showCustomSnackBar(
+      title: 'Sesión expirada',
+      message: 'Inicia sesión de nuevo.',
+    );
     // Libera el latch pasado un margen: si la sesión vuelve a caducar mucho
     // más tarde, podrá redirigir de nuevo; pero la ráfaga inicial no se repite.
     Future.delayed(const Duration(seconds: 3), () => _redirecting = false);

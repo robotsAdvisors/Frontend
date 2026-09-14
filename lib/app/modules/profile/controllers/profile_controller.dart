@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../config/theme/my_theme.dart';
@@ -86,7 +88,10 @@ class ProfileController extends GetxController {
     }
     await LocalizationService.updateLanguage(languageCode);
     selectedLanguageCode.value = languageCode;
-    Get.snackbar('Idioma', languageCode == 'es' ? 'Idioma cambiado a Espanol' : 'Language changed to English');
+    CustomSnackBar.showCustomSnackBar(
+      title: 'Idioma',
+      message: languageCode == 'es' ? 'Idioma cambiado a Espanol' : 'Language changed to English',
+    );
   }
 
   void toggleDarkMode(bool enabled) {
@@ -204,7 +209,10 @@ class ProfileController extends GetxController {
     final address = addressController.text.trim();
 
     if (name.isEmpty || phone.isEmpty || address.isEmpty) {
-      Get.snackbar('Campos requeridos', 'Completa nombre, teléfono y dirección.');
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Campos requeridos',
+      message: 'Completa nombre, teléfono y dirección.',
+    );
       return;
     }
 
@@ -215,7 +223,10 @@ class ProfileController extends GetxController {
     await MySharedPref.setCustomerPhone(phone);
     await MySharedPref.setCustomerAddress(address);
     isEditingProfile.value = false;
-    Get.snackbar('Guardado', 'Tus datos fueron actualizados.');
+    CustomSnackBar.showCustomSnackBar(
+      title: 'Guardado',
+      message: 'Tus datos fueron actualizados.',
+    );
   }
 
   Future<void> loadVirtualCardFromBackend() async {
@@ -255,7 +266,10 @@ class ProfileController extends GetxController {
     }
 
     await AuthService.signOut();
-    Get.snackbar('Cuenta desactivada', 'Tu baja fue solicitada correctamente.');
+    CustomSnackBar.showCustomSnackBar(
+      title: 'Cuenta desactivada',
+      message: 'Tu baja fue solicitada correctamente.',
+    );
     Get.offAllNamed(Routes.WELCOME);
   }
 }

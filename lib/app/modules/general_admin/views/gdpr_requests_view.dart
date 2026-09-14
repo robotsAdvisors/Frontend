@@ -133,7 +133,7 @@ class GdprRequestsView extends StatelessWidget {
             foregroundColor: _purple, side: const BorderSide(color: _purple),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(12)),
           ),
         ),
         const SizedBox(width: 8),
@@ -150,7 +150,7 @@ class GdprRequestsView extends StatelessWidget {
             backgroundColor: const Color(0xFF1E1B4B), elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(12)),
           ),
         )),
       ],
@@ -731,7 +731,7 @@ class GdprRequestsView extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1E1B4B), elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: const Text('Asignar',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
@@ -764,7 +764,7 @@ class GdprRequestsView extends StatelessWidget {
         backgroundColor: onTap != null ? color : Colors.grey.shade300,
         elevation: 0,
         padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

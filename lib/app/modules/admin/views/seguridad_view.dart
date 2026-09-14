@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
 import '../controllers/admin_controller.dart';
@@ -245,7 +247,7 @@ class _SeguridadViewState extends State<SeguridadView> {
                       side: const BorderSide(color: _purple),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     icon: const Icon(Icons.lock_reset_outlined, size: 16),
                     label: const Text('Cambiar PIN',
@@ -597,17 +599,21 @@ class _SeguridadViewState extends State<SeguridadView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () async {
                 if (newCtrl.text != confirmCtrl.text) {
-                  Get.snackbar('Error', 'Los PINs no coinciden',
-                      snackPosition: SnackPosition.TOP);
+                  CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: 'Los PINs no coinciden',
+    );
                   return;
                 }
                 if (newCtrl.text.length < 4) {
-                  Get.snackbar('Error', 'El PIN debe tener al menos 4 dígitos',
-                      snackPosition: SnackPosition.TOP);
+                  CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: 'El PIN debe tener al menos 4 dígitos',
+    );
                   return;
                 }
                 Navigator.pop(ctx);
@@ -645,7 +651,7 @@ class _SeguridadViewState extends State<SeguridadView> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _red, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Regenerar'),

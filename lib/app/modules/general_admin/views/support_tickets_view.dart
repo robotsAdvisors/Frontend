@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/support_ticket_model.dart';
 import '../../../data/models/ticket_category_model.dart';
 import '../controllers/support_controller.dart';
@@ -92,7 +94,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple, elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             ),
           ]),
         ),
@@ -622,7 +624,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8))),
+                  borderRadius: BorderRadius.circular(12))),
           )),
         ]),
       ]),
@@ -811,15 +813,16 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 12),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10))),
+                                    borderRadius: BorderRadius.circular(12))),
                             onPressed: _ctrl.isCreating.value
                                 ? null
                                 : () async {
                                     if (titleCtrl.text.trim().isEmpty ||
                                         userCtrl.text.trim().isEmpty) {
-                                      Get.snackbar('Faltan datos',
-                                          'El título y el email del usuario son obligatorios',
-                                          snackPosition: SnackPosition.BOTTOM);
+                                      CustomSnackBar.showCustomSnackBar(
+      title: 'Faltan datos',
+      message: 'El título y el email del usuario son obligatorios',
+    );
                                       return;
                                     }
                                     final ok = await _ctrl.createTicket(
@@ -902,7 +905,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
               style: ElevatedButton.styleFrom(backgroundColor: _purple,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10))),
+                      borderRadius: BorderRadius.circular(12))),
               onPressed: selected == null ? null : () {
                 Navigator.of(ctx).pop();
                 _ctrl.reassignTicket(selected!.id, selected!.toString());

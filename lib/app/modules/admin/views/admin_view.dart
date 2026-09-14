@@ -643,7 +643,7 @@ class _AdminViewState extends State<AdminView> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
@@ -983,7 +983,7 @@ class _AdminViewState extends State<AdminView> {
               backgroundColor: _purple,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               final code = codeCtrl.text.trim();
@@ -1015,7 +1015,7 @@ class _AdminViewState extends State<AdminView> {
               backgroundColor: _purple,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();

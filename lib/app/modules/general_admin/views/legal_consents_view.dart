@@ -80,7 +80,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
                 backgroundColor: _purple,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ]),
@@ -433,7 +433,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
                   side: const BorderSide(color: _purple),
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Activar',
                     style: TextStyle(
@@ -604,7 +604,7 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
                 backgroundColor: _purple,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8))),
+                    borderRadius: BorderRadius.circular(12))),
             onPressed: () {
               Navigator.pop(ctx);
               controller.createLegalDocument(

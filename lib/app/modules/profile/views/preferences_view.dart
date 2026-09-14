@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/repositories/auth_repository.dart';
 
 class PreferencesView extends StatefulWidget {
@@ -78,25 +80,15 @@ class _PreferencesViewState extends State<PreferencesView> {
 
       _original = Map.of(_prefs);
       Get.back();
-      Get.snackbar(
-        'Preferencias guardadas',
-        'Tus preferencias de notificación fueron actualizadas.',
-        backgroundColor: _purple,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Preferencias guardadas',
+      message: 'Tus preferencias de notificación fueron actualizadas.',
+    );
     } catch (_) {
-      Get.snackbar(
-        'Error',
-        'No se pudieron guardar las preferencias. Intenta de nuevo.',
-        backgroundColor: Colors.red.shade400,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: 'No se pudieron guardar las preferencias. Intenta de nuevo.',
+    );
     } finally {
       setState(() => _saving = false);
     }
@@ -385,7 +377,7 @@ class _PreferencesViewState extends State<PreferencesView> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: _saving
                 ? const SizedBox(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import '../../../data/models/withdrawal_model.dart';
 import '../controllers/withdrawals_controller.dart';
 
@@ -567,11 +569,10 @@ class WithdrawalsView extends GetView<WithdrawalsController> {
                   if (!verified) ...[
                     SizedBox(height: 8.h),
                     GestureDetector(
-                      onTap: () => Get.snackbar(
-                        'Verificación',
-                        'La verificación de cuenta estará disponible próximamente.',
-                        snackPosition: SnackPosition.BOTTOM,
-                      ),
+                      onTap: () => CustomSnackBar.showCustomSnackBar(
+      title: 'Verificación',
+      message: 'La verificación de cuenta estará disponible próximamente.',
+    ),
                       child: const Text(
                         'Verificar cuenta →',
                         style: TextStyle(

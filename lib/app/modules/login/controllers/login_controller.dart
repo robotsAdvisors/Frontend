@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/services/auth_service.dart';
 import '../../../data/services/http/api_client.dart';
 import '../../../routes/app_pages.dart';
@@ -67,11 +69,9 @@ class LoginController extends GetxController {
   }
 
   void _showLoginError(String message) {
-    Get.snackbar(
-      'Error',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 5),
+    CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: message,
     );
   }
 
@@ -93,17 +93,15 @@ class LoginController extends GetxController {
                 : Routes.BASE,
       );
     } on ApiException catch (exception) {
-      Get.snackbar(
-        'Error',
-        exception.message,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: exception.message,
+    );
     } catch (error) {
-      Get.snackbar(
-        'Error',
-        error.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: error.toString(),
+    );
     } finally {
       isLoading.value = false;
     }
@@ -123,21 +121,15 @@ class LoginController extends GetxController {
                 : Routes.BASE,
       );
     } on ApiException catch (exception) {
-      Get.snackbar(
-        'Error',
-        _shortenError(exception.message),
-        snackPosition: SnackPosition.BOTTOM,
-        maxWidth: 500,
-        duration: const Duration(seconds: 5),
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: _shortenError(exception.message),
+    );
     } catch (error) {
-      Get.snackbar(
-        'Error',
-        _shortenError('No se pudo iniciar sesión con Google: $error'),
-        snackPosition: SnackPosition.BOTTOM,
-        maxWidth: 500,
-        duration: const Duration(seconds: 5),
-      );
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: _shortenError('No se pudo iniciar sesión con Google: $error'),
+    );
     } finally {
       isLoading.value = false;
     }

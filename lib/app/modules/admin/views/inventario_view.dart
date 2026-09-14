@@ -222,7 +222,7 @@ class _InventarioViewState extends State<InventarioView> {
         style: ElevatedButton.styleFrom(
           backgroundColor: _purple, foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         icon: const Icon(Icons.add, size: 18),
         label: const Text('Añadir producto',

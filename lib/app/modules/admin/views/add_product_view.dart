@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/product_model.dart';
@@ -98,8 +100,10 @@ class _AddProductViewState extends State<AddProductView> {
     final discount = double.tryParse(_discountCtrl.text.trim()) ?? 0;
 
     if (name.isEmpty || desc.isEmpty || originalPrice == null || pointValue == null) {
-      Get.snackbar('Campos obligatorios', 'Completa nombre, descripción, precio y valor en puntos.',
-          backgroundColor: Colors.red.shade50, colorText: Colors.red.shade700);
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Campos obligatorios',
+      message: 'Completa nombre, descripción, precio y valor en puntos.',
+    );
       return;
     }
 
@@ -218,7 +222,7 @@ class _AddProductViewState extends State<AddProductView> {
             onPressed: () => Get.back(),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Color(0xFFDDDDDD)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 13)),
@@ -230,7 +234,7 @@ class _AddProductViewState extends State<AddProductView> {
               backgroundColor: _purple,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             child: _isSaving
@@ -670,7 +674,7 @@ class _AddProductViewState extends State<AddProductView> {
                     foregroundColor: _purple,
                     side: const BorderSide(color: _purple),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(12)),
                     padding:
                         const EdgeInsets.symmetric(vertical: 10),
                   ),
@@ -687,7 +691,7 @@ class _AddProductViewState extends State<AddProductView> {
                     foregroundColor: Colors.grey.shade600,
                     side: BorderSide(color: Colors.grey.shade300),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(12)),
                     padding:
                         const EdgeInsets.symmetric(vertical: 10),
                   ),
@@ -912,7 +916,7 @@ class _AddProductViewState extends State<AddProductView> {
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: _purple, foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             onPressed: () {
               final v = double.tryParse(ctrl.text.trim()) ?? 0;
               setState(() => _discountCtrl.text = v.clamp(0, 100).toStringAsFixed(0));
@@ -955,7 +959,7 @@ class _AddProductViewState extends State<AddProductView> {
           TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: _purple, foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             onPressed: () {
               setState(() {
                 _imageUrlCtrl.text = ctrl.text.trim();

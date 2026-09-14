@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/campaign_model.dart';
@@ -64,7 +66,7 @@ class CampaignsView extends GetView<GeneralAdminController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _openForm,
                 icon: const Icon(Icons.add, size: 18),
@@ -494,13 +496,17 @@ class _CampaignFormState extends State<_CampaignForm> {
   Future<void> _submit() async {
     final name = _name.text.trim();
     if (name.isEmpty) {
-      Get.snackbar('Falta el nombre', 'El nombre de la campaña es obligatorio',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Falta el nombre',
+      message: 'El nombre de la campaña es obligatorio',
+    );
       return;
     }
     if (_startDate.isEmpty || _endDate.isEmpty) {
-      Get.snackbar('Faltan fechas', 'Selecciona la fecha de inicio y de fin',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Faltan fechas',
+      message: 'Selecciona la fecha de inicio y de fin',
+    );
       return;
     }
     final mult = _multiplier.text.trim();
@@ -768,7 +774,7 @@ class _CampaignFormState extends State<_CampaignForm> {
             style: FilledButton.styleFrom(
               backgroundColor: _purple,
               shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: saving ? null : _submit,
             child: saving

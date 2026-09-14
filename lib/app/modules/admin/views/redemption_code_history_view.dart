@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/redemption_code_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
@@ -219,7 +221,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                   backgroundColor: _purple, elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 11),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10))),
+                      borderRadius: BorderRadius.circular(12))),
               ),
             ),
           ),
@@ -456,16 +458,17 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
           Row(children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => Get.snackbar(
-                  'Escáner', 'Activa la cámara en un dispositivo móvil.',
-                  snackPosition: SnackPosition.BOTTOM),
+                onPressed: () => CustomSnackBar.showCustomSnackBar(
+      title: 'Escáner',
+      message: 'Activa la cámara en un dispositivo móvil.',
+    ),
                 icon: const Icon(Icons.qr_code_scanner, size: 16),
                 label: const Text('Escanear Código',
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _purple, side: const BorderSide(color: _purple),
                   padding: const EdgeInsets.symmetric(vertical: 13),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               ),
             ),
             // El boton "Pagar Codigo" se retiro (2026-09-11). Su endpoint,
@@ -875,7 +878,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: _purple, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             onPressed: () async {
               final reason = reasonCtrl.text.trim();
               if (reason.isEmpty) return;
@@ -1003,7 +1006,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFD1D5DB)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
       )),
     ]);
   }
@@ -1263,7 +1266,7 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
               style: ElevatedButton.styleFrom(backgroundColor: _purple,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10))),
+                      borderRadius: BorderRadius.circular(12))),
               onPressed: () async {
                 Navigator.of(ctx).pop();
                 final ok = await _ctrl.validateRedemptionCodeCode(

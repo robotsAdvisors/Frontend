@@ -145,7 +145,7 @@ class KybcView extends GetView<GeneralAdminController> {
             padding: const EdgeInsets.symmetric(
                 horizontal: 14, vertical: 10),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(12)),
             textStyle: const TextStyle(fontSize: 13),
           ),
         ),
@@ -160,7 +160,7 @@ class KybcView extends GetView<GeneralAdminController> {
             padding: const EdgeInsets.symmetric(
                 horizontal: 14, vertical: 10),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(12)),
             textStyle: const TextStyle(fontSize: 13),
             elevation: 0,
           ),
@@ -1139,7 +1139,7 @@ class _ComplianceActionsWidgetState
                   disabledBackgroundColor: const Color(0xFFFEE2E2),
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                   textStyle: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700),
                   elevation: 0,

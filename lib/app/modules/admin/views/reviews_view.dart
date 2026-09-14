@@ -624,7 +624,7 @@ class _ReviewsViewState extends State<ReviewsView> {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)))),
+                      borderRadius: BorderRadius.circular(12)))),
             if (r.isReplied)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -758,7 +758,7 @@ class _ReviewsViewState extends State<ReviewsView> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _purple, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10))),
+                  borderRadius: BorderRadius.circular(12))),
             onPressed: _ctrl.isSubmitting.value ? null : () async {
               final msg = textCtrl.text.trim();
               if (msg.isEmpty) return;
@@ -799,7 +799,7 @@ class _ReviewsViewState extends State<ReviewsView> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626), foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10))),
+                  borderRadius: BorderRadius.circular(12))),
             onPressed: () async {
               final reason = reasonCtrl.text.trim();
               if (reason.isEmpty) return;

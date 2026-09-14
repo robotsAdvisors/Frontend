@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/services/http/api_client.dart';
 import '../../../routes/app_pages.dart';
@@ -91,14 +93,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   }
 
   void _showError(String msg) {
-    Get.snackbar(
-      'Error',
-      msg,
-      backgroundColor: Colors.red.shade400,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
+    CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: msg,
     );
   }
 
@@ -209,7 +206,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _saving
                     ? const SizedBox(

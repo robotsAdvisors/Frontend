@@ -76,7 +76,7 @@ class CustomerPointsView extends GetView<CustomerPointsController> {
               backgroundColor: _purple,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.tune, size: 18),
             label: const Text('Ajustar puntos',
@@ -351,7 +351,7 @@ class _AdjustDialogState extends State<_AdjustDialog> {
               backgroundColor: retira ? Colors.red : Colors.green,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Get.back(result: true),
             child: Text(retira ? 'Confirmar retiro' : 'Confirmar',
@@ -429,7 +429,7 @@ class _AdjustDialogState extends State<_AdjustDialog> {
                 backgroundColor: const Color(0xFF7C3AED),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: widget.controller.isAdjusting.value ? null : _submit,
               child: widget.controller.isAdjusting.value

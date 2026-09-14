@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/redemption_code_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
@@ -280,7 +282,7 @@ class _IncidenciasViewState extends State<IncidenciasView> {
                     backgroundColor: _purple, foregroundColor: Colors.white,
                     minimumSize: const Size(44, 44),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                   ),
                   onPressed: () => _ctrl.previewRedemptionCodeCode(_codeCtrl.text.trim()),
@@ -712,10 +714,10 @@ class _IncidenciasViewState extends State<IncidenciasView> {
     final redemptionCode = _ctrl.previewedRedemptionCode.value;
     if (redemptionCode == null) return;
     if (_notesCtrl.text.trim().isEmpty) {
-      Get.snackbar('Campo requerido', 'Describe el problema antes de enviar',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.white,
-          colorText: _dark);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Campo requerido',
+      message: 'Describe el problema antes de enviar',
+    );
       return;
     }
     setState(() => _isSubmitting = true);

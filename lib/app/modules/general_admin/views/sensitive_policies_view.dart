@@ -148,7 +148,7 @@ class SensitivePoliciesView extends GetView<GeneralAdminController> {
           backgroundColor: _purple,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
     ]);
@@ -526,7 +526,7 @@ class SensitivePoliciesView extends GetView<GeneralAdminController> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(policy == null ? 'Crear' : 'Guardar',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),

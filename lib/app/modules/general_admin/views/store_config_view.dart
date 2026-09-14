@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/store_model.dart';
@@ -583,7 +585,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 10),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                   textStyle: const TextStyle(fontSize: 13),
                   elevation: 0,
                 ),
@@ -828,7 +830,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                   textStyle: const TextStyle(fontSize: 13),
                 ),
                 child: const Text('Regenerar PIN'),
@@ -941,7 +943,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
             foregroundColor: const Color(0xFF374151),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(12)),
             textStyle: const TextStyle(fontSize: 14),
           ),
           child: const Text('Descartar'),
@@ -958,7 +960,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
               padding: const EdgeInsets.symmetric(
                   horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
               textStyle: const TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w600),
               elevation: 0,
@@ -1046,9 +1048,10 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
 
   Future<void> _pickBanner() async {
     if (widget.storeId.isEmpty) {
-      Get.snackbar('Selecciona una tienda',
-          'Abre una tienda desde Comercios para subir su banner',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Selecciona una tienda',
+      message: 'Abre una tienda desde Comercios para subir su banner',
+    );
       return;
     }
     final picker = ImagePicker();
@@ -1060,9 +1063,10 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
 
   Future<void> _pickLogo() async {
     if (widget.storeId.isEmpty) {
-      Get.snackbar('Selecciona una tienda',
-          'Abre una tienda desde Comercios para subir su logo',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomSnackBar(
+      title: 'Selecciona una tienda',
+      message: 'Abre una tienda desde Comercios para subir su logo',
+    );
       return;
     }
     final picker = ImagePicker();
@@ -1096,7 +1100,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
               foregroundColor: Colors.white,
               elevation: 0,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text('Regenerar'),
           ),
@@ -1185,7 +1189,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Invitar'),
             ),
@@ -1222,7 +1226,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Eliminar'),
             ),
@@ -1282,7 +1286,7 @@ class _StoreFormBodyState extends State<_StoreFormBody> {
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Guardar'),
             ),

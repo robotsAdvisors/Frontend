@@ -177,7 +177,7 @@ class _ConfigFormState extends State<_ConfigForm> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: widget.controller.isSaving.value ? null : _save,
                 icon: widget.controller.isSaving.value

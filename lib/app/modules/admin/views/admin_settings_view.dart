@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/store_user_model.dart';
@@ -517,7 +519,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
             backgroundColor: _purple, elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)))),
+                borderRadius: BorderRadius.circular(12)))),
       ]),
       const SizedBox(height: 16),
       Container(
@@ -654,7 +656,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                 foregroundColor: _purple, side: const BorderSide(color: _purple),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+                    borderRadius: BorderRadius.circular(12))),
               child: const Text('Cambiar\nPIN',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
@@ -919,7 +921,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+                    borderRadius: BorderRadius.circular(12))),
               onPressed: previewLat == null ? null : () async {
                 Navigator.of(ctx).pop();
                 await _ctrl.saveStoreSettings({
@@ -999,11 +1001,13 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _purple, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10))),
+                  borderRadius: BorderRadius.circular(12))),
             onPressed: () async {
               if (newCtrl.text != confirmCtrl.text) {
-                Get.snackbar('Error', 'Los PINs no coinciden',
-                    snackPosition: SnackPosition.BOTTOM);
+                CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: 'Los PINs no coinciden',
+    );
                 return;
               }
               Navigator.of(ctx).pop();
@@ -1080,7 +1084,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+                    borderRadius: BorderRadius.circular(12))),
               onPressed: () async {
                 final email = emailCtrl.text.trim();
                 if (email.isEmpty) return;
@@ -1106,7 +1110,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10))),
+                    borderRadius: BorderRadius.circular(12))),
               onPressed: () async {
                 Navigator.of(ctx).pop();
                 await _ctrl.removeUser(user.id);

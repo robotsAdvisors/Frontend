@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+
+import 'package:letdem/app/components/custom_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../data/models/category_model.dart';
@@ -127,8 +129,10 @@ class _PremiosViewState extends State<PremiosView> {
   Future<void> _savePanel() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      Get.snackbar('Error', 'El nombre del premio es obligatorio.',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackBar.showCustomErrorSnackBar(
+      title: 'Error',
+      message: 'El nombre del premio es obligatorio.',
+    );
       return;
     }
     setState(() => _isSavingPanel = true);
@@ -983,7 +987,7 @@ class _PremiosViewState extends State<PremiosView> {
                           color: Color(0xFFE5E7EB)),
                       shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(10)),
+                              BorderRadius.circular(12)),
                     ),
                     child: const Text('Cancelar',
                         style: TextStyle(
@@ -1005,7 +1009,7 @@ class _PremiosViewState extends State<PremiosView> {
                           vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(10)),
+                              BorderRadius.circular(12)),
                     ),
                     child: _isSavingPanel
                         ? const SizedBox(
@@ -1413,7 +1417,7 @@ class _PremiosViewState extends State<PremiosView> {
               backgroundColor: Colors.red.shade400,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1446,7 +1450,7 @@ class _PremiosViewState extends State<PremiosView> {
               backgroundColor: _purple,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1794,7 +1798,7 @@ class _PremiosViewState extends State<PremiosView> {
                 backgroundColor: _purple, elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ]),

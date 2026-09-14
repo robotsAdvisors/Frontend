@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/redemption_code_model.dart';
 import '../../../data/services/auth_service.dart';
 import '../../../routes/app_pages.dart';
@@ -267,7 +269,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 18, vertical: 10),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () =>
                     _ctrl.previewRedemptionCodeCode(_codeCtrl.text.trim()),
@@ -333,19 +335,15 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
               side: const BorderSide(color: _purple),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.qr_code_scanner_outlined, size: 18),
             label: const Text('Escanear código',
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-            onPressed: () => Get.snackbar(
-              'Próximamente',
-              'El escáner QR estará disponible en la próxima versión.',
-              snackPosition: SnackPosition.TOP,
-              backgroundColor: Colors.white,
-              colorText: _dark,
-              duration: const Duration(seconds: 2),
-            ),
+            onPressed: () => CustomSnackBar.showCustomSnackBar(
+      title: 'Próximamente',
+      message: 'El escáner QR estará disponible en la próxima versión.',
+    ),
           ),
         ),
         const SizedBox(height: 10),
@@ -359,7 +357,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
                     foregroundColor: Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.clear, size: 16),
                   label: const Text('Limpiar código',
@@ -840,7 +838,7 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
             padding:
                 const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
           icon: const Icon(Icons.add_circle_outline, size: 16),

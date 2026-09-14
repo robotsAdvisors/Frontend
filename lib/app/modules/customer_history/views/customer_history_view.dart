@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:letdem/app/components/custom_snackbar.dart';
+
 import '../../../data/models/order_model.dart';
 import '../../../data/models/redemption_code_model.dart';
 import '../controllers/customer_history_controller.dart';
@@ -291,16 +293,20 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
                   label: 'Add to Apple Wallet',
                   icon: Icons.account_balance_wallet_outlined,
                   filled: true,
-                  onTap: () => Get.snackbar(
-                      'Próximamente', 'Add to Wallet estará disponible pronto.'),
+                  onTap: () => CustomSnackBar.showCustomSnackBar(
+      title: 'Próximamente',
+      message: 'Add to Wallet estará disponible pronto.',
+    ),
                 ),
                 const SizedBox(height: 10),
                 _fullButton(
                   label: 'Download PDF Receipt',
                   icon: Icons.download_outlined,
                   filled: false,
-                  onTap: () => Get.snackbar(
-                      'Próximamente', 'Descarga de PDF estará disponible pronto.'),
+                  onTap: () => CustomSnackBar.showCustomSnackBar(
+      title: 'Próximamente',
+      message: 'Descarga de PDF estará disponible pronto.',
+    ),
                 ),
               ],
             ),
@@ -427,7 +433,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
             )
@@ -442,7 +448,7 @@ class CustomerHistoryView extends GetView<CustomerHistoryController> {
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: _purple, width: 1.5),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
     );

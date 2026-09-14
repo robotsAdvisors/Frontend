@@ -282,7 +282,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     : const Color(0xFFDC2626),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
             )),
         const SizedBox(width: 8),
@@ -296,7 +296,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             backgroundColor: _purple,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ],
@@ -433,7 +433,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Enviar', style: TextStyle(fontSize: 12)),
             ),
@@ -553,7 +553,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _purple,
                       side: const BorderSide(color: _purple),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text('Cambiar Plan',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -566,7 +566,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFDC2626),
                       side: const BorderSide(color: Color(0xFFDC2626)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text('Cancelar',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -836,7 +836,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     foregroundColor: _purple,
                     side: const BorderSide(color: _purple),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Reiniciar',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
@@ -847,7 +847,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     foregroundColor: const Color(0xFF059669),
                     side: const BorderSide(color: Color(0xFF059669)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Aprobar',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
@@ -858,7 +858,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     foregroundColor: const Color(0xFFDC2626),
                     side: const BorderSide(color: Color(0xFFDC2626)),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Rechazar',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
@@ -940,7 +940,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF059669),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Restaurar Cuenta',
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -957,7 +957,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFDC2626),
                   side: const BorderSide(color: Color(0xFFDC2626)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('Desactivar Cuenta',
                     style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
@@ -1200,7 +1200,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Auditar',
                       style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
@@ -1234,7 +1234,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: action == 'restart' ? _purple : const Color(0xFF059669),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1284,7 +1284,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1333,7 +1333,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1364,7 +1364,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF059669),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1416,7 +1416,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
               backgroundColor: user.isSuspended ? Colors.green : const Color(0xFFDC2626),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1477,7 +1477,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: _purple, foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () async {
                 Navigator.of(ctx).pop();
@@ -1549,7 +1549,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
             style: ElevatedButton.styleFrom(
               backgroundColor: _purple, foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -1601,7 +1601,7 @@ class UserDetailView extends GetView<GeneralAdminController> {
               backgroundColor: _purple,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               final reason = reasonCtrl.text.trim();
