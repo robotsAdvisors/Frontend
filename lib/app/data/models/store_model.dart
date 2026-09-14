@@ -14,6 +14,10 @@ class StoreModel {
   final String billingEmail;
   final String billingPhone;
   final String pin;
+
+  /// Si la tienda tiene PIN de mostrador. El PIN en si no viaja (se guarda con
+  /// hash); esto solo dice si hay que pedirlo antes de validar un canje.
+  final bool requiresPin;
   final DateTime createdAt;
   // Nuevos campos del backend
   final String banner;
@@ -52,6 +56,7 @@ class StoreModel {
     required this.billingEmail,
     required this.billingPhone,
     required this.pin,
+    this.requiresPin = false,
     required this.createdAt,
     this.banner = '',
     this.email = '',
@@ -130,6 +135,8 @@ class StoreModel {
       billingEmail: (json['billing_email'] ?? json['billingEmail'] ?? json['email'] ?? '').toString(),
       billingPhone: (json['phone_number'] ?? json['phoneNumber'] ?? json['phone'] ?? '').toString(),
       pin: (json['pin'] ?? '').toString(),
+      requiresPin:
+          json['requires_pin'] == true || (json['pin'] ?? '').toString().isNotEmpty,
       createdAt: DateTime.tryParse(
               (json['created_at'] ?? json['createdAt'] ?? json['created'] ?? '')
                   .toString()) ??
@@ -190,6 +197,7 @@ class StoreModel {
         billingEmail: billingEmail,
         billingPhone: billingPhone,
         pin: pin,
+        requiresPin: requiresPin,
         createdAt: createdAt,
         banner: banner ?? this.banner,
         email: email,

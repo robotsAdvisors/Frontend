@@ -64,6 +64,65 @@ class MyTheme {
         // icon theme
         iconTheme: MyStyles.getIconTheme(isLightTheme: isLight),
 
+        // Pop-ups. Los dialogos usaban los botones por defecto de Material:
+        // un "Cancelar" gris diminuto pegado a un boton de accion con estilo
+        // distinto en cada pantalla. Al vivir aqui, el arreglo alcanza a todos
+        // los AlertDialog sin tocarlos uno a uno.
+        dialogTheme: DialogThemeData(
+          backgroundColor: surface,
+          elevation: 12,
+          shadowColor: Colors.black.withValues(alpha: 0.18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          titleTextStyle: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: onSurface,
+          ),
+          contentTextStyle: TextStyle(
+            fontSize: 14,
+            height: 1.5,
+            color: isLight
+                ? LightThemeColors.bodyTextColor
+                : DarkThemeColors.bodyTextColor,
+          ),
+          insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24, vertical: 24),
+          actionsPadding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+        ),
+
+        // El boton secundario de los dialogos ("Cancelar", "Cerrar"): con
+        // cuerpo suficiente para pulsarlo, no un texto suelto.
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: isLight
+                ? LightThemeColors.bodyTextColor
+                : DarkThemeColors.bodyTextColor,
+            textStyle: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: primary,
+            side: BorderSide(color: primary.withValues(alpha: 0.5)),
+            textStyle: const TextStyle(
+                fontSize: 14, fontWeight: FontWeight.w600),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 20, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+
         // card theme
         cardTheme: CardThemeData(
           color: surface,

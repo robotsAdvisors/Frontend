@@ -418,6 +418,39 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
               padding: const EdgeInsets.only(top: 6),
               child: Text(err, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626))));
           }),
+
+          // El PIN, junto al codigo y visible desde el principio. Estaba en el
+          // panel derecho y solo aparecia DESPUES de buscar un canje, asi que
+          // quien llegaba a validar no encontraba donde meterlo.
+          if (_ctrl.currentStore.requiresPin) ...[
+            const SizedBox(height: 16),
+            const Text('PIN DE LA TIENDA',
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
+                    color: Colors.grey, letterSpacing: 0.8)),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE5E7EB))),
+              child: TextField(
+                controller: _pinCtrl,
+                obscureText: true,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                    letterSpacing: 3, color: Color(0xFF111827)),
+                decoration: const InputDecoration.collapsed(
+                    hintText: '••••',
+                    hintStyle: TextStyle(color: Colors.grey,
+                        fontWeight: FontWeight.normal, fontSize: 13)),
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Tu tienda exige PIN para validar en el mostrador. Se cambia en Ajustes.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
           const SizedBox(height: 16),
           // ── Acciones de escaneo / pago ────────────────────────────────────
           Row(children: [
@@ -729,25 +762,6 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
                   ],
                 ],
                 const SizedBox(height: 20),
-                // El PIN acredita que la validacion se hace en el mostrador.
-                // Solo se pide si esta tienda lo exige.
-                if (redemptionCode.storeRequiresPin) ...[
-                  TextField(
-                    controller: _pinCtrl,
-                    obscureText: true,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'PIN de la tienda',
-                      helperText:
-                          'Tu tienda exige PIN para validar en el mostrador.',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
                 // ── Confirmar canje button ──────────────────────────
                 Obx(() => SizedBox(
                   width: double.infinity,

@@ -165,13 +165,17 @@ class MyStyles {
         style: ButtonStyle(
           shape: WidgetStateProperty.all<RoundedRectangleBorder>(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(6.r),
-              //side: BorderSide(color: Colors.teal, width: 2.0),
+              // 6 px dejaba unas esquinas casi rectas que desentonaban con el
+              // resto de la interfaz (tarjetas y campos van a 12-16).
+              borderRadius: BorderRadius.circular(12.r),
             ),
           ),
           elevation: WidgetStateProperty.all(0),
-          padding:
-              WidgetStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.symmetric(vertical: 8.h)),
+          // Solo alto y sin ancho: en los dialogos salian botones estrechos y
+          // apretados contra el texto.
+          padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+            EdgeInsets.symmetric(vertical: 14.h, horizontal: 22.w),
+          ),
           textStyle: getElevatedButtonTextStyle(isLightTheme),
           backgroundColor: WidgetStateProperty.resolveWith<Color>(
             (Set<WidgetState> states) {
