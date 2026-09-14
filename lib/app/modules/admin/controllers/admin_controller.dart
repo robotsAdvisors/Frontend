@@ -529,8 +529,14 @@ class AdminController extends GetxController {
   Map<String, dynamic> _normalizeActivityEvent(Map<String, dynamic> event) {
     final type = (event['type'] ?? '').toString();
     final title = (event['title'] ?? '').toString();
-    final description = (event['description'] ?? event['body'] ?? '').toString();
-    final ts = event['timestamp'] ?? event['created_at'];
+    // `message` es lo que mandaban las actividades antiguas; se mantiene como
+    // respaldo para no depender de que el backend este ya actualizado.
+    final description =
+        (event['description'] ?? event['body'] ?? event['message'] ?? '')
+            .toString();
+    // El backend manda `time`. Buscando solo `timestamp` o `created_at` -que
+    // no existen en su contrato- la hora salia vacia en todas las lineas.
+    final ts = event['time'] ?? event['timestamp'] ?? event['created_at'];
     final timeLabel = ts != null ? _relativeTime(DateTime.tryParse(ts.toString())) : '';
 
     String color;

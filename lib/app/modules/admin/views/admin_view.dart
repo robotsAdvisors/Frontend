@@ -941,8 +941,6 @@ class _AdminViewState extends State<AdminView> {
         return Colors.orange;
       case 'grey':
         return Colors.grey;
-      case 'red':
-        return const Color(0xFFDC2626);
       default:
         return _purple;
     }
