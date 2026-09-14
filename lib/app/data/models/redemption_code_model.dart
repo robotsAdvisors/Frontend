@@ -168,19 +168,39 @@ class RedemptionCodeModel {
           : int.tryParse('${json['points_used']}') ?? 0,
       redeemType: (json['redeem_type'] ?? 'ONLINE').toString(),
       qrCode: json['qr_code']?.toString(),
-      productName: product is Map ? product['name']?.toString() : null,
-      productSku: product is Map ? product['sku']?.toString() : null,
-      productImageUrl: product is Map
-          ? (product['image'] ?? product['image_url'] ?? product['thumbnail'])?.toString()
-          : null,
-      storeName: store is Map ? store['name']?.toString() : null,
-      customerName: user is Map
-          ? (user['name'] ?? user['full_name'] ?? user['username'] ?? user['email'] ?? '').toString()
-          : null,
-      customerEmail: user is Map ? user['email']?.toString() : null,
-      customerAlias: user is Map
-          ? (user['alias'] ?? user['username'])?.toString()
-          : null,
+      // El backend manda estos datos PLANOS (`user_name`, `product_name`...) y
+      // `user`/`product` como ids. Leyendolos solo cuando venian anidados,
+      // nada casaba y el panel mostraba "Cliente desconocido" y "Producto
+      // desconocido" en todos los canjes. Se lee lo plano primero y lo
+      // anidado como respaldo.
+      productName: (json['product_name'] ??
+              (product is Map ? product['name'] : null))
+          ?.toString(),
+      productSku: (json['product_sku'] ??
+              (product is Map ? product['sku'] : null))
+          ?.toString(),
+      productImageUrl: (json['product_image'] ??
+              json['product_image_url'] ??
+              (product is Map
+                  ? (product['image'] ?? product['image_url'] ?? product['thumbnail'])
+                  : null))
+          ?.toString(),
+      storeName: (json['store_name'] ??
+              (store is Map ? store['name'] : null))
+          ?.toString(),
+      customerName: (json['user_name'] ??
+              json['customer_name'] ??
+              (user is Map
+                  ? (user['name'] ?? user['full_name'] ?? user['username'] ?? user['email'])
+                  : null) ??
+              json['user_email'])
+          ?.toString(),
+      customerEmail: (json['user_email'] ??
+              (user is Map ? user['email'] : null))
+          ?.toString(),
+      customerAlias: (json['user_alias'] ??
+              (user is Map ? (user['alias'] ?? user['username']) : null))
+          ?.toString(),
       customerBadge: user is Map
           ? (user['badge'] ?? user['tier'] ?? user['loyalty_badge'] ?? user['loyalty_level'])?.toString()
           : null,
