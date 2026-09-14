@@ -952,50 +952,139 @@ class _AdminViewState extends State<AdminView> {
 
   void _showValidateRedemptionCodeDialog(BuildContext context) {
     final codeCtrl = TextEditingController();
+    final pinCtrl = TextEditingController();
+    final errorText = ValueNotifier<String?>(null);
+    final pidePin = _ctrl.currentStore.requiresPin;
+
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Validar canje'),
-        content: Column(
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Ingresa el código de canje:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: codeCtrl,
-              decoration: InputDecoration(
-                hintText: 'Ej: VCH-123456',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              autofocus: true,
+            const Text('Validar canje'),
+            const SizedBox(height: 6),
+            Text(
+              'Introduce el código que el cliente enseña en su app. El canje '
+              'queda en proceso; los puntos se descuentan al entregar.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.4, fontWeight: FontWeight.w400,
+                  color: Colors.grey.shade600),
             ),
           ],
+        ),
+        // Ancho comodo: sin el, el dialogo se encogia al contenido y los
+        // botones quedaban apretados contra el borde.
+        content: SizedBox(
+          width: 380,
+          child: ValueListenableBuilder<String?>(
+            valueListenable: errorText,
+            builder: (ctx, error, _) => Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text('CÓDIGO DE CANJE',
+                    style: TextStyle(
+                        fontSize: 11, fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8, color: Colors.grey.shade600)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: codeCtrl,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.characters,
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w600,
+                      letterSpacing: 1),
+                  // El ejemplo decia "VCH-123456", un prefijo que ya no se usa:
+                  // los codigos son LETDEM-xxxxx.
+                  decoration: const InputDecoration(hintText: 'LETDEM-12345'),
+                  onSubmitted: (_) => _validarDesdeDialogo(
+                      ctx, codeCtrl, pinCtrl, pidePin, errorText),
+                ),
+                if (pidePin) ...[
+                  const SizedBox(height: 16),
+                  Text('PIN DE LA TIENDA',
+                      style: TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8, color: Colors.grey.shade600)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: pinCtrl,
+                    obscureText: true,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600,
+                        letterSpacing: 4),
+                    decoration: const InputDecoration(hintText: '••••'),
+                    onSubmitted: (_) => _validarDesdeDialogo(
+                        ctx, codeCtrl, pinCtrl, pidePin, errorText),
+                  ),
+                  const SizedBox(height: 6),
+                  Text('Tu tienda exige PIN para validar en el mostrador.',
+                      style: TextStyle(
+                          fontSize: 11, color: Colors.grey.shade600)),
+                ],
+                if (error != null) ...[
+                  const SizedBox(height: 14),
+                  Row(children: [
+                    const Icon(Icons.error_outline,
+                        size: 16, color: Color(0xFFDC2626)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(error,
+                          style: const TextStyle(
+                              fontSize: 13, color: Color(0xFFDC2626))),
+                    ),
+                  ]),
+                ],
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
               child: const Text('Cancelar')),
+          const SizedBox(width: 4),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: _purple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () async {
-              final code = codeCtrl.text.trim();
-              if (code.isEmpty) return;
-              Navigator.of(ctx).pop();
-              await _ctrl.validateRedemptionCodeCode(code);
-            },
+              backgroundColor: _purple, foregroundColor: Colors.white),
+            onPressed: () => _validarDesdeDialogo(
+                ctx, codeCtrl, pinCtrl, pidePin, errorText),
             child: const Text('Validar'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _validarDesdeDialogo(
+    BuildContext ctx,
+    TextEditingController codeCtrl,
+    TextEditingController pinCtrl,
+    bool pidePin,
+    ValueNotifier<String?> errorText,
+  ) async {
+    final code = codeCtrl.text.trim();
+    // Antes, con el campo vacio el boton no hacia absolutamente nada: ni
+    // validaba ni decia por que.
+    if (code.isEmpty) {
+      errorText.value = 'Escribe el código que enseña el cliente.';
+      return;
+    }
+    // Y validaba SIN PIN, asi que en una tienda con PIN siempre respondia
+    // "PIN de tienda incorrecto" sin que hubiera donde escribirlo.
+    if (pidePin && pinCtrl.text.trim().isEmpty) {
+      errorText.value = 'Tu tienda exige PIN para validar.';
+      return;
+    }
+    Navigator.of(ctx).pop();
+    await _ctrl.validateRedemptionCodeCode(code, pin: pinCtrl.text.trim());
   }
 
   void _confirmLogout(BuildContext context) {
