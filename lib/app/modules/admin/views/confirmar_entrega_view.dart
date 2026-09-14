@@ -792,6 +792,10 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
   // ─── SUCCESS BANNER ───────────────────────────────────────────────────────
 
   Widget _successBanner() {
+    // La entrega la firman las dos partes; si el cliente aun no ha confirmado,
+    // cantar "entrega confirmada" y "puntos consumidos" seria mentira.
+    final esperando = _ctrl.ultimaEntregaEsperaAlCliente;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(28),
@@ -805,18 +809,21 @@ class _ConfirmarEntregaViewState extends State<ConfirmarEntregaView> {
           width: 64, height: 64,
           decoration: BoxDecoration(
               color: _green, borderRadius: BorderRadius.circular(32)),
-          child:
-              const Icon(Icons.check, size: 32, color: Colors.white),
+          child: Icon(esperando ? Icons.hourglass_bottom : Icons.check,
+              size: 32, color: Colors.white),
         ),
         const SizedBox(height: 16),
-        const Text('¡Entrega confirmada!',
-            style: TextStyle(
+        Text(esperando ? 'Falta el cliente' : '¡Entrega confirmada!',
+            style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.w800, color: _green)),
         const SizedBox(height: 6),
-        const Text(
-          'El canje se entregó y los puntos del cliente se consumieron.',
+        Text(
+          esperando
+              ? 'Tu firma está registrada. El canje se cierra —y los puntos se '
+                  'consumen— cuando el cliente confirme la recogida desde su app.'
+              : 'El canje se entregó y los puntos del cliente se consumieron.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: Colors.grey),
+          style: const TextStyle(fontSize: 13, color: Colors.grey),
         ),
         const SizedBox(height: 20),
         ElevatedButton.icon(

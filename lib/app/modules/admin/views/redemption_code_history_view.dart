@@ -832,20 +832,6 @@ class _RedemptionCodeHistoryViewState extends State<RedemptionCodeHistoryView> {
   }
 
 
-
-  Widget _payResultRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(children: [
-        Text('$label: ',
-            style: const TextStyle(fontSize: 13, color: Colors.grey)),
-        Expanded(child: Text(value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            overflow: TextOverflow.ellipsis)),
-      ]),
-    );
-  }
-
   Widget _imagePlaceholder() {
     return Container(
       height: 200, width: double.infinity,

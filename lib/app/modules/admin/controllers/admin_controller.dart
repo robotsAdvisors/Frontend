@@ -980,15 +980,26 @@ class AdminController extends GetxController {
 
   /// Paso 2 del mostrador (ST-CJ-03): entregar. El código pasa a DELIVERED y el
   /// backend consume los puntos bloqueados. Falla con 400 si no se validó antes.
+  /// True mientras la ultima entrega firmada por la tienda siga esperando la
+  /// confirmacion del cliente. La entrega la firman las dos partes: hasta que
+  /// el cliente confirme desde su app, los puntos siguen retenidos.
+  bool ultimaEntregaEsperaAlCliente = false;
+
   Future<bool> deliverRedemptionCodeCode(String redemptionCodeId) async {
     try {
       final result = await _repo.deliverRedemptionCode(redemptionCodeId);
       if (result != null) {
+        ultimaEntregaEsperaAlCliente = result['awaiting_customer'] == true;
         _applyRedemptionCodeResult(result);
         await _loadFromBackend();
         CustomSnackBar.showCustomSnackBar(
-          title: 'Entrega confirmada',
-          message: 'El canje se entregó y los puntos se consumieron.',
+          title: ultimaEntregaEsperaAlCliente
+              ? 'Falta que confirme el cliente'
+              : 'Entrega confirmada',
+          message: ultimaEntregaEsperaAlCliente
+              ? 'Tu firma está registrada. El canje se cierra cuando el cliente '
+                  'confirme la recogida desde su app.'
+              : 'El canje se entregó y los puntos se consumieron.',
         );
         return true;
       }
