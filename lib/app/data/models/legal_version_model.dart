@@ -4,6 +4,9 @@ class LegalVersionModel {
   final String documentName;
   final String title;
   final String summary;
+  /// El texto completo en Markdown. Vacio en el listado: solo viene al
+  /// pedir el documento suelto.
+  final String content;
   final String articleNumber;
   final String description;
   final String currentVersion;
@@ -19,6 +22,7 @@ class LegalVersionModel {
     required this.documentName,
     required this.title,
     required this.summary,
+    this.content = '',
     required this.articleNumber,
     required this.description,
     required this.currentVersion,
@@ -36,6 +40,7 @@ class LegalVersionModel {
       documentName: (json['document_name'] ?? json['title'] ?? '').toString(),
       title: (json['title'] ?? json['document_name'] ?? '').toString(),
       summary: (json['summary'] ?? json['description'] ?? '').toString(),
+      content: (json['content'] ?? '').toString(),
       articleNumber: (json['article_number'] ?? '').toString(),
       description: (json['description'] ?? json['summary'] ?? '').toString(),
       currentVersion: (json['version'] ?? json['current_version'] ?? '1.0').toString(),
@@ -53,6 +58,7 @@ class LegalVersionModel {
     'document_name': documentName,
     'title': title,
     'summary': summary,
+    'content': content,
     'article_number': articleNumber,
     'description': description,
     'version': currentVersion,

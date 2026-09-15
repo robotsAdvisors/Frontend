@@ -935,6 +935,24 @@ class GeneralAdminController extends GetxController {
     }
   }
 
+  /// Guarda el texto revisado de un documento legal.
+  ///
+  /// Hasta ahora el panel solo sabia activar una version: el texto se seguia
+  /// escribiendo a mano contra la base de datos.
+  Future<bool> saveLegalDocumentContent(String documentId, String content) async {
+    try {
+      await _repo.updateLegalDocument(documentId, content: content);
+      CustomSnackBar.showCustomSnackBar(
+          title: 'Legal', message: 'Texto del documento guardado');
+      await loadLegalConsents();
+      return true;
+    } catch (e) {
+      CustomSnackBar.showCustomErrorSnackBar(
+          title: 'Error', message: e.toString());
+      return false;
+    }
+  }
+
   Future<void> createLegalDocument({
     required String documentType,
     required String version,

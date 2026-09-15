@@ -422,26 +422,136 @@ class LegalConsentsView extends GetView<GeneralAdminController> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis),
           ],
-          if (!v.isActive) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(
               child: OutlinedButton(
-                onPressed: () => controller.activateLegalDocument(v.id),
+                onPressed: () => _abrirTextoDelDocumento(v),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: _purple,
-                  side: const BorderSide(color: _purple),
+                  foregroundColor: _dark,
+                  side: const BorderSide(color: _border),
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Activar',
+                child: const Text('Ver texto',
                     style: TextStyle(
                         fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ),
-          ],
+            if (!v.isActive) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => controller.activateLegalDocument(v.id),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _purple,
+                    side: const BorderSide(color: _purple),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Activar',
+                      style: TextStyle(
+                          fontSize: 11, fontWeight: FontWeight.w600)),
+                ),
+              ),
+            ],
+          ]),
         ],
+      ),
+    );
+  }
+
+  /// El texto completo del documento, editable.
+  ///
+  /// Es el unico sitio desde el que se puede revisar lo que el usuario acepta:
+  /// antes solo se podia activar una version, sin ver lo que decia.
+  void _abrirTextoDelDocumento(LegalVersionModel v) {
+    final texto = TextEditingController(text: v.content);
+    final guardando = false.obs;
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 820, maxHeight: 640),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      v.title.isNotEmpty ? v.title : v.documentName,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700, color: _dark),
+                    ),
+                  ),
+                  _badge(
+                    'v${v.currentVersion}',
+                    Colors.grey.shade700,
+                    const Color(0xFFF3F4F6),
+                  ),
+                ]),
+                const SizedBox(height: 4),
+                const Text(
+                  'Markdown. Es lo que lee el usuario en la app.',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: TextField(
+                    controller: texto,
+                    maxLines: null,
+                    expands: true,
+                    textAlignVertical: TextAlignVertical.top,
+                    style: const TextStyle(
+                        fontSize: 12, fontFamily: 'monospace', height: 1.5),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Este documento todavia no tiene texto.',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Obx(() => Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed:
+                              guardando.value ? null : () => Get.back<void>(),
+                          child: const Text('Cerrar'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: guardando.value
+                              ? null
+                              : () async {
+                                  guardando.value = true;
+                                  final ok = await controller
+                                      .saveLegalDocumentContent(
+                                          v.id, texto.text);
+                                  guardando.value = false;
+                                  if (ok) Get.back<void>();
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _purple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                              guardando.value ? 'Guardando...' : 'Guardar'),
+                        ),
+                      ],
+                    )),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

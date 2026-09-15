@@ -1562,6 +1562,7 @@ class MarketplaceRepository {
     required String version,
     required String title,
     required String summary,
+    String content = '',
     bool activateImmediately = false,
   }) async {
     try {
@@ -1572,6 +1573,7 @@ class MarketplaceRepository {
           'version': version,
           'title': title,
           'summary': summary,
+          'content': content,
           'is_active': activateImmediately,
         },
       );
@@ -1585,12 +1587,21 @@ class MarketplaceRepository {
   }
 
   /// PATCH /admin/legal/documents/{id}/ - Actualizar documento (ej: activar)
-  Future<LegalVersionModel?> updateLegalDocument(String id, {bool? isActive}) async {
+  Future<LegalVersionModel?> updateLegalDocument(
+    String id, {
+    bool? isActive,
+    String? content,
+    String? summary,
+    String? title,
+  }) async {
     try {
       final response = await _dio.patch(
         '${ApiConfig.adminLegalDocuments}$id/',
         data: {
           if (isActive != null) 'is_active': isActive,
+          if (content != null) 'content': content,
+          if (summary != null) 'summary': summary,
+          if (title != null) 'title': title,
         },
       );
       if (response.statusCode == 200 && response.data is Map) {
